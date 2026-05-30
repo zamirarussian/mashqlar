@@ -583,7 +583,7 @@ async def handle_audio(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if user.id not in pending_audio:
         await update.message.reply_text("Avval /upload_audio LEVEL DAY buyrug'ini yuboring.")
         return
-    audio = update.message.audio or update.message.voice
+    audio = update.message.audio or update.message.voice or update.message.document
     if not audio:
         await update.message.reply_text("Audio fayl yuboring.")
         return
@@ -662,7 +662,7 @@ def run_bot():
     bot_app.add_handler(CommandHandler("start", start))
     bot_app.add_handler(CommandHandler("help", help_command))
     bot_app.add_handler(CommandHandler("upload_audio", upload_audio_cmd))
-    bot_app.add_handler(MessageHandler(filters.AUDIO | filters.VOICE, handle_audio))
+    bot_app.add_handler(MessageHandler(filters.AUDIO | filters.VOICE | filters.Document.ALL, handle_audio))
     logger.info("Bot ishga tushdi...")
     bot_app.run_polling()
 

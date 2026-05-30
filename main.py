@@ -12,11 +12,11 @@ BOT_TOKEN = os.environ["BOT_TOKEN"]
 WEBAPP_URL = os.environ["WEBAPP_URL"]
 
 # --- Flask app ---
-flask_app = Flask(__name__, static_folder="static")
+flask_app = Flask(__name__, static_folder=".")
 
 @flask_app.route("/")
 def index():
-    return send_from_directory("static", "index.html")
+    return send_from_directory(".", "index.html")
 
 @flask_app.route("/health")
 def health():

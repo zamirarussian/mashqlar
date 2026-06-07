@@ -1,0 +1,1825 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Rus Tili Har Kuni</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;width:100%;overflow:hidden;background:#f5f5f0;}
+body{font-family:'Inter',sans-serif;color:#1a1a1a;}
+.app{width:100%;height:100vh;position:relative;overflow:hidden;}
+.screen{position:absolute;inset:0;display:none;flex-direction:column;background:#f5f5f0;}
+.screen.active{display:flex;}
+
+/* WELCOME */
+#sw{background:linear-gradient(170deg,#0a4a35 0%,#1D9E75 60%,#5DCAA5 100%);justify-content:space-between;padding:60px 24px 36px;}
+.brand-tag{font-size:11px;color:rgba(255,255,255,0.5);letter-spacing:2px;text-transform:uppercase;margin-bottom:28px;}
+.w-title-big{font-size:52px;font-weight:800;line-height:1.0;color:#fff;letter-spacing:-2px;}
+.w-title-sub{font-size:24px;font-weight:400;color:rgba(255,255,255,0.6);margin-bottom:16px;letter-spacing:-0.5px;}
+.w-desc{font-size:14px;color:rgba(255,255,255,0.6);line-height:1.65;margin-bottom:32px;}
+.w-pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:auto;}
+.pill{padding:7px 14px;border-radius:99px;font-size:12px;border:0.5px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.65);background:rgba(255,255,255,0.08);}
+.pill.g{background:rgba(255,255,255,0.18);border-color:rgba(255,255,255,0.4);color:#fff;font-weight:500;}
+.w-btn{width:100%;padding:18px;border-radius:16px;border:none;background:#fff;color:#0a4a35;font-size:16px;font-weight:700;cursor:pointer;margin-top:32px;font-family:'Inter',sans-serif;}
+.w-btn:active{transform:scale(0.98);}
+
+/* HEADER */
+.s-header{padding:52px 20px 16px;flex-shrink:0;background:#f5f5f0;position:relative;}
+.back{display:inline-flex;align-items:center;gap:5px;font-size:13px;color:#999;cursor:pointer;margin-bottom:16px;background:none;border:none;padding:0;}
+.s-title{font-size:22px;font-weight:700;color:#1a1a1a;margin-bottom:4px;letter-spacing:-0.5px;}
+.s-sub{font-size:13px;color:#999;}
+
+/* BOSH SAHIFA */
+#s-home{background:#f5f5f0;}
+.home-top{padding:52px 20px 0;flex-shrink:0;background:#f5f5f0;position:relative;}
+.home-title{font-size:26px;font-weight:800;color:#1a1a1a;margin-bottom:4px;letter-spacing:-0.5px;}
+.home-sub{font-size:13px;color:#999;margin-bottom:20px;}
+.profil-btn{position:absolute;top:52px;right:20px;width:40px;height:40px;border-radius:50%;background:#1a6eff;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;border:none;color:#fff;}
+.home-scroll{overflow-y:auto;flex:1;padding:0 20px 32px;}
+.davomiylik-bar{background:#fff8ec;border:1.5px solid #fad99a;border-radius:14px;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.kurs-card{border-radius:24px;padding:24px;margin-bottom:12px;cursor:pointer;position:relative;overflow:hidden;transition:transform 0.15s;}
+.kurs-card:active{transform:scale(0.98);}
+.kurs-card.a1{background:linear-gradient(135deg,#0a4a35 0%,#1D9E75 100%);}
+.kurs-card.b1{background:linear-gradient(135deg,#1a3a6e 0%,#1a6eff 100%);}
+.kurs-card.tal{background:linear-gradient(135deg,#4a1a6e 0%,#8b5cf6 100%);}
+.kurs-card.fund{background:linear-gradient(135deg,#6e1a1a 0%,#ef4444 100%);}
+.kurs-card.locked{opacity:0.55;}
+.kurs-lock{position:absolute;top:14px;right:16px;background:rgba(0,0,0,0.45);color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:99px;display:none;}
+.kurs-card.locked .kurs-lock{display:block;}
+.kurs-card.locked .kurs-arrow{display:none;}
+.acc-banner{border-radius:16px;padding:12px 16px;margin-bottom:14px;font-size:13px;font-weight:600;display:none;}
+.acc-banner.trial{background:#e6f1fb;color:#0c447c;display:block;}
+.acc-banner.expired{background:#fdecec;color:#a32d2d;display:block;}
+.pay-wrap{padding:40px 24px;text-align:center;}
+.pay-emoji{font-size:54px;margin-bottom:12px;}
+.pay-id{background:#f1f1ee;border-radius:12px;padding:14px;font-size:20px;font-weight:800;letter-spacing:1px;color:#1a1a1a;margin:14px 0;user-select:all;}
+.pay-btn{background:#1D9E75;color:#fff;border:none;border-radius:14px;padding:15px;font-size:15px;font-weight:700;width:100%;cursor:pointer;margin-top:8px;}
+.video-frame{aspect-ratio:16/9;width:100%;background:#000;border-radius:12px;overflow:hidden;margin-bottom:14px;display:flex;align-items:center;justify-content:center;}
+.vtask-title{color:#fff;font-weight:700;font-size:15px;margin:4px 0 8px;}
+.vtask-text{color:#bbb;font-size:13px;line-height:1.5;margin-bottom:10px;white-space:pre-wrap;}
+.pdf-card{background:#1c1c1c;border:1px solid #333;border-radius:12px;padding:12px;display:flex;align-items:center;gap:10px;cursor:pointer;}
+.kurs-badge{font-size:10px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;}
+.kurs-title{font-size:22px;font-weight:800;color:#fff;margin-bottom:6px;letter-spacing:-0.5px;}
+.kurs-desc{font-size:13px;color:rgba(255,255,255,0.6);line-height:1.5;}
+.kurs-emoji{position:absolute;right:20px;top:50%;transform:translateY(-50%);font-size:52px;opacity:0.25;}
+.kurs-arrow{position:absolute;right:20px;bottom:20px;width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;}
+.kurs-prog{margin-top:14px;height:4px;background:rgba(255,255,255,0.2);border-radius:99px;overflow:hidden;}
+.kurs-prog-fill{height:100%;background:rgba(255,255,255,0.8);border-radius:99px;}
+
+/* VIDEOLAR */
+#s-videos{background:#f5f5f0;}
+.videos-scroll{overflow-y:auto;flex:1;padding:0 20px 32px;}
+.video-card{background:#fff;border-radius:18px;padding:18px;margin-bottom:10px;border:1.5px solid #e5e5df;cursor:pointer;display:flex;align-items:center;gap:14px;}
+.video-card:active{transform:scale(0.98);}
+.video-card.done-card{border-color:#a5d9be;background:#f0faf6;}
+.video-thumb{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff;font-size:20px;}
+.video-title{font-size:15px;font-weight:600;color:#1a1a1a;margin-bottom:3px;}
+.video-desc{font-size:12px;color:#999;}
+.v-done{width:26px;height:26px;border-radius:50%;background:#1D9E75;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;}
+.v-arrow{width:26px;height:26px;border-radius:50%;border:1.5px solid #e5e5df;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:14px;}
+
+/* VIDEO PLAYER */
+#s-video{background:#0a0a0a;}
+.video-header{padding:52px 20px 16px;background:#0a0a0a;flex-shrink:0;}
+.video-back{font-size:13px;color:rgba(255,255,255,0.5);cursor:pointer;background:none;border:none;padding:0;margin-bottom:12px;display:flex;align-items:center;gap:5px;}
+.video-title-h{font-size:18px;font-weight:700;color:#fff;margin-bottom:4px;}
+.video-sub-h{font-size:12px;color:rgba(255,255,255,0.35);}
+.video-body{flex:1;display:flex;flex-direction:column;padding:0 20px 24px;}
+.video-placeholder{width:100%;aspect-ratio:16/9;border-radius:16px;background:#1a1a1a;display:flex;flex-direction:column;align-items:center;justify-content:center;margin-bottom:20px;border:1.5px dashed rgba(255,255,255,0.1);}
+.video-done-btn{width:100%;padding:16px;border-radius:14px;border:none;background:#1D9E75;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;margin-top:auto;}
+
+/* KUNLAR */
+#sd{background:#f5f5f0;}
+.days-scroll{overflow-y:auto;flex:1;padding:0 20px 24px;}
+.week-lbl{font-size:11px;color:#bbb;text-transform:uppercase;letter-spacing:0.5px;margin:16px 0 8px;font-weight:600;}
+.days-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+.day-tile{border:1.5px solid #e5e5df;border-radius:14px;padding:16px 14px;cursor:pointer;position:relative;background:#fff;}
+.day-tile:active{transform:scale(0.97);}
+.day-tile.done{background:#f0faf6;border-color:#a5d9be;}
+.day-tile.today{border-color:#1D9E75;background:#f0faf6;}
+.day-tile.locked{opacity:0.3;pointer-events:none;}
+.dt-num{font-size:19px;font-weight:700;color:#1a1a1a;margin-bottom:3px;}
+.dt-lbl{font-size:11px;color:#bbb;}
+.dt-soon{font-size:10px;color:#ccc;margin-top:2px;}
+.dt-check{position:absolute;top:12px;right:12px;width:22px;height:22px;border-radius:50%;background:#1D9E75;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;}
+.dt-fire{position:absolute;top:10px;right:12px;font-size:15px;}
+
+/* MASHQ MENU */
+#se-menu{background:#f5f5f0;}
+.ex-menu-scroll{overflow-y:auto;flex:1;padding:0 20px 32px;}
+.prog-top{display:flex;align-items:center;gap:10px;margin-bottom:16px;}
+.prog-track{flex:1;height:5px;background:#e5e5df;border-radius:99px;overflow:hidden;}
+.prog-fill{height:100%;background:#1D9E75;border-radius:99px;transition:width 0.4s;}
+.prog-pct{font-size:12px;font-weight:600;color:#1D9E75;flex-shrink:0;}
+.mashq-card{background:#fff;border-radius:20px;padding:20px;margin-bottom:12px;border:1.5px solid #e5e5df;cursor:pointer;display:flex;align-items:center;gap:16px;}
+.mashq-card:active{transform:scale(0.98);}
+.mashq-card.done-card{border-color:#a5d9be;background:#f0faf6;}
+.mashq-icon-big{width:56px;height:56px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;}
+.mashq-name{font-size:16px;font-weight:700;color:#1a1a1a;margin-bottom:4px;}
+.mashq-desc{font-size:12px;color:#999;}
+.status-done{width:28px;height:28px;border-radius:50%;background:#1D9E75;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;}
+.status-arrow{width:28px;height:28px;border-radius:50%;border:1.5px solid #e5e5df;display:flex;align-items:center;justify-content:center;color:#ccc;font-size:14px;}
+
+/* MASHQ DETAIL */
+#se-detail{background:#f5f5f0;}
+.ex-detail-scroll{overflow-y:auto;flex:1;padding:0 20px 40px;}
+.ex-done-btn{width:100%;padding:16px;border-radius:14px;border:none;background:#1D9E75;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;margin-top:16px;}
+.ex-done-btn.done-state{background:#d8f2e8;color:#0a5a40;}
+
+/* LUGAT TOPLAMLAR */
+#s-lugat-toplam{background:#f5f5f0;}
+.toplam-scroll{overflow-y:auto;flex:1;padding:0 20px 32px;}
+.toplam-card{background:#fff;border-radius:18px;padding:20px;margin-bottom:10px;border:1.5px solid #e5e5df;cursor:pointer;display:flex;align-items:center;gap:14px;}
+.toplam-card:active{transform:scale(0.98);}
+.toplam-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.toplam-title{font-size:15px;font-weight:700;color:#1a1a1a;margin-bottom:3px;}
+.toplam-sub{font-size:12px;color:#999;}
+.toplam-prog{margin-top:8px;height:4px;background:#f0f0e8;border-radius:99px;overflow:hidden;}
+.toplam-prog-fill{height:100%;background:#1D9E75;border-radius:99px;}
+.tekshir-card{background:linear-gradient(135deg,#1a3a6e,#1a6eff);border-radius:18px;padding:20px;margin-top:8px;cursor:pointer;display:flex;align-items:center;gap:14px;}
+.tekshir-card:active{transform:scale(0.98);}
+
+/* LUGAT LIST */
+#s-lugat-list{background:#f5f5f0;}
+.lugat-list-scroll{overflow-y:auto;flex:1;padding:0 20px 32px;}
+.lugat-item{background:#fff;border-radius:16px;padding:18px;margin-bottom:10px;border:1.5px solid #e5e5df;}
+.li-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;}
+.li-ru{font-size:22px;font-weight:800;color:#1a1a1a;letter-spacing:-0.5px;}
+.li-stress{font-size:12px;color:#bbb;margin-top:2px;}
+.li-flag{font-size:22px;}
+.li-divider{height:1px;background:#f0f0e8;margin:10px 0;}
+.li-uz-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.li-uz{font-size:18px;font-weight:700;color:#1D9E75;}
+.li-section-title{font-size:10px;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.li-ex{font-size:13px;color:#444;line-height:1.55;margin-bottom:3px;}
+.li-ex-uz{font-size:12px;color:#999;line-height:1.5;margin-bottom:8px;}
+.li-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.li-tag{font-size:11px;padding:4px 10px;border-radius:99px;font-weight:500;}
+.li-tag.sin{background:#e0f5ed;color:#0a5a40;}
+.li-tag.ant{background:#fde8e8;color:#7a1a1a;}
+.li-tag.nsv{background:#e8f0fe;color:#1a3a6e;}
+.li-tag.sv{background:#fef3e0;color:#7a4a00;}
+
+/* TEST */
+#s-tekshir,#s-test-result{background:#f5f5f0;}
+.tekshir-wrap{flex:1;display:flex;flex-direction:column;padding:0 20px 20px;}
+.t-prog-row{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-shrink:0;}
+.t-prog-track{flex:1;height:5px;background:#e5e5df;border-radius:99px;overflow:hidden;}
+.t-prog-fill{height:100%;background:#1a6eff;border-radius:99px;transition:width 0.3s;}
+.test-word-card{background:#fff;border-radius:20px;border:1.5px solid #e5e5df;padding:24px;text-align:center;margin-bottom:16px;flex-shrink:0;}
+.test-flag{font-size:24px;margin-bottom:8px;}
+.test-ru{font-size:32px;font-weight:800;color:#1a1a1a;letter-spacing:-1px;margin-bottom:4px;}
+.test-stress{font-size:13px;color:#bbb;}
+.test-options{display:flex;flex-direction:column;gap:10px;flex:1;}
+.test-opt{padding:16px;border-radius:14px;border:1.5px solid #e5e5df;background:#fff;font-size:15px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;color:#1a1a1a;text-align:left;transition:all 0.15s;}
+.test-opt:active{transform:scale(0.98);}
+.test-opt.correct{background:#e0f5ed;border-color:#1D9E75;color:#0a5a40;}
+.test-opt.wrong{background:#fde8e8;border-color:#ef4444;color:#7a1a1a;}
+.test-opt.reveal{background:#e0f5ed;border-color:#1D9E75;color:#0a5a40;}
+.test-opt.disabled{pointer-events:none;}
+.test-next-btn{width:100%;padding:16px;border-radius:14px;border:none;background:#1a6eff;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;margin-top:12px;display:none;flex-shrink:0;}
+.wrong-item{padding:10px 0;border-bottom:1px solid #f0f0e8;display:flex;align-items:center;gap:10px;}
+.wrong-item:last-child{border-bottom:none;}
+.wrong-ru{font-size:15px;font-weight:600;color:#1a1a1a;flex:1;}
+.wrong-uz{font-size:13px;color:#1D9E75;font-weight:500;}
+
+/* PROFIL - Telegram uslubi */
+#sprofil{background:#1a1a2e;overflow:hidden;}
+.profil-scroll{overflow-y:auto;flex:1;}
+.profil-hero{background:linear-gradient(180deg,#1a1a2e 0%,#16213e 100%);padding:52px 20px 24px;flex-shrink:0;}
+.profil-avatar-wrap{display:flex;flex-direction:column;align-items:center;margin-bottom:16px;}
+.profil-ava{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#1a6eff,#0040cc);display:flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:12px;}
+.profil-name{font-size:22px;font-weight:700;color:#fff;text-align:center;}
+.profil-stars{font-size:14px;color:#ffd700;text-align:center;margin-top:4px;}
+.profil-btns-row{display:flex;gap:10px;margin-bottom:4px;}
+.profil-action-btn{flex:1;padding:13px;border-radius:14px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;text-align:center;}
+.profil-action-btn.blue{background:#2a5cdf;color:#fff;border:none;}
+.profil-action-btn.outline{background:transparent;color:#4a8aff;border:1.5px solid #2a3a6e;}
+.profil-body-scroll{background:#f5f5f0;border-radius:28px 28px 0 0;padding:24px 20px 40px;}
+.streak-big-card{background:#fff;border-radius:20px;padding:24px;margin-bottom:14px;border:1.5px solid #e5e5df;text-align:center;}
+.streak-icon-big{font-size:52px;margin-bottom:4px;}
+.streak-num-big{font-size:52px;font-weight:800;color:#1a1a1a;letter-spacing:-2px;}
+.streak-label{font-size:15px;color:#999;margin-top:4px;}
+.calendar-card{background:#fff;border-radius:20px;padding:20px;margin-bottom:14px;border:1.5px solid #e5e5df;}
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.cal-month{font-size:15px;font-weight:700;color:#1a1a1a;}
+.cal-nav{width:32px;height:32px;border-radius:50%;border:1.5px solid #e5e5df;background:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:#999;}
+.cal-days-header{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:8px;}
+.cal-day-lbl{text-align:center;font-size:11px;font-weight:600;color:#bbb;padding:4px 0;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cal-day{width:100%;aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:500;color:#1a1a1a;}
+.cal-day.done{background:#1D9E75;color:#fff;font-weight:700;}
+.cal-day.today{background:#1a6eff;color:#fff;font-weight:700;}
+.cal-day.empty{color:transparent;}
+.cal-day.weekend{color:#ef4444;}
+.cal-day.weekend.done{color:#fff;}
+.stat-row{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;}
+.pstat{background:#fff;border-radius:16px;padding:16px;border:1.5px solid #e5e5df;}
+.pstat-num{font-size:26px;font-weight:800;color:#1a1a1a;margin-bottom:4px;}
+.pstat-lbl{font-size:12px;color:#999;}
+.pstat-num.blue{color:#1a6eff;}
+.pstat-num.green{color:#1D9E75;}
+.pstat-num.amber{color:#b36a00;}
+.profil-back-btn{font-size:13px;color:rgba(255,255,255,0.5);cursor:pointer;background:none;border:none;padding:0;margin-bottom:20px;display:flex;align-items:center;gap:5px;}
+
+/* FORMULA & MASHQLAR */
+.formula-card{background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:8px;border:1.5px solid #e5e5df;}
+.fc-ru{font-size:15px;font-weight:600;color:#1a1a1a;margin-bottom:4px;}
+.fc-uz{font-size:13px;color:#888;}
+.matn-card{background:#fff;border-radius:14px;padding:16px;margin-bottom:8px;border:1.5px solid #e5e5df;}
+.matn-level{font-size:10px;font-weight:700;color:#1D9E75;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.matn-ru{font-size:14px;color:#1a1a1a;line-height:1.75;margin-bottom:10px;}
+.matn-uz{font-size:12px;color:#999;line-height:1.6;}
+.audio-player-card{background:#fff;border-radius:14px;padding:18px;margin-bottom:10px;border:1.5px solid #e5e5df;}
+.audio-play-btn{width:50px;height:50px;border-radius:50%;background:#1D9E75;border:none;cursor:pointer;color:#fff;font-size:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.shadowing-text{font-size:20px;font-weight:700;color:#1a1a1a;line-height:1.35;margin-bottom:6px;}
+.shadowing-uz{font-size:13px;color:#999;line-height:1.5;}
+.vazifa-card{background:#fff;border-radius:14px;padding:16px;margin-bottom:8px;border:1.5px solid #e5e5df;}
+.vaz-num{font-size:10px;font-weight:700;color:#1D9E75;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;}
+.vaz-title{font-size:15px;font-weight:700;color:#1a1a1a;margin-bottom:4px;}
+.vaz-desc{font-size:13px;color:#888;line-height:1.5;}
+.vaz-format{display:inline-block;font-size:11px;padding:3px 10px;border-radius:99px;background:#f0f0e8;color:#888;margin-top:8px;}
+.gram-card{background:#fff;border-radius:14px;padding:16px;margin-bottom:8px;border:1.5px solid #e5e5df;}
+.gram-title{font-size:14px;font-weight:700;color:#1a1a1a;margin-bottom:4px;}
+.gram-sub{font-size:12px;color:#999;margin-bottom:12px;}
+.gram-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.gram-base{font-size:13px;color:#888;min-width:110px;}
+.gram-res{font-size:14px;font-weight:700;color:#1D9E75;}
+.gram-ex-box{margin-top:10px;padding:12px;background:#f0faf6;border-radius:10px;font-size:13px;color:#1a1a1a;line-height:1.5;}
+.stars-row{display:flex;justify-content:center;gap:10px;padding:12px 0;}
+.star{font-size:32px;cursor:pointer;color:#e5e5df;}
+.star.on{color:#b36a00;}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- WELCOME -->
+<div class="screen active" id="sw">
+  <div class="brand-tag">Zamira Russian</div>
+  <div>
+    <div class="w-title-big" id="ui-wtitle">Rus tili</div>
+    <div class="w-title-sub" id="ui-wsub">har kuni</div>
+    <div class="w-desc" id="ui-wdesc">Har kuni 30 daqiqa shug'ullanib 1 oyda begona odam bilan ruscha gapirib boshlang</div>
+    <div class="w-pills">
+      <div class="pill g">🗣 Gapirish</div>
+      <div class="pill g">🎧 Audio mashqlar</div>
+      <div class="pill g">💬 Nutq formulalari</div>
+      <div class="pill g">📖 Lug'at</div>
+      <div class="pill g">📚 Grammatika</div>
+    </div>
+  </div>
+  <button class="w-btn" onclick="show('s-home')">Boshlash →</button>
+</div>
+
+<!-- BOSH SAHIFA -->
+<div class="screen" id="s-home">
+  <div class="home-top">
+    <div class="home-title">Salom! 👋</div>
+    <div class="home-sub">Bugun qaysi kursni o'tasiz?</div>
+    <button class="profil-btn" onclick="show('sprofil')">👤</button>
+  </div>
+  <div class="home-scroll">
+    <div id="accBanner" class="acc-banner"></div>
+    <div class="davomiylik-bar">
+      <span style="font-size:24px;">🔥</span>
+      <div><div style="font-size:11px;color:#999;text-transform:uppercase;letter-spacing:0.5px;font-weight:600;">Davomiylik</div>
+      <div style="display:flex;align-items:baseline;gap:4px;"><span style="font-size:22px;font-weight:700;color:#b36a00;" id="streakNum">0</span><span style="font-size:13px;color:#888;">kun ketma-ket</span></div></div>
+    </div>
+    <div class="kurs-card a1" data-sec="a1" onclick="openKurs('A1-A2')">
+      <div class="kurs-badge">Asosiy kurs</div>
+      <div class="kurs-title" id="ui-clabel">A1 — A2</div>
+      <div class="kurs-desc" id="ui-cdesc">Bilaman lekin gapira olmayman</div>
+      <div class="kurs-prog"><div class="kurs-prog-fill" style="width:5%"></div></div>
+      <div class="kurs-emoji">🔥</div><div class="kurs-arrow">›</div>
+    </div>
+    <div class="kurs-card b1" data-sec="b1" onclick="openKurs('B1-B2')">
+      <div class="kurs-badge">Ilg'or kurs</div>
+      <div class="kurs-title">B1 — B2</div>
+      <div class="kurs-desc">Gapiraman, lekin takomillashtirmoqchiman</div>
+      <div class="kurs-prog"><div class="kurs-prog-fill" style="width:0%"></div></div>
+      <div class="kurs-emoji">⚡</div><div class="kurs-arrow">›</div>
+    </div>
+    <div class="kurs-card tal" data-sec="talaffuz" onclick="openVideos('talaffuz')">
+      <div class="kurs-badge">Video kurs</div>
+      <div class="kurs-title">Talaffuz kursi</div>
+      <div class="kurs-desc">Rus harflari, unlilar, undoshlar va urg'u</div>
+      <div class="kurs-prog"><div class="kurs-prog-fill" style="width:0%"></div></div>
+      <div class="kurs-emoji">🎤</div><div class="kurs-arrow">›</div>
+    </div>
+    <div class="kurs-card fund" data-sec="fundament" onclick="openVideos('fundament')">
+      <div class="kurs-badge">Video kurs</div>
+      <div class="kurs-title">Rus tili fundamenti</div>
+      <div class="kurs-desc">Rod, zamonlar, padejlar va fe'l tuslanishi</div>
+      <div class="kurs-prog"><div class="kurs-prog-fill" style="width:0%"></div></div>
+      <div class="kurs-emoji">📚</div><div class="kurs-arrow">›</div>
+    </div>
+  </div>
+</div>
+
+<!-- VIDEO RO'YXATI -->
+<div class="screen" id="s-paywall">
+  <div class="s-header">
+    <button class="back" onclick="show('s-home')">← Orqaga</button>
+    <div class="s-title">Obuna kerak</div>
+  </div>
+  <div class="pay-wrap">
+    <div class="pay-emoji">🔒</div>
+    <div style="font-size:18px;font-weight:700;margin-bottom:6px;" id="pay-title">Bu bo'lim yopiq</div>
+    <div style="font-size:14px;color:#888;line-height:1.5;">Bepul sinov muddati tugagan. Davom etish uchun o'qituvchiga yozing va quyidagi raqamni yuboring:</div>
+    <div class="pay-id" id="pay-id">—</div>
+    <button class="pay-btn" onclick="payContact()">✍️ O'qituvchiga yozish</button>
+    <div style="font-size:12px;color:#aaa;margin-top:14px;">To'lovdan so'ng dostup beriladi.</div>
+  </div>
+</div>
+
+<div class="screen" id="s-videos">
+  <div class="s-header">
+    <button class="back" onclick="show('s-home')">← Orqaga</button>
+    <div class="s-title" id="videos-title">Talaffuz kursi</div>
+    <div class="s-sub">Videodarslar ro'yxati</div>
+  </div>
+  <div class="videos-scroll" id="videos-list"></div>
+</div>
+
+<!-- VIDEO PLAYER -->
+<div class="screen" id="s-video">
+  <div class="video-header">
+    <button class="video-back" onclick="show('s-videos')">← Orqaga</button>
+    <div class="video-title-h" id="video-title-h">Video</div>
+    <div class="video-sub-h" id="video-sub-h">Kurs</div>
+  </div>
+  <div class="video-body">
+    <div class="video-frame" id="video-frame"></div>
+    <div id="video-task" style="display:none;"></div>
+    <button class="video-done-btn" onclick="markVideoDone()">Ko'rdim ✓</button>
+  </div>
+</div>
+
+<!-- KUNLAR -->
+<div class="screen" id="sd">
+  <div class="s-header">
+    <button class="back" onclick="show('s-home')">← Bosh sahifa</button>
+    <div class="s-title" id="days-title">A1-A2 dasturi</div>
+    <div class="s-sub">60 kunlik kurs</div>
+  </div>
+  <div class="days-scroll"><div id="days-container"></div></div>
+</div>
+
+<!-- MASHQ MENU -->
+<div class="screen" id="se-menu">
+  <div class="s-header">
+    <button class="back" onclick="show('sd')">← Kunlar</button>
+    <div class="s-title" id="ex-menu-title">1-kun mashqlari</div>
+    <div class="s-sub" id="ex-menu-sub">A1-A2</div>
+  </div>
+  <div class="ex-menu-scroll">
+    <div class="prog-top">
+      <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+      <span class="prog-pct" id="prog-pct">0%</span>
+    </div>
+    <div class="mashq-card" id="mc-lugat" onclick="openLugatToplam()">
+      <div class="mashq-icon-big" style="background:#e0f5ed;">📖</div>
+      <div style="flex:1;"><div class="mashq-name" id="lbl-vocab">Lug'at</div><div class="mashq-desc">3 ta to'plam · 30 ta so'z</div></div>
+      <div id="ms-lugat"><div class="status-arrow">›</div></div>
+    </div>
+    <div class="mashq-card" id="mc-formula" onclick="openFormulaMenu()">
+      <div class="mashq-icon-big" style="background:#f0eeff;">💬</div>
+      <div style="flex:1;"><div class="mashq-name" id="lbl-formula">Nutq formulalari</div><div class="mashq-desc">Formulalar, mashq, o'qish matni</div></div>
+      <div id="ms-formula"><div class="status-arrow">›</div></div>
+    </div>
+    <div class="mashq-card" id="mc-audio" onclick="openAudioMenu()">
+      <div class="mashq-icon-big" style="background:#e8f8f0;">🎧</div>
+      <div style="flex:1;"><div class="mashq-name" id="lbl-audio">Audio mashq</div><div class="mashq-desc">Audirovanie + test</div></div>
+      <div id="ms-audio"><div class="status-arrow">›</div></div>
+    </div>
+    <div class="mashq-card" id="mc-gapiruv" onclick="openGapiruvMenu()">
+      <div class="mashq-icon-big" style="background:#e8f5ff;">🗣</div>
+      <div style="flex:1;"><div class="mashq-name" id="lbl-speaking">Gapirish vazifasi</div><div class="mashq-desc">Taqlid, savollar, AI suhbat</div></div>
+      <div id="ms-gapiruv"><div class="status-arrow">›</div></div>
+    </div>
+    <div class="mashq-card" id="mc-grammar" onclick="openExercise('grammar')">
+      <div class="mashq-icon-big" style="background:#fff8e0;">📚</div>
+      <div style="flex:1;"><div class="mashq-name" id="lbl-grammar">Grammatika</div><div class="mashq-desc">3 ta konstruktsiya</div></div>
+      <div id="ms-grammar"><div class="status-arrow">›</div></div>
+    </div>
+    <div class="mashq-card" id="mc-writing" onclick="openWriting()">
+      <div class="mashq-icon-big" style="background:#e8f1ff;">✍️</div>
+      <div style="flex:1;"><div class="mashq-name" id="lbl-writing">Yozish mashqi</div><div class="mashq-desc">Topshiriq + namuna javob</div></div>
+      <div id="ms-writing"><div class="status-arrow">›</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- MASHQ DETAIL -->
+<div class="screen" id="se-detail">
+  <div class="s-header">
+    <button class="back" onclick="show('se-menu')">← Mashqlar</button>
+    <div class="s-title" id="detail-title">Mashq</div>
+    <div class="s-sub" id="detail-sub">1-kun</div>
+  </div>
+  <div class="ex-detail-scroll" id="detail-content"></div>
+</div>
+
+<div class="screen" id="s-writing">
+  <div class="s-header">
+    <button class="back" onclick="show('se-menu')">← Mashqlar</button>
+    <div class="s-title">✍️ Yozish mashqi</div>
+    <div class="s-sub" id="writing-sub">1-kun</div>
+  </div>
+  <div class="ex-detail-scroll">
+    <div class="mat-slot" data-sec="writing" style="margin-bottom:12px;"></div>
+    <div style="background:#fff;border:1.5px solid #e5e5df;border-radius:18px;padding:18px;margin-bottom:14px;">
+      <div style="font-size:12px;color:#999;margin-bottom:6px;">Topshiriq</div>
+      <div id="writing-task" style="font-size:15px;line-height:1.6;color:#1a1a1a;">—</div>
+    </div>
+    <button id="writing-reveal-btn" onclick="revealWritingSample()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px;border-radius:14px;border:1.5px solid #e5e5df;background:#fff;font-size:15px;font-weight:600;color:#1a1a1a;cursor:pointer;font-family:'Inter',sans-serif;">💡 Namuna javobni ko'rish</button>
+    <div id="writing-sample-box" style="display:none;background:#e0f5ed;border:1.5px solid #1D9E75;border-radius:18px;padding:18px;margin-top:14px;">
+      <div style="font-size:12px;font-weight:600;color:#0a5a40;margin-bottom:8px;">✓ Namuna javob</div>
+      <div id="writing-sample" style="font-size:15px;line-height:1.7;color:#0a5a40;white-space:pre-wrap;"></div>
+    </div>
+  </div>
+</div>
+<div class="screen" id="s-lugat-toplam">
+  <div class="s-header">
+    <button class="back" onclick="show('se-menu')">← Mashqlar</button>
+    <div class="s-title">Lug'at</div>
+    <div class="s-sub">To'plam tanlang</div>
+  </div>
+  <div class="toplam-scroll">
+    <div class="mat-slot" data-sec="vocab" style="margin-bottom:12px;"></div>
+    <div class="toplam-card" onclick="openLugatList(0)">
+      <div class="toplam-icon" style="background:#e0f5ed;">📖</div>
+      <div style="flex:1;"><div class="toplam-title">1-to'plam</div><div class="toplam-sub" id="tp-sub-0">1 — 10 ta so'z</div>
+      <div class="toplam-prog"><div class="toplam-prog-fill" id="tp-prog-0" style="width:0%"></div></div></div>
+      <span style="color:#ccc;font-size:20px;">›</span>
+    </div>
+    <div class="toplam-card" onclick="openLugatList(1)">
+      <div class="toplam-icon" style="background:#e8f5ff;">📖</div>
+      <div style="flex:1;"><div class="toplam-title">2-to'plam</div><div class="toplam-sub" id="tp-sub-1">11 — 20 ta so'z</div>
+      <div class="toplam-prog"><div class="toplam-prog-fill" id="tp-prog-1" style="width:0%"></div></div></div>
+      <span style="color:#ccc;font-size:20px;">›</span>
+    </div>
+    <div class="toplam-card" onclick="openLugatList(2)">
+      <div class="toplam-icon" style="background:#fef3e0;">📖</div>
+      <div style="flex:1;"><div class="toplam-title">3-to'plam</div><div class="toplam-sub" id="tp-sub-2">21 — 30 ta so'z</div>
+      <div class="toplam-prog"><div class="toplam-prog-fill" id="tp-prog-2" style="width:0%"></div></div></div>
+      <span style="color:#ccc;font-size:20px;">›</span>
+    </div>
+    <div class="tekshir-card" onclick="openTekshir()">
+      <div class="toplam-icon" style="background:rgba(255,255,255,0.15);">🧠</div>
+      <div style="flex:1;"><div style="font-size:15px;font-weight:700;color:#fff;margin-bottom:3px;">Lug'at boyligini tekshirish</div><div style="font-size:12px;color:rgba(255,255,255,0.6);">Test — 4 variant, 30 ta savol</div></div>
+      <span style="color:rgba(255,255,255,0.4);font-size:20px;">›</span>
+    </div>
+  </div>
+</div>
+
+<!-- LUGAT LIST -->
+<div class="screen" id="s-lugat-list">
+  <div class="s-header">
+    <button class="back" onclick="show('s-lugat-toplam')">← To'plamlar</button>
+    <div class="s-title" id="lugat-list-title">1-to'plam</div>
+    <div class="s-sub" id="lugat-list-sub">1 — 10 ta so'z</div>
+  </div>
+  <div class="lugat-list-scroll" id="lugat-list-content"></div>
+  <div style="padding:0 20px 24px;flex-shrink:0;">
+    <button style="width:100%;padding:15px;border-radius:14px;border:none;background:#1a6eff;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;" onclick="openTekshir()">🧠 Ushbu to'plamni tekshirish</button>
+  </div>
+</div>
+
+<!-- TEST SCREEN -->
+<div class="screen" id="s-tekshir">
+  <div class="s-header">
+    <button class="back" onclick="show('s-lugat-toplam')">← Orqaga</button>
+    <div class="s-title">Lug'at testi</div>
+    <div class="s-sub" id="tekshir-sub">1/30</div>
+  </div>
+  <div class="tekshir-wrap">
+    <div class="t-prog-row">
+      <div class="t-prog-track"><div class="t-prog-fill" id="t-prog-fill" style="width:0%"></div></div>
+      <div style="font-size:13px;color:#999;flex-shrink:0;" id="t-num">1/30</div>
+    </div>
+    <div id="test-content" style="flex:1;display:flex;flex-direction:column;"></div>
+  </div>
+</div>
+
+<!-- TEST NATIJA -->
+<div class="screen" id="s-test-result">
+  <div class="s-header">
+    <button class="back" onclick="show('s-lugat-toplam')">← Orqaga</button>
+    <div class="s-title">Test natijasi</div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:0 20px 32px;">
+    <div style="background:#fff;border-radius:24px;border:1.5px solid #e5e5df;padding:32px 24px;text-align:center;margin-bottom:16px;">
+      <div style="font-size:52px;margin-bottom:8px;" id="result-emoji">🎉</div>
+      <div style="font-size:42px;font-weight:800;color:#1a1a1a;margin-bottom:6px;letter-spacing:-1px;" id="result-score">24/30</div>
+      <div style="font-size:15px;color:#999;" id="result-label">Zo'r natija!</div>
+    </div>
+    <div style="background:#fff;border-radius:16px;border:1.5px solid #e5e5df;padding:16px;margin-bottom:16px;" id="wrong-list"></div>
+    <button style="width:100%;padding:16px;border-radius:14px;border:none;background:#1D9E75;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;" onclick="retryWrong()">Noto'g'rilarni qayta ishlash</button>
+    <button style="width:100%;padding:16px;border-radius:14px;border:1.5px solid #e5e5df;background:#fff;color:#888;font-size:15px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;margin-top:10px;" onclick="show('s-lugat-toplam')">Tugatish</button>
+  </div>
+</div>
+
+<!-- NUTQ FORMULALARI BO'LIMLARI -->
+<div class="screen" id="s-formula-menu">
+  <div class="s-header">
+    <button class="back" onclick="show('se-menu')">← Mashqlar</button>
+    <div class="s-title">Nutq formulalari</div>
+    <div class="s-sub">Bo'lim tanlang</div>
+  </div>
+  <div style="overflow-y:auto;flex:1;padding:0 20px 32px;">
+    <div class="mat-slot" data-sec="formula" style="margin-bottom:12px;"></div>
+    <div class="mashq-card" onclick="openFormulaList()">
+      <div class="mashq-icon-big" style="background:#f0eeff;">💬</div>
+      <div style="flex:1;"><div class="mashq-name">Formulalar ro'yxati</div><div class="mashq-desc">13 ta tayyor ibora</div></div>
+      <div class="status-arrow">›</div>
+    </div>
+    <div class="mashq-card" onclick="openFormulaMashq()">
+      <div class="mashq-icon-big" style="background:#e0f5ed;">✏️</div>
+      <div style="flex:1;"><div class="mashq-name">Mashq</div><div class="mashq-desc">Tarjimadan ruscha tanlang</div></div>
+      <div class="status-arrow">›</div>
+    </div>
+    <div class="mashq-card" onclick="openFormulaMatn()">
+      <div class="mashq-icon-big" style="background:#fff8e0;">📄</div>
+      <div style="flex:1;"><div class="mashq-name">O'qish uchun matn</div><div class="mashq-desc" id="matn-desc">Daraja matnlari</div></div>
+      <div class="status-arrow">›</div>
+    </div>
+  </div>
+</div>
+
+<!-- FORMULALAR KARTOCHKA -->
+<div class="screen" id="s-formula-list">
+  <div class="s-header">
+    <button class="back" onclick="show('s-formula-menu')">← Orqaga</button>
+    <div class="s-title">Formulalar</div>
+    <div class="s-sub" id="fl-sub">1/13</div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;padding:0 20px 20px;">
+    <div class="t-prog-row">
+      <div class="t-prog-track"><div class="t-prog-fill" id="fl-prog" style="width:0%"></div></div>
+      <div style="font-size:13px;color:#999;" id="fl-num">1/13</div>
+    </div>
+    <div style="background:#fff;border-radius:24px;border:1.5px solid #e5e5df;padding:24px;flex:1;display:flex;flex-direction:column;justify-content:center;overflow-y:auto;">
+      <div style="font-size:11px;font-weight:700;color:#1D9E75;text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;">🇷🇺 Nutq formulasi</div>
+      <div style="font-size:26px;font-weight:800;color:#1a1a1a;margin-bottom:8px;line-height:1.2;letter-spacing:-0.5px;" id="fl-ru"></div>
+      <div style="font-size:16px;color:#888;margin-bottom:24px;" id="fl-uz"></div>
+      <div style="height:1.5px;background:#f0f0e8;margin-bottom:16px;"></div>
+      <div style="font-size:11px;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Misollar</div>
+      <div id="fl-examples" style="display:flex;flex-direction:column;gap:10px;"></div>
+    </div>
+    <button style="width:100%;padding:16px;border-radius:14px;border:none;background:#1D9E75;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;margin-top:14px;" id="fl-next-btn" onclick="nextFlCard()">Keyingi →</button>
+  </div>
+</div>
+
+<!-- FORMULA MASHQ -->
+<div class="screen" id="s-formula-mashq">
+  <div class="s-header">
+    <button class="back" onclick="show('s-formula-menu')">← Orqaga</button>
+    <div class="s-title">Mashq</div>
+    <div class="s-sub" id="fm-sub">1/13</div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;padding:0 20px 20px;">
+    <div class="t-prog-row">
+      <div class="t-prog-track"><div class="t-prog-fill" id="fm-prog" style="width:0%"></div></div>
+      <div style="font-size:13px;color:#999;" id="fm-num">1/13</div>
+    </div>
+    <div style="background:#fff;border-radius:20px;border:1.5px solid #e5e5df;padding:24px;flex:1;display:flex;flex-direction:column;justify-content:center;">
+      <div style="font-size:11px;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">O'zbekchasi:</div>
+      <div style="font-size:22px;font-weight:700;color:#1a1a1a;margin-bottom:20px;line-height:1.3;" id="fm-uz"></div>
+      <div style="font-size:11px;font-weight:700;color:#bbb;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Ruscha varianti:</div>
+      <div id="fm-variants" style="display:flex;flex-direction:column;gap:8px;"></div>
+    </div>
+    <button class="test-next-btn" id="fm-next" style="display:none;margin-top:12px;" onclick="nextFmQ()">Keyingi →</button>
+  </div>
+</div>
+
+<!-- O'QISH UCHUN MATN -->
+<div class="screen" id="s-formula-matn">
+  <div class="s-header">
+    <button class="back" onclick="show('s-formula-menu')">← Orqaga</button>
+    <div class="s-title">O'qish uchun matn</div>
+    <div class="s-sub">Matnni o'qing va tushuning</div>
+  </div>
+  <div style="overflow-y:auto;flex:1;padding:0 20px 32px;" id="formula-matn-content">
+  </div>
+</div>
+
+<!-- AUDIO - BITTA OQI M -->
+<div class="screen" id="s-audio-menu">
+  <div class="s-header">
+    <button class="back" onclick="show('se-menu')">← Mashqlar</button>
+    <div class="s-title">Audio mashq</div>
+    <div class="s-sub">Tinglang va tushunib oling</div>
+  </div>
+  <div style="overflow-y:auto;flex:1;padding:0 20px 32px;">
+    <div class="mat-slot" data-sec="audio" style="margin-bottom:12px;"></div>
+    <div style="background:#fff8ec;border:1.5px solid #fad99a;border-radius:14px;padding:14px 16px;margin-bottom:20px;font-size:13px;color:#7a4a00;line-height:1.5;">
+      🎧 Diqqat! Matn ko'rsatilmaydi. Audio diqqat bilan eshiting, keyin savollarga javob bering.
+    </div>
+    <div class="audio-player-card">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
+        <button class="audio-play-btn" id="play-btn" onclick="togglePlay()">▶</button>
+        <div>
+          <div style="font-size:14px;font-weight:600;color:#1a1a1a;">1-kun audio</div>
+          <div style="font-size:12px;color:#bbb;" id="audio-dur">0:00 / 0:00</div>
+        </div>
+      </div>
+      <div style="height:5px;background:#f0f0e8;border-radius:99px;">
+        <div id="audio-prog" style="height:100%;background:#1D9E75;border-radius:99px;width:0%;transition:width 0.1s;"></div>
+      </div>
+      <div style="font-size:12px;color:#999;margin-top:10px;">Bir necha marta tinglashingiz mumkin</div>
+    </div>
+    <button style="width:100%;padding:16px;border-radius:14px;border:none;background:#1D9E75;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;margin-top:8px;" onclick="startAudioTest()">Tushundim — Testni boshlash →</button>
+  </div>
+</div>
+
+<!-- AUDIO TEST -->
+<div class="screen" id="s-audio-test">
+  <div class="s-header">
+    <button class="back" onclick="show('s-audio-menu')">← Orqaga</button>
+    <div class="s-title">Audirovanie testi</div>
+    <div class="s-sub" id="at-sub">1/5</div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;padding:0 20px 20px;">
+    <div class="t-prog-row">
+      <div class="t-prog-track"><div class="t-prog-fill" id="at-prog" style="width:0%"></div></div>
+      <div style="font-size:13px;color:#999;" id="at-num">1/5</div>
+    </div>
+    <div style="background:#fff;border-radius:16px;border:1.5px solid #e5e5df;padding:16px;margin-bottom:12px;">
+      <div style="font-size:11px;font-weight:700;color:#1D9E75;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">Savol:</div>
+      <div style="font-size:17px;font-weight:600;color:#1a1a1a;" id="at-question">Anna qayerda yashaydi?</div>
+    </div>
+    <div id="at-options" style="display:flex;flex-direction:column;gap:10px;flex:1;"></div>
+    <button class="test-next-btn" id="at-next" style="display:none;margin-top:12px;" onclick="nextAtQ()">Keyingi →</button>
+  </div>
+</div>
+
+<!-- GAPIRISH BO'LIMLARI -->
+<div class="screen" id="s-gapiruv-menu">
+  <div class="s-header">
+    <button class="back" onclick="show('se-menu')">← Mashqlar</button>
+    <div class="s-title">Gapirish vazifasi</div>
+    <div class="s-sub">Bo'lim tanlang</div>
+  </div>
+  <div style="overflow-y:auto;flex:1;padding:0 20px 32px;">
+    <div class="mat-slot" data-sec="speaking" style="margin-bottom:12px;"></div>
+    <div class="mashq-card" onclick="show('s-taqlid')">
+      <div class="mashq-icon-big" style="background:#e8f8f0;">🎧</div>
+      <div style="flex:1;"><div class="mashq-name">Taqlid mashqi</div><div class="mashq-desc">Audio eshiting va qaytaring</div></div>
+      <div class="status-arrow">›</div>
+    </div>
+    <div class="mashq-card" onclick="show('s-savollar')">
+      <div class="mashq-icon-big" style="background:#f0eeff;">❓</div>
+      <div style="flex:1;"><div class="mashq-name">Savollarga javob</div><div class="mashq-desc">Mavzuga oid savollar</div></div>
+      <div class="status-arrow">›</div>
+    </div>
+    <div class="mashq-card" onclick="openAIChat()">
+      <div class="mashq-icon-big" style="background:#e0f0ff;">🤖</div>
+      <div style="flex:1;"><div class="mashq-name">AI bilan gaplashish</div><div class="mashq-desc">Suhbatdosh bot — ruscha suhbat</div></div>
+      <div class="status-arrow">›</div>
+    </div>
+  </div>
+</div>
+
+<!-- TAQLID MASHQI -->
+<div class="screen" id="s-taqlid">
+  <div class="s-header">
+    <button class="back" onclick="show('s-gapiruv-menu')">← Orqaga</button>
+    <div class="s-title">Taqlid mashqi</div>
+    <div class="s-sub">Eshiting va qaytaring</div>
+  </div>
+  <div style="overflow-y:auto;flex:1;padding:0 20px 32px;">
+    <div style="background:#fff8ec;border:1.5px solid #fad99a;border-radius:14px;padding:14px 16px;margin-bottom:16px;font-size:13px;color:#7a4a00;">
+      🎯 Audiони eshiting, keyin xuddi shunday ovoz chiqarib qaytaring. Ritmga va talaffuzga e'tibor bering.
+    </div>
+    <div class="audio-player-card">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;">
+        <button class="audio-play-btn" id="taqlid-play" onclick="toggleTaqlidPlay()">▶</button>
+        <div><div style="font-size:14px;font-weight:600;color:#1a1a1a;">Taqlid audio</div><div style="font-size:12px;color:#bbb;" id="taqlid-dur">0:00 / 0:00</div></div>
+      </div>
+      <div style="height:5px;background:#f0f0e8;border-radius:99px;"><div id="taqlid-prog" style="height:100%;background:#1D9E75;border-radius:99px;width:0%;"></div></div>
+    </div>
+    <div style="background:#fff;border-radius:14px;border:1.5px solid #e5e5df;padding:16px;margin-bottom:12px;">
+      <div style="font-size:12px;color:#999;margin-bottom:10px;">Matn:</div>
+      <div class="shadowing-text" id="shadowing-ru">Меня зовут Азиза.<br>Я из Узбекистана.<br>Я живу в Ташкенте.<br>Я изучаю русский язык.</div>
+      <div style="height:1px;background:#f0f0e8;margin:12px 0;"></div>
+      <div class="shadowing-uz" id="shadowing-uz-text">Mening ismim Aziza.<br>Men O'zbekistondanman.<br>Men Toshkentda yashayman.<br>Men rus tilini o'rganaman.</div>
+    </div>
+    <button class="ex-done-btn" onclick="show('s-gapiruv-menu')">Bajardim ✓</button>
+  </div>
+</div>
+
+<!-- SAVOLLARGA JAVOB -->
+<div class="screen" id="s-savollar">
+  <div class="s-header">
+    <button class="back" onclick="show('s-gapiruv-menu')">← Orqaga</button>
+    <div class="s-title">Savollarga javob</div>
+    <div class="s-sub">Mavzuga oid savollar</div>
+  </div>
+  <div style="overflow-y:auto;flex:1;padding:0 20px 32px;">
+    <div style="background:#fff8ec;border:1.5px solid #fad99a;border-radius:14px;padding:14px 16px;margin-bottom:16px;font-size:13px;color:#7a4a00;">
+      🎤 Har bir savolga ruscha javob bering. Audio yozib yuboring — kamida 2-3 gap.
+    </div>
+    <div id="savollar-list"></div>
+    <button class="ex-done-btn" onclick="show('s-gapiruv-menu')">Bajardim ✓</button>
+  </div>
+</div>
+
+<!-- PROFIL -->
+<div class="screen" id="sprofil">
+  <div class="profil-hero">
+    <button class="profil-back-btn" onclick="show('s-home')">← Orqaga</button>
+    <div class="profil-avatar-wrap">
+      <div class="profil-ava">👤</div>
+      <div class="profil-name">Zayniddin Siddiqov</div>
+      <div class="profil-stars">⭐ 3 ball</div>
+    </div>
+    <div class="profil-btns-row">
+      <button class="profil-action-btn blue">👥 Do'stlarni taklif qilish</button>
+      <button class="profil-action-btn outline">🔗 Profilni ulashish</button>
+    </div>
+  </div>
+  <div class="profil-scroll">
+    <div class="profil-body-scroll">
+      <div class="streak-big-card">
+        <div class="streak-icon-big">🔥</div>
+        <div class="streak-num-big">3</div>
+        <div class="streak-label">kun davomiylik</div>
+      </div>
+      <div class="calendar-card">
+        <div class="cal-header">
+          <button class="cal-nav">‹</button>
+          <div class="cal-month">Iyun 2026</div>
+          <button class="cal-nav">›</button>
+        </div>
+        <div class="cal-days-header">
+          <div class="cal-day-lbl">Du</div><div class="cal-day-lbl">Se</div>
+          <div class="cal-day-lbl">Ch</div><div class="cal-day-lbl">Pa</div>
+          <div class="cal-day-lbl">Ju</div>
+          <div class="cal-day-lbl" style="color:#ef4444;">Sh</div>
+          <div class="cal-day-lbl" style="color:#ef4444;">Ya</div>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+      </div>
+      <div class="stat-row">
+        <div class="pstat"><div class="pstat-num amber">3</div><div class="pstat-lbl">🔥 Davomiylik</div></div>
+        <div class="pstat"><div class="pstat-num green">2</div><div class="pstat-lbl">✅ Tugallangan kun</div></div>
+        <div class="pstat"><div class="pstat-num blue">30</div><div class="pstat-lbl">📖 O'rganilgan so'z</div></div>
+        <div class="pstat"><div class="pstat-num">60</div><div class="pstat-lbl">📅 Jami kun</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+<script>
+var curLevel='A1-A2';
+var doneExercises={formula:false,audio:false,gapiruv:false,grammar:false,writing:false};
+var curExercise='';
+var simTimer=null;var playing=false;
+var curVideoSection='talaffuz';var curVideoId='';
+var VIDEO_DONE={};
+var VIDEO_DATA={talaffuz:[],fundament:[]};
+var TASK_PDF='';
+var curLugatToplam=0;
+var testQueue=[];var testIdx=0;var testCorrect=0;var testWrong=[];var testAnswered=false;
+
+var VOCAB=[
+  {ru:'имя',stress:'и́мя',uz:'ism',ex1ru:'Моё имя Азиза.',ex1uz:'Mening ismim Aziza.',ex2ru:'Как ваше имя?',ex2uz:'Ismingiz nima?',sin:'название',ant:'безымянный',nsv:'',sv:''},
+  {ru:'фамилия',stress:'фами́лия',uz:'familiya',ex1ru:'Моя фамилия Каримов.',ex1uz:'Mening familiyam Karimov.',ex2ru:'Напишите свою фамилию.',ex2uz:'Familiyangizni yozing.',sin:'родовое имя',ant:'',nsv:'',sv:''},
+  {ru:'друг',stress:'друг',uz:'do\'st',ex1ru:'Это мой друг.',ex1uz:'Bu mening do\'stim.',ex2ru:'У меня хороший друг.',ex2uz:'Mening yaxshi do\'stim bor.',sin:'товарищ, приятель',ant:'враг',nsv:'',sv:''},
+  {ru:'подруга',stress:'подру́га',uz:'dugona',ex1ru:'Это моя подруга.',ex1uz:'Bu mening dugonam.',ex2ru:'Мы часто гуляем с подругой.',ex2uz:'Biz dugonam bilan tez-tez sayr qilamiz.',sin:'приятельница',ant:'враг',nsv:'',sv:''},
+  {ru:'мужчина',stress:'мужчи́на',uz:'erkak',ex1ru:'Этот мужчина врач.',ex1uz:'Bu erkak shifokor.',ex2ru:'Мужчина говорит по-русски.',ex2uz:'Erkak ruscha gapiryapti.',sin:'человек, парень',ant:'женщина',nsv:'',sv:''},
+  {ru:'женщина',stress:'же́нщина',uz:'ayol',ex1ru:'Эта женщина учитель.',ex1uz:'Bu ayol o\'qituvchi.',ex2ru:'Женщина работает в школе.',ex2uz:'Ayol maktabda ishlaydi.',sin:'дама, девушка',ant:'мужчина',nsv:'',sv:''},
+  {ru:'студент',stress:'студе́нт',uz:'talaba',ex1ru:'Я студент.',ex1uz:'Men talabaman.',ex2ru:'Студент изучает русский язык.',ex2uz:'Talaba rus tilini o\'rganadi.',sin:'учащийся',ant:'преподаватель',nsv:'',sv:''},
+  {ru:'учитель',stress:'учи́тель',uz:'o\'qituvchi',ex1ru:'Учитель объясняет тему.',ex1uz:'O\'qituvchi mavzuni tushuntiryapti.',ex2ru:'Мой учитель добрый.',ex2uz:'Mening o\'qituvchim mehribon.',sin:'педагог',ant:'ученик',nsv:'',sv:''},
+  {ru:'город',stress:'го́род',uz:'shahar',ex1ru:'Я живу в городе.',ex1uz:'Men shaharda yashayman.',ex2ru:'Это красивый город.',ex2uz:'Bu chiroyli shahar.',sin:'мегаполис',ant:'деревня',nsv:'',sv:''},
+  {ru:'язык',stress:'язы́к',uz:'til',ex1ru:'Я изучаю русский язык.',ex1uz:'Men rus tilini o\'rganaman.',ex2ru:'Этот язык интересный.',ex2uz:'Bu til qiziq.',sin:'речь, наречие',ant:'молчание',nsv:'',sv:''},
+  {ru:'жить',stress:'жить',uz:'yashamoq',ex1ru:'Я живу в Ташкенте.',ex1uz:'Men Toshkentda yashayman.',ex2ru:'Мы живём вместе.',ex2uz:'Biz birga yashaymiz.',sin:'существовать',ant:'умереть',nsv:'жить',sv:''},
+  {ru:'работать',stress:'рабо́тать',uz:'ishlamoq',ex1ru:'Я работаю учителем.',ex1uz:'Men o\'qituvchi bo\'lib ishlayman.',ex2ru:'Он работает в офисе.',ex2uz:'U ofisda ishlaydi.',sin:'трудиться',ant:'отдыхать',nsv:'работать',sv:'поработать'},
+  {ru:'учиться',stress:'учи́ться',uz:'o\'qimoq',ex1ru:'Я учусь в университете.',ex1uz:'Men universitetda o\'qiyman.',ex2ru:'Она учится хорошо.',ex2uz:'U yaxshi o\'qiydi.',sin:'обучаться',ant:'бросить учёбу',nsv:'учиться',sv:'научиться'},
+  {ru:'изучать',stress:'изуча́ть',uz:'o\'rganmoq',ex1ru:'Я изучаю русский язык.',ex1uz:'Men rus tilini o\'rganaman.',ex2ru:'Мы изучаем новые слова.',ex2uz:'Biz yangi so\'zlarni o\'rganamiz.',sin:'учить, осваивать',ant:'игнорировать',nsv:'изучать',sv:'изучить'},
+  {ru:'говорить',stress:'говори́ть',uz:'gapirmoq',ex1ru:'Я говорю по-русски.',ex1uz:'Men ruscha gapiraman.',ex2ru:'Говорите медленно.',ex2uz:'Sekin gapiring.',sin:'разговаривать',ant:'молчать',nsv:'говорить',sv:'сказать'},
+  {ru:'понимать',stress:'понима́ть',uz:'tushunmoq',ex1ru:'Я понимаю русский язык.',ex1uz:'Men rus tilini tushunaman.',ex2ru:'Вы понимаете меня?',ex2uz:'Meni tushunyapsizmi?',sin:'осознавать',ant:'не понимать',nsv:'понимать',sv:'понять'},
+  {ru:'знать',stress:'зна́ть',uz:'bilmoq',ex1ru:'Я знаю это слово.',ex1uz:'Men bu so\'zni bilaman.',ex2ru:'Вы знаете Анну?',ex2uz:'Siz Annani bilasizmi?',sin:'помнить',ant:'не знать',nsv:'знать',sv:'узнать'},
+  {ru:'слушать',stress:'слу́шать',uz:'tinglamoq',ex1ru:'Слушайте внимательно.',ex1uz:'Diqqat bilan tinglang.',ex2ru:'Я люблю слушать музыку.',ex2uz:'Men musiqa tinglashni yaxshi ko\'raman.',sin:'внимать',ant:'игнорировать',nsv:'слушать',sv:'послушать'},
+  {ru:'знакомиться',stress:'знако́миться',uz:'tanishmoq',ex1ru:'Давайте знакомиться.',ex1uz:'Keling, tanishamiz.',ex2ru:'Я люблю знакомиться с людьми.',ex2uz:'Men odamlar bilan tanishishni yaxshi ko\'raman.',sin:'встречаться',ant:'расставаться',nsv:'знакомиться',sv:'познакомиться'},
+  {ru:'повторять',stress:'повторя́ть',uz:'takrorlamoq',ex1ru:'Повторяйте за мной.',ex1uz:'Mendan keyin takrorlang.',ex2ru:'Повторите ещё раз.',ex2uz:'Yana bir marta takrorlang.',sin:'воспроизводить',ant:'забывать',nsv:'повторять',sv:'повторить'},
+  {ru:'добрый',stress:'до́брый',uz:'mehribon',ex1ru:'Он добрый человек.',ex1uz:'U mehribon inson.',ex2ru:'У меня добрый учитель.',ex2uz:'Mening mehribon o\'qituvchim bor.',sin:'хороший, отзывчивый',ant:'злой',nsv:'',sv:''},
+  {ru:'весёлый',stress:'ве́сёлый',uz:'quvnoq',ex1ru:'Она весёлая девушка.',ex1uz:'U quvnoq qiz.',ex2ru:'Сегодня весёлый день.',ex2uz:'Bugun quvnoq kun.',sin:'радостный',ant:'грустный',nsv:'',sv:''},
+  {ru:'умный',stress:'у́мный',uz:'aqlli',ex1ru:'Он очень умный.',ex1uz:'U juda aqlli.',ex2ru:'Умный студент много читает.',ex2uz:'Aqlli talaba ko\'p o\'qiydi.',sin:'разумный',ant:'глупый',nsv:'',sv:''},
+  {ru:'активный',stress:'акти́вный',uz:'faol',ex1ru:'Я активный человек.',ex1uz:'Men faol odamman.',ex2ru:'Она активна на уроке.',ex2uz:'U darsda faol.',sin:'энергичный',ant:'пассивный',nsv:'',sv:''},
+  {ru:'общительный',stress:'общи́тельный',uz:'kirishimli',ex1ru:'Он очень общительный.',ex1uz:'U juda kirishimli.',ex2ru:'Общительным людям легче знакомиться.',ex2uz:'Kirishimli odamlarga tanishish oson.',sin:'дружелюбный',ant:'замкнутый',nsv:'',sv:''},
+  {ru:'Здравствуйте!',stress:'Здра́вствуйте!',uz:'Assalomu alaykum!',ex1ru:'Здравствуйте, Анна!',ex1uz:'Assalomu alaykum, Anna!',ex2ru:'Здравствуйте, как дела?',ex2uz:'Assalomu alaykum, ishlaringiz qalay?',sin:'привет, добрый день',ant:'Пока',nsv:'',sv:''},
+  {ru:'Как дела?',stress:'Как дела́?',uz:'Ishlaringiz qalay?',ex1ru:'Как дела? Хорошо.',ex1uz:'Ishlaringiz qalay? Yaxshi.',ex2ru:'Привет, как дела?',ex2uz:'Salom, ishlaringiz qalay?',sin:'Как жизнь?',ant:'',nsv:'',sv:''},
+  {ru:'Очень приятно',stress:'О́чень прия́тно',uz:'Juda xursandman',ex1ru:'Очень приятно познакомиться с вами.',ex1uz:'Siz bilan tanishganimdan xursandman.',ex2ru:'Мне тоже приятно.',ex2uz:'Men ham xursandman.',sin:'Рад знакомству',ant:'неприятно',nsv:'',sv:''},
+  {ru:'Меня зовут …',stress:'Меня́ зову́т',uz:'Mening ismim …',ex1ru:'Меня зовут Тимур.',ex1uz:'Mening ismim Timur.',ex2ru:'Меня зовут Азиза.',ex2uz:'Mening ismim Aziza.',sin:'Я …, Моё имя …',ant:'',nsv:'',sv:''},
+  {ru:'Спасибо, хорошо',stress:'Спаси́бо, хорошо́',uz:'Rahmat, yaxshi',ex1ru:'Как дела? Спасибо, хорошо.',ex1uz:'Ishlaringiz qalay? Rahmat, yaxshi.',ex2ru:'Спасибо, у меня всё хорошо.',ex2uz:'Rahmat, menda hammasi yaxshi.',sin:'Всё хорошо, Отлично',ant:'',nsv:'',sv:''},
+];
+
+var TOPLAM_RANGES=[[0,10],[10,20],[20,30]];
+
+var VIDEOS={
+  talaffuz:[
+    {id:'tal-1',title:'1-dars — Unlilar',desc:'а, е, ё, и, о, у, ы, э, ю, я'},
+    {id:'tal-2',title:'2-dars — Undoshlar',desc:'Qiyin undoshlar: ж, ш, щ, ч, ц'},
+    {id:'tal-3',title:'3-dars — Urg\'u',desc:'So\'zlarda urg\'u qoidalari'},
+    {id:'tal-4',title:'4-dars — Intonatsiya',desc:'Gap intonatsiyasi'},
+  ],
+  fundament:[
+    {id:'fund-1',title:'Rod (jinsi)',desc:'Erkak, ayol va o\'rta jins'},
+    {id:'fund-2',title:'Zamonlar',desc:'O\'tgan, hozirgi, kelasi zamon'},
+    {id:'fund-3',title:'Padejlar',desc:'6 ta padej — asosiy tushuncha'},
+    {id:'fund-4',title:'Kelishiklar',desc:'So\'z o\'zgarishi qoidalari'},
+    {id:'fund-5',title:'Fe\'l tuslanishi',desc:'1-chi va 2-chi tuslash'},
+    {id:'fund-6',title:'Olmoshlar',desc:'Men, sen, u, biz, siz, ular'},
+    {id:'fund-7',title:'Sifat moslashuvi',desc:'Sifatning jins va kelishikka moslashuvi'},
+  ]
+};
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+var tg=window.Telegram&&window.Telegram.WebApp;
+var INIT_DATA=(tg&&tg.initData)||'';
+var ACCESS={sections:[],status:'',days_left:0,user_id:''};
+var TEACHER_CONTACT='zamira_russian'; /* <-- O'QITUVCHI @username (o'zgartiring) */
+function applyAccess(){
+  var b=document.getElementById('accBanner');
+  if(b){
+    if(ACCESS.status==='trial'){b.className='acc-banner trial';b.textContent='🆓 Bepul sinov: '+ACCESS.days_left+' kun qoldi';}
+    else if(ACCESS.status==='expired'||ACCESS.status==='blocked'){b.className='acc-banner expired';b.textContent='🔒 Sinov tugadi — davom etish uchun obuna kerak';}
+    else{b.className='acc-banner';b.textContent='';}
+  }
+  document.querySelectorAll('.kurs-card[data-sec]').forEach(function(c){
+    var ok=ACCESS.sections.indexOf(c.dataset.sec)>=0;
+    c.classList.toggle('locked',!ok);
+    if(!ok&&!c.querySelector('.kurs-lock')){var l=document.createElement('div');l.className='kurs-lock';l.textContent='🔒 Obuna';c.appendChild(l);}
+  });
+  var pid=document.getElementById('pay-id');if(pid)pid.textContent=ACCESS.user_id||'—';
+  var sn=document.getElementById('streakNum');if(sn)sn.textContent=(ACCESS.streak!=null?ACCESS.streak:0);
+}
+function loadAccess(cb){
+  fetch('/api/access',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:INIT_DATA})})
+    .then(function(r){return r.json();})
+    .then(function(d){ACCESS=(d&&d.ok)?d:{sections:[],status:'expired',days_left:0,user_id:''};applyAccess();if(cb)cb();})
+    .catch(function(){ACCESS={sections:[],status:'expired',days_left:0,user_id:''};applyAccess();if(cb)cb();});
+}
+function canAccess(sec){return ACCESS.sections.indexOf(sec)>=0;}
+function showPaywall(){show('s-paywall');}
+function payContact(){var url='https://t.me/'+TEACHER_CONTACT;if(tg&&tg.openTelegramLink)tg.openTelegramLink(url);else window.open(url,'_blank');}
+
+function openKurs(level){
+  var sec=(level==='B1-B2')?'b1':'a1';
+  if(!canAccess(sec)){showPaywall();return;}
+  curLevel=level;
+  document.getElementById('days-title').textContent=level+' dasturi';
+  renderDays();show('sd');
+}
+
+function openVideos(section){
+  if(!canAccess(section)){showPaywall();return;}
+  curVideoSection=section;
+  var titles={talaffuz:'Talaffuz kursi',fundament:'Rus tili fundamenti'};
+  document.getElementById('videos-title').textContent=titles[section];
+  document.getElementById('videos-list').innerHTML='<div style="padding:24px;text-align:center;color:#888;">Yuklanmoqda...</div>';
+  show('s-videos');
+  fetch('/api/videos?section='+section,{headers:{'X-Telegram-Init-Data':INIT_DATA}})
+    .then(function(r){return r.json();})
+    .then(function(d){VIDEO_DATA[section]=d.videos||[];renderVideoList(section);})
+    .catch(function(){document.getElementById('videos-list').innerHTML='<div style="padding:24px;text-align:center;color:#888;">Xatolik</div>';});
+}
+
+function escH(s){return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function ytEmbed(url){if(!url)return '';var m=url.match(/(?:youtu\.be\/|[?&]v=|embed\/|shorts\/)([A-Za-z0-9_-]{6,})/);return m?('https://www.youtube.com/embed/'+m[1]):'';}
+function renderVideoList(section){
+  var videos=VIDEO_DATA[section]||[];
+  var colors={talaffuz:'linear-gradient(135deg,#4a1a6e,#8b5cf6)',fundament:'linear-gradient(135deg,#6e1a1a,#ef4444)'};
+  if(!videos.length){document.getElementById('videos-list').innerHTML='<div style="padding:24px;text-align:center;color:#888;">Hozircha dars yo\'q</div>';return;}
+  var html='<div style="padding:0 0 24px;">';
+  videos.forEach(function(v){
+    var done=VIDEO_DONE[v.id];
+    html+="<div class='video-card"+(done?' done-card':'')+"' onclick='openVideoPlayer("+v.id+")'>" +
+      "<div class='video-thumb' style='background:"+colors[section]+";'>▶</div>" +
+      "<div style='flex:1;'><div class='video-title'>"+escH(v.title)+"</div><div class='video-desc'>"+escH(v.descr)+"</div></div>" +
+      "<div>"+(done?"<div class='v-done'>✓</div>":"<div class='v-arrow'>›</div>")+"</div></div>";
+  });
+  html+='</div>';
+  document.getElementById('videos-list').innerHTML=html;
+}
+
+function openVideoPlayer(id){
+  var list=VIDEO_DATA[curVideoSection]||[];var v=null;
+  for(var i=0;i<list.length;i++){if(String(list[i].id)===String(id)){v=list[i];break;}}
+  if(!v)return;
+  curVideoId=v.id;
+  var titles={talaffuz:'Talaffuz kursi',fundament:'Rus tili fundamenti'};
+  document.getElementById('video-title-h').textContent=v.title||'Video';
+  document.getElementById('video-sub-h').textContent=titles[curVideoSection];
+  var fr=document.getElementById('video-frame');var emb=ytEmbed(v.youtube_url);
+  if(emb){fr.innerHTML='<iframe width="100%" height="100%" src="'+emb+'" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>';}
+  else{fr.innerHTML='<div style="text-align:center;padding:20px;"><div style="font-size:42px;">🎬</div><div style="font-size:13px;color:rgba(255,255,255,0.3);margin-top:8px;">Video tez orada qo\'shiladi</div></div>';}
+  var tw=document.getElementById('video-task');
+  if(v.task_pdf_url||v.task_text){
+    var h='<div class="vtask-title">📝 Dars bo\'yicha vazifalar</div>';
+    if(v.task_text)h+='<div class="vtask-text">'+escH(v.task_text)+'</div>';
+    if(v.task_pdf_url){TASK_PDF=v.task_pdf_url;h+='<div class="pdf-card" onclick="openTaskPdf()"><span style="font-size:22px;">📄</span><div style="flex:1;"><div style="color:#fff;font-size:13px;">Vazifa (PDF)</div><div style="color:#888;font-size:11px;">Ochish / yuklab olish</div></div><span style="color:#5DCAA5;">⬇</span></div>';}
+    tw.innerHTML=h;tw.style.display='block';
+  }else{tw.style.display='none';tw.innerHTML='';}
+  show('s-video');
+}
+function openTaskPdf(){if(!TASK_PDF)return;if(tg&&tg.openLink)tg.openLink(TASK_PDF);else window.open(TASK_PDF,'_blank');}
+
+function markVideoDone(){
+  VIDEO_DONE[curVideoId]=true;
+  show('s-videos');renderVideoList(curVideoSection);
+}
+
+function renderDays(){
+  var c=document.getElementById('days-container');
+  var lvl=(curLevel==='B1-B2')?'B1':'A1';
+  c.innerHTML='<div style="padding:24px;text-align:center;color:#888;">Yuklanmoqda...</div>';
+  fetch('/api/days?level='+lvl,{headers:{'X-Telegram-Init-Data':INIT_DATA}})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      var list=d.days||[];var avail={};var maxd=0;
+      list.forEach(function(x){avail[x.day]=true;if(x.day>maxd)maxd=x.day;});
+      var weeks=Math.max(Math.ceil(maxd/7),1);
+      var html='<div style="padding:0 0 4px;">';
+      for(var w=1;w<=weeks;w++){
+        html+="<div class='week-lbl'>"+w+"-hafta</div><div class='days-grid'>";
+        for(var i=1;i<=7;i++){var day=(w-1)*7+i;
+          if(avail[day]) html+="<div class='day-tile' onclick='openDay("+day+")'><div class='dt-num'>"+day+"</div><div class='dt-lbl'>"+day+"-kun</div><div class='v-arrow'>›</div></div>";
+          else html+="<div class='day-tile locked'><div class='dt-num'>"+day+"</div><div class='dt-lbl'>"+day+"-kun</div><div class='dt-soon'>Tez orada</div></div>";
+        }
+        html+="</div>";
+      }
+      c.innerHTML=html+"</div>";
+    })
+    .catch(function(){c.innerHTML='<div style="padding:24px;text-align:center;color:#888;">Xatolik</div>';});
+}
+
+function openDay(d){
+  window.curDay=d;
+  doneExercises={formula:false,audio:false,gapiruv:false,grammar:false,writing:false};
+  document.getElementById('ex-menu-title').textContent=d+'-kun mashqlari';
+  var isB1=(curLevel==="B1-B2");
+  var titles={1:"O'z-o'zini taqdim etish",2:"Tashqi ko'rinish",3:"Sonlar"};
+  document.getElementById('ex-menu-sub').textContent=curLevel+' · '+(isB1&&titles[d]?titles[d]:"Tanishuv");
+  loadDayAudios(d);
+  updateMenuCards();updateProgress();show('se-menu');
+}
+
+function updateMenuCards(){
+  ['formula','audio','gapiruv','grammar','writing'].forEach(function(k){
+    var ms=document.getElementById('ms-'+k);var mc=document.getElementById('mc-'+k);
+    if(!ms||!mc)return;
+    if(doneExercises[k]){mc.classList.add('done-card');ms.innerHTML="<div class='status-done'>✓</div>";}
+    else{mc.classList.remove('done-card');ms.innerHTML="<div class='status-arrow'>›</div>";}
+  });
+}
+
+function updateProgress(){
+  var items=[['mc-lugat',document.getElementById('mc-lugat').classList.contains('done-card')],
+    ['mc-formula',doneExercises.formula],['mc-audio',doneExercises.audio],
+    ['mc-gapiruv',doneExercises.gapiruv],['mc-grammar',doneExercises.grammar],
+    ['mc-writing',doneExercises.writing]];
+  var total=0,done=0;
+  items.forEach(function(x){var el=document.getElementById(x[0]);if(el&&el.style.display!=='none'){total++;if(x[1])done++;}});
+  var pct=total?Math.round(done/total*100):0;
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prog-pct').textContent=pct+'%';
+}
+
+function getActiveVocab(){
+  if(DAY_CONTENT&&DAY_CONTENT.vocab&&DAY_CONTENT.vocab.length){
+    return DAY_CONTENT.vocab.map(function(v){return {
+      ru:v.ru||'',stress:v.stress||v.ru||'',uz:v.uz||'',
+      ex1ru:v.ex1ru||'',ex1uz:v.ex1uz||'',ex2ru:v.ex2ru||'',ex2uz:v.ex2uz||'',
+      sin:v.sin||'',ant:v.ant||'',nsv:v.nsv||'',sv:v.sv||''};});
+  }
+  var isB1=(curLevel==='B1-B2');
+  if(isB1&&window.curDay&&B1_DAYS[window.curDay]) return B1_DAYS[window.curDay].vocab;
+  return VOCAB;
+}
+
+function getActiveFormulas(){
+  if(DAY_CONTENT&&DAY_CONTENT.formulas&&DAY_CONTENT.formulas.length){
+    return DAY_CONTENT.formulas.map(function(f){var ex=f.ex||[];if(!ex.length){if(f.ex1ru)ex.push({ru:f.ex1ru,uz:f.ex1uz||''});if(f.ex2ru)ex.push({ru:f.ex2ru,uz:f.ex2uz||''});}return {ru:f.ru||'',uz:f.uz||'',ex:ex};});
+  }
+  var isB1=(curLevel==='B1-B2');
+  if(isB1&&window.curDay&&B1_DAYS[window.curDay]) return B1_DAYS[window.curDay].formulas;
+  return FORMULAS;
+}
+
+function getActiveGrammar(){
+  if(DAY_CONTENT&&DAY_CONTENT.grammar&&DAY_CONTENT.grammar.length){
+    return DAY_CONTENT.grammar.map(function(g){
+      return {title:g.title||'',sub:g.sub||'',rows:[{base:g.base||'',res:g.res||''}],ex:g.example||''};
+    });
+  }
+  var isB1=(curLevel==='B1-B2');
+  if(isB1&&window.curDay&&B1_DAYS[window.curDay]) return B1_DAYS[window.curDay].grammar;
+  return null;
+}
+
+function getActiveSavollar(){
+  if(DAY_CONTENT&&DAY_CONTENT.speaking_questions&&DAY_CONTENT.speaking_questions.length){
+    return DAY_CONTENT.speaking_questions.map(function(q){return {title:q.title||'',desc:q.desc||'',format:q.format||''};});
+  }
+  var def=['Как вас зовут?','Откуда вы?','Где вы живёте?','Чем занимаетесь?','Какие у вас интересы?','Расскажите о себе.'];
+  return def.map(function(t){return {title:t,desc:'',format:'Audio · 1-2 daqiqa'};});
+}
+
+function getActiveAudioQ(){
+  if(DAY_CONTENT&&DAY_CONTENT.audio_questions&&DAY_CONTENT.audio_questions.length){
+    return DAY_CONTENT.audio_questions.map(function(a){
+      var opts=a.options||[];var ci=parseInt(a.correct,10);
+      var ans=(!isNaN(ci)&&ci>=1&&ci<=opts.length)?opts[ci-1]:(opts[0]||'');
+      return {q:a.q||'',opts:opts,ans:ans};
+    });
+  }
+  var isB1=(curLevel==='B1-B2');
+  if(isB1&&window.curDay&&B1_DAYS[window.curDay]) return B1_DAYS[window.curDay].audio_q;
+  return AT_DEFAULT;
+}
+
+function openLugatToplam(){
+  var av=getActiveVocab();
+  var ranges=[[0,10],[10,20],[20,av.length]];
+  ranges.forEach(function(range,i){
+    var sub=document.getElementById('tp-sub-'+i);
+    if(!sub)return;
+    var words=av.slice(range[0],Math.min(range[0]+3,range[1])).map(function(v){return v.ru;}).join(', ');
+    sub.textContent=(range[0]+1)+'—'+range[1]+' · '+words+'…';
+  });
+  show('s-lugat-toplam');
+}
+
+function openLugatList(idx){
+  var activeVocab=getActiveVocab();
+  TOPLAM_RANGES=[[0,Math.min(10,Math.floor(activeVocab.length/3))],[Math.min(10,Math.floor(activeVocab.length/3)),Math.min(20,Math.floor(activeVocab.length*2/3))],[Math.min(20,Math.floor(activeVocab.length*2/3)),activeVocab.length]];
+  curLugatToplam=idx;
+  var labels=["1-to'plam","2-to'plam","3-to'plam"];
+  var subs=['1 — 10 ta so\'z','11 — 20 ta so\'z','21 — 30 ta so\'z'];
+  document.getElementById('lugat-list-title').textContent=labels[idx];
+  document.getElementById('lugat-list-sub').textContent=subs[idx];
+  renderLugatList(idx);show('s-lugat-list');
+}
+
+function renderLugatList(idx){
+  var activeVocab=getActiveVocab();
+  var range=TOPLAM_RANGES[idx];
+  var words=activeVocab.slice(range[0],range[1]);
+  var html='<div style="padding:0 0 16px;">';
+  words.forEach(function(v){
+    html+="<div class='lugat-item'>";
+    html+="<div class='li-header'><div><div class='li-ru'>"+v.stress+"</div></div><span class='li-flag'>🇷🇺</span></div>";
+    html+="<div class='li-divider'></div>";
+    html+="<div class='li-uz-row'><span style='font-size:18px;'>🇺🇿</span><div class='li-uz'>"+v.uz+"</div></div>";
+    var exHtml='';
+    if(v.ex1ru) exHtml+="<div class='li-ex'>"+v.ex1ru+"</div><div class='li-ex-uz'>"+(v.ex1uz||'')+"</div>";
+    if(v.ex2ru) exHtml+="<div class='li-ex'>"+v.ex2ru+"</div><div class='li-ex-uz'>"+(v.ex2uz||'')+"</div>";
+    if(exHtml) html+="<div class='li-section-title'>Misollar</div>"+exHtml;
+    var tags='';
+    if(v.sin) tags+="<span class='li-tag sin'>Sinonim: "+v.sin+"</span>";
+    if(v.ant) tags+="<span class='li-tag ant'>Antonim: "+v.ant+"</span>";
+    if(v.nsv) tags+="<span class='li-tag nsv'>НСВ: "+v.nsv+"</span>";
+    if(v.sv) tags+="<span class='li-tag sv'>СВ: "+v.sv+"</span>";
+    if(tags) html+="<div class='li-tags'>"+tags+"</div>";
+    html+="</div>";
+  });
+  html+='</div>';
+  document.getElementById('lugat-list-content').innerHTML=html;
+}
+
+var testQueue=[];
+var testIdx=0;
+var testCorrect=0;
+var testWrong=[];
+var testAnswered=false;
+
+function openTekshir(){
+  testQueue=getActiveVocab().slice();
+  testIdx=0;testCorrect=0;testWrong=[];testAnswered=false;
+  showTestQ();show('s-tekshir');
+}
+
+function getOptions(v){
+  var pool=testQueue;
+  var opts=[v.uz];
+  var used=[v];
+  var attempts=0;
+  while(opts.length<4&&attempts<100){
+    attempts++;
+    var r=Math.floor(Math.random()*pool.length);
+    if(used.indexOf(pool[r])===-1&&pool[r].uz!==v.uz){
+      opts.push(pool[r].uz);used.push(pool[r]);
+    }
+  }
+  return opts.sort(function(){return Math.random()-0.5;});
+}
+
+function showTestQ(){
+  if(testIdx>=testQueue.length){showTestResult();return;}
+  var v=testQueue[testIdx];
+  var total=testQueue.length;
+  testAnswered=false;
+  document.getElementById('t-num').textContent=(testIdx+1)+'/'+total;
+  document.getElementById('tekshir-sub').textContent=(testIdx+1)+'/'+total;
+  document.getElementById('t-prog-fill').style.width=Math.round(testIdx/total*100)+'%';
+  var opts=getOptions(v);
+  var html="<div class='test-word-card'><div class='test-flag'>🇷🇺</div><div class='test-ru'>"+v.stress+"</div></div>";
+  html+="<div class='test-options'>";
+  opts.forEach(function(opt,i){
+    var safe=opt.replace(/\\/g,'\\\\').replace(/"/g,'&quot;');
+    html+="<button class='test-opt' data-uz='"+safe+"' onclick='selectOpt(this)'>"+(i+1)+". "+opt+"</button>";
+  });
+  html+="</div><button class='test-next-btn' id='test-next' onclick='nextTestQ()'>Keyingi →</button>";
+  document.getElementById('test-content').innerHTML=html;
+}
+
+function selectOpt(el){
+  if(testAnswered)return;
+  testAnswered=true;
+  var chosen=el.getAttribute('data-uz');
+  var v=testQueue[testIdx];
+  var allOpts=document.querySelectorAll('.test-opt');
+  allOpts.forEach(function(btn){btn.classList.add('disabled');});
+  if(chosen===v.uz){
+    el.classList.add('correct');
+    testCorrect++;
+  } else {
+    el.classList.add('wrong');
+    testWrong.push(v);
+    allOpts.forEach(function(btn){
+      if(btn.getAttribute('data-uz')===v.uz) btn.classList.add('reveal');
+    });
+  }
+  var nb=document.getElementById('test-next');
+  if(nb) nb.style.display='block';
+}
+
+function nextTestQ(){
+  testIdx++;
+  showTestQ();
+}
+
+function showTestResult(){
+  var total=testQueue.length;
+  var pct=Math.round(testCorrect/total*100);
+  document.getElementById('result-score').textContent=testCorrect+'/'+total;
+  var emoji='🎉',label='Zo\'r natija!';
+  if(pct<50){emoji='😅';label='Ko\'proq mashq qiling!';}
+  else if(pct<80){emoji='👍';label='Yaxshi, davom eting!';}
+  document.getElementById('result-emoji').textContent=emoji;
+  document.getElementById('result-label').textContent=label;
+  var wl=document.getElementById('wrong-list');
+  if(testWrong.length===0){
+    wl.innerHTML='<div style="text-align:center;font-size:14px;color:#1D9E75;font-weight:600;">Hammasi to\'g\'ri! 🎊</div>';
+  } else {
+    var h='<div style="font-size:13px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">Noto\'g\'ri javoblar ('+testWrong.length+')</div>';
+    testWrong.forEach(function(v){
+      h+="<div class='wrong-item'><div class='wrong-ru'>"+v.ru+"</div><div class='wrong-uz'>"+v.uz+"</div></div>";
+    });
+    wl.innerHTML=h;
+  }
+  show('s-test-result');
+}
+
+function retryWrong(){
+  if(testWrong.length===0){show('s-lugat-toplam');return;}
+  testQueue=testWrong.slice();
+  testIdx=0;testCorrect=0;testWrong=[];testAnswered=false;
+  showTestQ();show('s-tekshir');
+}
+
+function openFormulaMenu(){
+  var isB1=(curLevel==='B1-B2');
+  // Matn subtitle
+  var matnDesc=document.getElementById('matn-desc');
+  if(matnDesc) matnDesc.textContent=isB1?'B1 va B2 daraja matnlari':'A1 va A2 daraja matnlari';
+  // Toplam subtitle — actual words from active vocab
+  var av=getActiveVocab();
+  var ranges=[[0,10],[10,20],[20,av.length]];
+  ranges.forEach(function(range,i){
+    var sub=document.getElementById('tp-sub-'+i);
+    if(!sub)return;
+    var words=av.slice(range[0],Math.min(range[0]+3,range[1])).map(function(v){return v.ru;}).join(', ');
+    sub.textContent=(range[0]+1)+'—'+range[1]+' · '+words+'…';
+  });
+  show('s-formula-menu');
+  renderFormulaList();
+}
+function openAudioMenu(){show('s-audio-menu');}
+function openGapiruvMenu(){
+  // Savollarni bazadan chizish
+  var sq=getActiveSavollar();
+  var sl=document.getElementById('savollar-list');
+  if(sl){
+    var sh='';
+    sq.forEach(function(s,i){
+      sh+="<div class='vazifa-card'><div class='vaz-num'>Savol "+(i+1)+"</div><div class='vaz-title'>"+escH(s.title)+"</div>"+(s.desc?"<div class='vaz-desc'>"+escH(s.desc)+"</div>":"")+"<div class='vaz-format'>🎤 "+escH(s.format||'Audio')+"</div></div>";
+    });
+    sl.innerHTML=sh;
+  }
+  // Taqlid (shadowing) matnini bazadan
+  var sru=document.getElementById('shadowing-ru'),suz=document.getElementById('shadowing-uz-text');
+  if(sru&&DAY_CONTENT&&DAY_CONTENT.shadowing_ru)sru.innerHTML=escH(DAY_CONTENT.shadowing_ru).replace(/\n/g,'<br>');
+  if(suz&&DAY_CONTENT&&DAY_CONTENT.shadowing_uz)suz.innerHTML=escH(DAY_CONTENT.shadowing_uz).replace(/\n/g,'<br>');
+  show('s-gapiruv-menu');
+}
+function openAIChat(){
+  var url='https://t.me/suhbatdosh_bot';
+  if(window.Telegram&&window.Telegram.WebApp) window.Telegram.WebApp.openTelegramLink(url);
+  else window.open(url,'_blank');
+}
+
+var flIdx=0;
+
+function openFormulaMatn(){
+  var c=document.getElementById('formula-matn-content');
+  if(DAY_CONTENT&&DAY_CONTENT.reading_texts&&DAY_CONTENT.reading_texts.length){
+    var h='';
+    DAY_CONTENT.reading_texts.forEach(function(m){
+      h+="<div class='matn-card'><div class='matn-level'>"+escH(m.level||'')+"</div><div class='matn-ru'>"+escH(m.ru||'')+"</div><div class='matn-uz'>"+escH(m.uz||'')+"</div></div>";
+    });
+    h+="<button class='ex-done-btn' onclick=\"show('s-formula-menu')\">O'qib chiqdim ✓</button>";
+    c.innerHTML=h;show('s-formula-matn');return;
+  }
+  var isB1=(curLevel==='B1-B2');
+  var html='';
+  if(!isB1){
+    html+="<div class='matn-card'><div class='matn-level'>A1 daraja</div><div class='matn-ru'>Здравствуйте! Меня зовут Азиза. Я из Узбекистана. Я живу в Ташкенте. Мне 28 лет. Я работаю учителем. Я изучаю русский язык, потому что хочу свободно говорить по-русски. У меня большая семья. Я люблю читать книги и слушать музыку. Очень приятно познакомиться!</div><div class='matn-uz'>Assalomu alaykum! Mening ismim Aziza. Men O'zbekistondanman. Men Toshkentda yashayman. Menga 28 yosh. Men o'qituvchi bo'lib ishlayman. Men rus tilini o'rganmoqchiman, chunki ruscha erkin gapirmoqchiman. Mening katta oilam bor. Tanishganimdan juda xursandman!</div></div>";
+    html+="<div class='matn-card'><div class='matn-level'>A2 daraja</div><div class='matn-ru'>Здравствуйте! Меня зовут Бекзод Каримов. Я родом из Самарканда, но сейчас живу и работаю в Ташкенте. По профессии я менеджер. Каждый день я изучаю русский язык, потому что он нужен мне для работы и общения. Я немного говорю по-русски и хорошо понимаю простые разговоры. Моя цель — уверенно говорить на русском языке через несколько месяцев.</div><div class='matn-uz'>Assalomu alaykum! Mening ismim Bekzod Karimov. Men Samarqanddan bo'laman, lekin hozir Toshkentda yashab ishlayapman. Kasbim menejer. Men har kuni rus tilini o'rganaman. Maqsadim — bir necha oyda ruscha ishonch bilan gapirish.</div></div>";
+  } else {
+    var d=window.curDay||1;
+    var matns={
+      1:[
+        {level:'B1 daraja — O\'z-o\'zini taqdim etish',ru:'Здравствуйте! Меня зовут Азиза. Я из Узбекистана и живу в Ташкенте. По профессии я преподаватель русского языка. Уже несколько лет я работаю со студентами разных уровней. Мне нравится моя работа, потому что я люблю общаться с людьми. Сейчас я активно развиваю свои профессиональные навыки и работаю над созданием образовательных проектов. Моя цель — помогать людям говорить на русском языке уверенно и без страха ошибок. Спасибо за внимание!',uz:"Assalomu alaykum! Mening ismim Aziza. Men O'zbekistondanman va Toshkentda yashayman. Kasbim bo'yicha rus tili o'qituvchisiman. Bir necha yildan beri turli darajadagi talabalar bilan ishlayman. Menga kasbim yoqadi, chunki odamlar bilan muloqot qilishni yaxshi ko'raman. Hozir professional ko'nikmalarimni rivojlantiryapman. Maqsadim — odamlarga rus tilida ishonch bilan gapirishga yordam berish. E'tiboringiz uchun rahmat!"},
+        {level:'B2 daraja — Kasbiy taqdimot',ru:'Здравствуйте! Меня зовут Азиза. Основное направление моей деятельности связано с преподаванием русского языка. За последние годы мне удалось накопить значительный опыт в обучении. Считаю своими сильными сторонами умение находить индивидуальный подход к людям и объяснять сложные темы простым языком. В ближайшие годы я планирую расширять свои образовательные проекты. Буду рада новым профессиональным знакомствам.',uz:"Assalomu alaykum! Mening ismim Aziza. Faoliyatimning asosiy yo'nalishi rus tilini o'qitish bilan bog'liq. So'nggi yillarda o'qitish bo'yicha katta tajriba to'pladim. Kuchli tomonlarim sifatida odamlarga individual yondasha olish va murakkab mavzularni sodda tushuntirishni ko'rsataman. Kelgusi yillarda ta'lim loyihalarimni kengaytirish niyatidaman. Yangi professional tanishuvlardan mamnun bo'laman."}
+      ],
+      2:[
+        {level:'B1 daraja — Tashqi ko\'rinish tavsifi',ru:'Мой коллега Азиз производит очень приятное впечатление. Это высокий и подтянутый мужчина около тридцати пяти лет. У него спортивное телосложение, хорошая осанка и уверенная походка. У Азиза короткие тёмные волосы и выразительные карие глаза. Его улыбка выглядит искренней и располагает к общению. Он всегда аккуратно одет и выглядит ухоженно. На первый взгляд Азиз кажется серьёзным, но он очень дружелюбный человек.',uz:"Mening hamkasbim Aziz juda yoqimli taassurot qoldiradi. U taxminan o'ttiz besh yoshdagi baland bo'yli va tetik erkak. Uning sportcha qomati, yaxshi qaddi-qomati va ishonchli yurishi bor. Azizning qisqa qora sochlari va ifodali jigarrang ko'zlari bor. Uning tabassumi samimiy ko'rinadi va muloqotga undaydi. U har doim ozoda kiyinadi. Birinchi qarashda Aziz jiddiy tuyuladi, lekin u juda do'stona inson."},
+        {level:'B2 daraja — Taassurot tahlili',ru:'На первый взгляд внешность человека может многое рассказать о его характере. Уверенная походка и хорошая осанка говорят о том, что человек уверен в себе. Открытая улыбка и дружелюбный взгляд располагают к общению. Однако первое впечатление не всегда бывает правильным. Иногда человек выглядит строгим, но оказывается очень добрым. Поэтому важно не только оценивать внешность, но и общаться с человеком.',uz:"Birinchi qarashda insonning tashqi ko'rinishi uning xarakteri haqida ko'p narsa ayta oladi. Ishonchli yurish va yaxshi qomat insonning o'ziga ishonchini ko'rsatadi. Ochiq tabassum va do'stona nigoh muloqotga undaydi. Biroq birinchi taassurot har doim ham to'g'ri bo'lavermaydi. Ba'zan inson qattiqqo'ldek ko'rinadi, lekin aslida juda mehribon bo'ladi. Shuning uchun tashqi ko'rinishni baholash bilan birga inson bilan muloqot qilish ham muhim."}
+      ],
+      3:[
+        {level:'B1 daraja — Sonlar ishlatilgan matn',ru:'В прошлом месяце наша компания проводила конкурс «Лучший сотрудник года». В финал вышли три человека. Первое место занял Андрей — ему тридцать восемь лет. Второе место заняла Елена — ей тридцать два года. Третье место получил Тимур — ему сорок один год. После конкурса сотрудники обсуждали результаты и поздравляли победителей.',uz:"O'tgan oy kompaniyamiz 'Yilning eng yaxshi xodimi' musobaqasini o'tkazdi. Finalga uch kishi chiqdi. Birinchi o'rinni Andrey egalladi — unga o'ttiz sakkiz yosh. Ikkinchi o'rinni Yelena oldi — unga o'ttiz ikki yosh. Uchinchi o'rinni Timur egalladi — unga qirq bir yosh. Musoboqadan so'ng xodimlar natijalarni muhokama qildi va g'oliblarni tabrikladilar."},
+        {level:'B2 daraja — Sonlar bilan tahlil',ru:'Согласно статистике, в нашей компании работают сто двадцать сотрудников. Среди них сорок процентов — женщины, шестьдесят процентов — мужчины. Средний возраст сотрудников — тридцать пять лет. За последние пять лет компания выросла в три раза. Сейчас мы работаем над двадцатью проектами одновременно. В следующем году планируем нанять ещё пятьдесят специалистов.',uz:"Statistikaga ko'ra, kompaniyamizda yuz yigirma xodim ishlaydi. Ulardan qirq foizi — ayollar, oltmish foizi — erkaklar. Xodimlarning o'rtacha yoshi — o'ttiz besh. So'nggi besh yil ichida kompaniya uch baravarga o'sdi. Hozir biz bir vaqtning o'zida yigirma loyiha ustida ishlaymiz. Kelgusi yilda yana ellik mutaxassis yollamoqchi."}
+      ]
+    };
+    var dayMatns=matns[d]||matns[1];
+    dayMatns.forEach(function(m){
+      html+="<div class='matn-card'><div class='matn-level'>"+m.level+"</div><div class='matn-ru'>"+m.ru+"</div><div class='matn-uz'>"+m.uz+"</div></div>";
+    });
+  }
+  html+="<button class='ex-done-btn' onclick=\"show('s-formula-menu')\">O'qib chiqdim ✓</button>";
+  c.innerHTML=html;
+  show('s-formula-matn');
+}
+
+
+function openFormulaList(){
+  flIdx=0;showFlCard();show('s-formula-list');
+}
+
+
+function showFlCard(){
+  var activeF=getActiveFormulas();
+  var f=activeF[flIdx];
+  var total=activeF.length;
+  document.getElementById('fl-sub').textContent=(flIdx+1)+'/'+total;
+  document.getElementById('fl-num').textContent=(flIdx+1)+'/'+total;
+  document.getElementById('fl-prog').style.width=Math.round(flIdx/total*100)+'%';
+  document.getElementById('fl-ru').textContent=f.ru;
+  document.getElementById('fl-uz').textContent=f.uz;
+  var exHtml='';
+  if(f.ex) f.ex.forEach(function(e){
+    exHtml+="<div style='background:#f5f5f0;border-radius:10px;padding:12px;'>" +
+      "<div style='font-size:14px;font-weight:500;color:#1a1a1a;margin-bottom:4px;'>"+e.ru+"</div>" +
+      "<div style='font-size:13px;color:#888;'>"+e.uz+"</div></div>";
+  });
+  document.getElementById('fl-examples').innerHTML=exHtml;
+  var btn=document.getElementById('fl-next-btn');
+  if(flIdx===total-1){btn.textContent='Tugallash ✓';}
+  else{btn.textContent='Keyingi →';}
+}
+
+function nextFlCard(){
+  var activeF=getActiveFormulas();
+  if(flIdx<activeF.length-1){flIdx++;showFlCard();}
+  else{
+    markFormulaListDone();
+    show('s-formula-menu');
+  }
+}
+
+function renderFormulaList(){}
+
+function markFormulaListDone(){
+  doneExercises.formula=true;
+  updateMenuCards();updateProgress();
+  show('s-formula-menu');
+}
+
+// FORMULA MASHQ
+var fmIdx=0;var fmAnswered=false;
+
+function openFormulaMashq(){
+  fmIdx=0;fmAnswered=false;
+  showFmQ();show('s-formula-mashq');
+}
+
+function showFmQ(){
+  var activeF=getActiveFormulas();
+  if(fmIdx>=activeF.length){
+    doneExercises.formula=true;updateMenuCards();updateProgress();
+    show('s-formula-menu');return;
+  }
+  var f=activeF[fmIdx];
+  fmAnswered=false;
+  document.getElementById('fm-sub').textContent=(fmIdx+1)+'/'+activeF.length;
+  document.getElementById('fm-num').textContent=(fmIdx+1)+'/'+activeF.length;
+  document.getElementById('fm-prog').style.width=Math.round(fmIdx/activeF.length*100)+'%';
+  document.getElementById('fm-uz').textContent=f.uz;
+  var opts=[f.ru];
+  var used=[fmIdx];
+  var att=0;
+  while(opts.length<3 && used.length<activeF.length && att<100){
+    att++;
+    var r=Math.floor(Math.random()*activeF.length);
+    if(used.indexOf(r)===-1){opts.push(activeF[r].ru);used.push(r);}
+  }
+  opts.sort(function(){return Math.random()-0.5;});
+  var html='';
+  opts.forEach(function(opt){
+    var safe=opt.replace(/"/g,'&quot;');
+    html+="<button class='test-opt' data-ru='"+safe+"' onclick='selectFmOpt(this)'>"+opt+"</button>";
+  });
+  document.getElementById('fm-variants').innerHTML=html;
+  var nb=document.getElementById('fm-next');if(nb)nb.style.display='none';
+}
+
+function selectFmOpt(el){
+  if(fmAnswered)return;
+  fmAnswered=true;
+  var chosen=el.getAttribute('data-ru');
+  var f=getActiveFormulas()[fmIdx];
+  document.querySelectorAll('#fm-variants .test-opt').forEach(function(b){b.classList.add('disabled');});
+  if(chosen===f.ru){
+    el.classList.add('correct');
+  } else {
+    el.classList.add('wrong');
+    document.querySelectorAll('#fm-variants .test-opt').forEach(function(b){
+      if(b.getAttribute('data-ru')===f.ru) b.classList.add('reveal');
+    });
+  }
+  var nb=document.getElementById('fm-next');if(nb)nb.style.display='block';
+}
+
+function nextFmQ(){fmIdx++;showFmQ();}
+
+// AUDIO TEST
+var AT_DEFAULT=[
+  {q:"Anna qayerda yashaydi?",opts:["Toshkentda","Moskvada","Buxoroda","Samarqandda"],ans:"Moskvada"},
+  {q:"Annaning kasbi nima?",opts:["O'qituvchi","Shifokor","Menejer","Talaba"],ans:"Shifokor"},
+  {q:"Annaga necha yosh?",opts:["20","28","25","32"],ans:"25"},
+  {q:"Anna qaysi tilni o'rganmoqda?",opts:["Inglizcha","O'zbekcha","Ruscha","Arabcha"],ans:"O'zbekcha"},
+  {q:"Anna bo'sh vaqtida nima qilishni yaxshi ko'radi?",opts:["Sport","Parkda sayr va kitob","Musiqa","Sayohat"],ans:"Parkda sayr va kitob"},
+];
+var AT_QUESTIONS=AT_DEFAULT;
+var atIdx=0;var atAnswered=false;
+
+function startAudioTest(){
+  AT_QUESTIONS=getActiveAudioQ();
+  atIdx=0;atAnswered=false;showAtQ();show('s-audio-test');
+}
+
+function showAtQ(){
+  if(atIdx>=AT_QUESTIONS.length){
+    doneExercises.audio=true;updateMenuCards();updateProgress();
+    show('s-audio-menu');return;
+  }
+  var q=AT_QUESTIONS[atIdx];
+  atAnswered=false;
+  document.getElementById('at-sub').textContent=(atIdx+1)+'/'+AT_QUESTIONS.length;
+  document.getElementById('at-num').textContent=(atIdx+1)+'/'+AT_QUESTIONS.length;
+  document.getElementById('at-prog').style.width=Math.round(atIdx/AT_QUESTIONS.length*100)+'%';
+  document.getElementById('at-question').textContent=q.q;
+  var html='';
+  q.opts.forEach(function(opt,i){
+    var safe=opt.replace(/"/g,'&quot;');
+    html+="<button class='test-opt' data-ans='"+safe+"' onclick='selectAtOpt(this)'>"+(i+1)+". "+opt+"</button>";
+  });
+  document.getElementById('at-options').innerHTML=html;
+  var nb=document.getElementById('at-next');if(nb)nb.style.display='none';
+}
+
+function selectAtOpt(el){
+  if(atAnswered)return;
+  atAnswered=true;
+  var chosen=el.getAttribute('data-ans');
+  var q=AT_QUESTIONS[atIdx];
+  document.querySelectorAll('#at-options .test-opt').forEach(function(b){b.classList.add('disabled');});
+  if(chosen===q.ans){el.classList.add('correct');}
+  else{
+    el.classList.add('wrong');
+    document.querySelectorAll('#at-options .test-opt').forEach(function(b){
+      if(b.getAttribute('data-ans')===q.ans) b.classList.add('reveal');
+    });
+  }
+  var nb=document.getElementById('at-next');
+  if(nb){
+    if(atIdx===AT_QUESTIONS.length-1) nb.textContent='Tugallash ✓';
+    nb.style.display='block';
+  }
+}
+
+function nextAtQ(){
+  atIdx++;
+  if(atIdx>=AT_QUESTIONS.length){
+    doneExercises.audio=true;updateMenuCards();updateProgress();
+    show('s-audio-menu');
+  } else {
+    showAtQ();
+  }
+}
+
+// TAQLID
+function toggleTaqlidPlay(){toggleAudio(pTaqlid);}
+
+
+function openExercise(type){
+  curExercise=type;
+  var titles={formula:'Nutq formulalari',audio:'Audio mashq',gapiruv:'Gapirish vazifasi',grammar:'Grammatika'};
+  document.getElementById('detail-title').textContent=titles[type];
+  document.getElementById('detail-sub').textContent='1-kun · '+curLevel;
+  renderExerciseDetail(type);show('se-detail');
+}
+function openWriting(){
+  var task=(DAY_CONTENT&&DAY_CONTENT.writing_task)||'';
+  var sample=(DAY_CONTENT&&DAY_CONTENT.writing_sample)||'';
+  document.getElementById('writing-sub').textContent=(window.curDay||1)+'-kun · '+curLevel;
+  document.getElementById('writing-task').textContent=task||"Bu kun uchun yozish topshirig'i qo'shilmagan.";
+  document.getElementById('writing-sample').textContent=sample;
+  document.getElementById('writing-sample-box').style.display='none';
+  document.getElementById('writing-reveal-btn').style.display=sample?'flex':'none';
+  applyMaterials();
+  show('s-writing');
+}
+function revealWritingSample(){
+  document.getElementById('writing-sample-box').style.display='block';
+  document.getElementById('writing-reveal-btn').style.display='none';
+  doneExercises.writing=true;updateMenuCards();updateProgress();
+}
+
+var FORMULAS=[
+  {ru:'Меня зовут …',uz:'Mening ismim …',ex:[{ru:'Меня зовут Азиза.',uz:'Mening ismim Aziza.'},{ru:'Меня зовут Тимур.',uz:'Mening ismim Timur.'}]},
+  {ru:'Очень приятно познакомиться.',uz:'Tanishganimdan juda xursandman.',ex:[{ru:'Очень приятно познакомиться с вами!',uz:'Siz bilan tanishganimdan juda xursandman!'},{ru:'Мне тоже очень приятно.',uz:'Men ham juda xursandman.'}]},
+  {ru:'Я из Узбекистана.',uz:'Men O\'zbekistondanman.',ex:[{ru:'Я из Узбекистана, из Ташкента.',uz:'Men O\'zbekistondan, Toshkentdanman.'},{ru:'Он тоже из Узбекистана.',uz:'U ham O\'zbekistondan.'}]},
+  {ru:'Я живу в …',uz:'Men …da yashayman.',ex:[{ru:'Я живу в Ташкенте.',uz:'Men Toshkentda yashayman.'},{ru:'Мы живём в Самарканде.',uz:'Biz Samarqandda yashaymiz.'}]},
+  {ru:'Я работаю …',uz:'Men … bo\'lib ishlayman.',ex:[{ru:'Я работаю учителем.',uz:'Men o\'qituvchi bo\'lib ishlayman.'},{ru:'Она работает врачом.',uz:'U shifokor bo\'lib ishlaydi.'}]},
+  {ru:'Я студент(ка).',uz:'Men talabaman.',ex:[{ru:'Я студент университета.',uz:'Men universitet talabasiman.'},{ru:'Она студентка медицинского колледжа.',uz:'U tibbiyot kolleji talabasi.'}]},
+  {ru:'Я изучаю русский язык.',uz:'Men rus tilini o\'rganyapman.',ex:[{ru:'Я изучаю русский язык каждый день.',uz:'Men har kuni rus tilini o\'rganaman.'},{ru:'Мы изучаем русский язык вместе.',uz:'Biz birga rus tilini o\'rganamiz.'}]},
+  {ru:'Я немного говорю по-русски.',uz:'Men ruscha ozgina gapiraman.',ex:[{ru:'Я немного говорю по-русски, но хочу говорить лучше.',uz:'Men ruscha ozgina gapiraman, lekin yaxshiroq gapirmoqchiman.'},{ru:'Он тоже немного говорит по-русски.',uz:'U ham ruscha ozgina gapiradi.'}]},
+  {ru:'А вас как зовут?',uz:'Sizning ismingiz nima?',ex:[{ru:'Меня зовут Анна. А вас как зовут?',uz:'Mening ismim Anna. Sizning ismingiz nima?'},{ru:'А тебя как зовут?',uz:'Sening isming nima?'}]},
+  {ru:'Откуда вы?',uz:'Qayerdansiz?',ex:[{ru:'Откуда вы? Я из Узбекистана.',uz:'Qayerdansiz? Men O\'zbekistondan.'},{ru:'Откуда ты родом?',uz:'Qayerdan bo\'lasan?'}]},
+  {ru:'Где вы живёте?',uz:'Qayerda yashaysiz?',ex:[{ru:'Где вы живёте? В Ташкенте.',uz:'Qayerda yashaysiz? Toshkentda.'},{ru:'Где ты живёшь?',uz:'Qayerda yashaysan?'}]},
+  {ru:'До свидания!',uz:'Xayr!',ex:[{ru:'До свидания! Было приятно познакомиться.',uz:'Xayr! Tanishganimdan mamnun bo\'ldim.'},{ru:'До свидания, до завтра!',uz:'Xayr, ertaga ko\'rishguncha!'}]},
+  {ru:'Рад(а) знакомству.',uz:'Tanishganimdan xursandman.',ex:[{ru:'Рад знакомству! Меня зовут Бекзод.',uz:'Tanishganimdan xursandman! Mening ismim Bekzod.'},{ru:'Рада знакомству с вами.',uz:'Siz bilan tanishganimdan xursandman.'}]},
+];
+
+var VAZIFALAR=[
+  {num:'Vazifa 1',title:'Iboralarni 10 marta takrorlang',desc:'• Меня зовут…\n• Я из…\n• Я живу…\n• Я работаю…\n• Я изучаю русский язык.',format:'🎤 Audio · 3 daqiqa'},
+  {num:'Vazifa 2',title:'O\'zingiz haqida gapiring',desc:'• Как вас зовут?\n• Откуда вы?\n• Где вы живёте?\n• Чем занимаетесь?',format:'🎤 Audio · 3 daqiqa'},
+  {num:'Vazifa 3',title:'Nima yoqdi?',desc:'• Что нравится в русском языке?\n• Что сложно?\n• Что интересно?',format:'🎤 Audio · 2 daqiqa'},
+  {num:'Vazifa 4',title:'Tez javob bering',desc:'• Как дела?\n• Как настроение?\n• Что делаете сегодня?',format:'🎤 Audio · 2 daqiqa'},
+  {num:'Vazifa 5',title:'Do\'st bilan tanishtiring',desc:'Mini-intervyu o\'tkazing va do\'stingizni tanishtiring.',format:'🎤 Audio · 2 daqiqa'},
+  {num:'Vazifa 6',title:'AI bilan suhbat',desc:'AI ga yozing: "Привет! Я учу русский язык. Уровень A1. Поговори со мной по-русски медленно." Kamida 10 replika.',format:'🎤 Audio · 2 daqiqa'},
+  {num:'Vazifa 7',title:'Reflekciya',desc:'• Bugun nima o\'rgandim?\n• Nima qiyin bo\'ldi?\n• Qaysi so\'zlar yodimda qoldi?',format:'🎤 Audio · 2 daqiqa'},
+];
+
+function renderExerciseDetail(type){
+  var c=document.getElementById('detail-content');var html='';
+  if(type==='formula'){
+    var isB1f=(curLevel==='B1-B2');
+    html='<div style="padding:0 0 12px;">';
+    // formulalar renderFormulaList ga o'tadi, bu yerda faqat matn
+    if(!isB1f){
+      html+="<div class='matn-card' style='margin-top:4px;'><div class='matn-level'>O\'qish matni — A1</div><div class='matn-ru'>Здравствуйте! Меня зовут Азиза. Я из Узбекистана. Я живу в Ташкенте. Мне 28 лет. Я работаю учителем. Я изучаю русский язык, потому что хочу свободно говорить по-русски.</div><div class='matn-uz'>Assalomu alaykum! Mening ismim Aziza. Men O\'zbekistondanman. Men Toshkentda yashayman. Menga 28 yosh. Men o\'qituvchi bo\'lib ishlayman.</div></div>";
+      html+="<div class='matn-card'><div class='matn-level'>O\'qish matni — A2</div><div class='matn-ru'>Здравствуйте! Меня зовут Бекзод. Я из Самарканда, но живу в Ташкенте. Я менеджер. Каждый день изучаю русский язык для работы и общения.</div><div class='matn-uz'>Assalomu alaykum! Mening ismim Bekzod. Men Samarqanddan, lekin Toshkentda yashayman. Men menejer. Har kuni ish va muloqot uchun rus tilini o\'rganaman.</div></div>";
+    } else {
+      var dayMatn={
+        1:{ru:'Здравствуйте! Меня зовут Азиза. Я из Узбекистана и живу в Ташкенте. По профессии я преподаватель русского языка. Уже несколько лет я работаю со студентами разных уровней и помогаю им изучать русский язык. Сейчас я активно развиваю свои профессиональные навыки. Моя цель — помогать людям говорить на русском языке уверенно и без страха ошибок.',uz:"Assalomu alaykum! Mening ismim Aziza. Men O'zbekistondanman va Toshkentda yashayman. Kasbim bo'yicha rus tili o'qituvchisiman. Bir necha yildan beri turli darajadagi talabalar bilan ishlayman. Hozir professional ko'nikmalarimni rivojlantiryapman. Maqsadim — odamlarga rus tilida ishonch bilan gapirishga yordam berish."},
+        2:{ru:'Мой коллега Азиз производит очень приятное впечатление. Это высокий и подтянутый мужчина около тридцати пяти лет. У него спортивное телосложение, хорошая осанка и уверенная походка. У Азиза короткие тёмные волосы и выразительные карие глаза. Его улыбка выглядит искренней. Он всегда аккуратно одет и выглядит ухоженно.',uz:"Mening hamkasbim Aziz juda yoqimli taassurot qoldiradi. U taxminan o'ttiz besh yoshdagi baland bo'yli va tetik erkak. Uning sportcha qomati, yaxshi qaddi-qomati va ishonchli yurishi bor. Azizning qisqa qora sochlari va ifodali jigarrang ko'zlari bor. Uning tabassumi samimiy ko'rinadi. U har doim ozoda kiyinadi."},
+        3:{ru:'В прошлом месяце наша компания проводила конкурс. В финал вышли три человека. Первое место занял Андрей — ему тридцать восемь лет. Второе место заняла Елена — ей тридцать два года. Третье место получил Тимур — ему сорок один год. После конкурса сотрудники обсуждали профессиональные качества участников.',uz:"O'tgan oy kompaniyamiz musoboqa o'tkazdi. Finalga uch kishi chiqdi. Birinchi o'rinni Andrey egalladi — unga o'ttiz sakkiz yosh. Ikkinchi o'rinni Yelena egalladi — unga o'ttiz ikki yosh. Uchinchi o'rinni Timur oldi — unga qirq bir yosh. Musoboqadan so'ng xodimlar ishtirokchilarning professional fazilatlarini muhokama qildi."}
+      };
+      var d=window.curDay||1;
+      var m=dayMatn[d]||dayMatn[1];
+      html+="<div class='matn-card'><div class='matn-level'>O\'qish uchun matn — B1</div><div class='matn-ru'>"+m.ru+"</div><div class='matn-uz'>"+m.uz+"</div></div>";
+    }
+    html+='</div>';
+  } else if(type==='audio'){
+    html='<div style="padding:0 0 12px;"><div class="audio-player-card"><div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;"><button class="audio-play-btn" id="play-btn" onclick="togglePlay()">▶</button><div><div style="font-size:14px;font-weight:600;color:#1a1a1a;">1-kun audio</div><div style="font-size:12px;color:#bbb;" id="audio-dur">0:00 / 0:00</div></div></div><div style="height:5px;background:#f0f0e8;border-radius:99px;"><div id="audio-prog" style="height:100%;background:#1D9E75;border-radius:99px;width:0%;transition:width 0.1s;"></div></div></div><div class="audio-player-card"><div style="font-size:12px;color:#999;margin-bottom:12px;">Tinglang va takrorlang:</div><div class="shadowing-text">— Здравствуйте!<br>— Меня зовут Анна.<br>— Я живу в Москве.</div><div class="shadowing-uz">— Assalomu alaykum!<br>— Mening ismim Anna.<br>— Men Moskvada yashayman.</div><div style="font-size:12px;color:#1D9E75;margin-top:10px;font-weight:500;">↻ Kamida 3 marta takrorlang</div></div></div>';
+  } else if(type==='gapiruv'){
+    html='<div style="padding:0 0 12px;">';
+    VAZIFALAR.forEach(function(v){html+="<div class='vazifa-card'><div class='vaz-num'>"+v.num+"</div><div class='vaz-title'>"+v.title+"</div><div class='vaz-desc'>"+v.desc.replace(/\n/g,'<br>')+"</div><div class='vaz-format'>"+v.format+"</div></div>";});
+    html+='</div>';
+  } else if(type==='grammar'){
+    var activeGram=getActiveGrammar();
+    if(activeGram){
+      html='<div style="padding:0 0 12px;">';
+      activeGram.forEach(function(g){
+        html+="<div class='gram-card'><div class='gram-title'>"+g.title+"</div><div class='gram-sub'>"+g.sub+"</div>";
+        g.rows.forEach(function(r){html+="<div class='gram-row'><div class='gram-base'>"+r.base+" →</div><div class='gram-res'>"+r.res+"</div></div>";});
+        html+="<div class='gram-ex-box'>"+g.ex+"</div></div>";
+      });
+      html+="<div style='text-align:center;margin-top:16px;'><div style='font-size:13px;color:#999;margin-bottom:6px;'>Darsni baholang</div><div class='stars-row' id='stars'><span class='star' onclick='rateStar(1)'>★</span><span class='star' onclick='rateStar(2)'>★</span><span class='star' onclick='rateStar(3)'>★</span><span class='star' onclick='rateStar(4)'>★</span><span class='star' onclick='rateStar(5)'>★</span></div></div></div>";
+    } else {
+      html='<div style="padding:0 0 12px;"><div class="gram-card"><div class="gram-title">Konstruktsiya 1 — Меня зовут …</div><div class="gram-sub">Kim? → Kimi?</div><div class="gram-row"><div class="gram-base">Я →</div><div class="gram-res">МЕНЯ</div></div><div class="gram-row"><div class="gram-base">Ты →</div><div class="gram-res">ТЕБЯ</div></div><div class="gram-row"><div class="gram-base">Он →</div><div class="gram-res">ЕГО</div></div><div class="gram-ex-box">Меня зовут Азиза. — Mening ismim Aziza.</div></div><div class="gram-card"><div class="gram-title">Konstruktsiya 2 — Я работаю (кем?)</div><div class="gram-sub">Kasbni ifodalash</div><div class="gram-row"><div class="gram-base">учитель →</div><div class="gram-res">учителем</div></div><div class="gram-row"><div class="gram-base">врач →</div><div class="gram-res">врачом</div></div><div class="gram-ex-box">Я работаю учителем. — Men o\'qituvchi bo\'lib ishlayman.</div></div><div class="gram-card"><div class="gram-title">Konstruktsiya 3 — Я из …</div><div class="gram-sub">Roditelny padej</div><div class="gram-row"><div class="gram-base">Узбекистан →</div><div class="gram-res">из Узбекистана</div></div><div class="gram-row"><div class="gram-base">Бухара →</div><div class="gram-res">из Бухары</div></div><div class="gram-ex-box">Я из Узбекистана. — Men O\'zbekistondanman.</div></div><div style="text-align:center;margin-top:16px;"><div style="font-size:13px;color:#999;margin-bottom:6px;">Darsni baholang</div><div class="stars-row" id="stars"><span class="star" onclick="rateStar(1)">★</span><span class="star" onclick="rateStar(2)">★</span><span class="star" onclick="rateStar(3)">★</span><span class="star" onclick="rateStar(4)">★</span><span class="star" onclick="rateStar(5)">★</span></div></div></div>';
+    }
+  }
+  if(type==='grammar'){
+    var gvEmb=ytEmbed((typeof DAY_CONTENT!=='undefined'&&DAY_CONTENT.grammar_video)||'');
+    if(gvEmb)html=html.replace('<div style="padding:0 0 12px;">','<div style="padding:0 0 12px;"><div class="video-frame" style="margin-bottom:8px;"><iframe width="100%" height="100%" src="'+gvEmb+'" style="border:0;" allowfullscreen></iframe></div><div style="font-size:12px;color:#999;margin-bottom:12px;">🎬 Videodars</div>');
+  }
+  html+="<button class='ex-done-btn' id='ex-done-btn' onclick='markExDone()'>Bajarildi ✓</button>";
+  c.innerHTML=html;
+}
+
+function markExDone(){
+  var btn=document.getElementById('ex-done-btn');
+  if(btn.classList.contains('done-state'))return;
+  btn.classList.add('done-state');btn.textContent='✓ Bajarildi!';
+  doneExercises[curExercise]=true;
+  updateMenuCards();updateProgress();
+  setTimeout(function(){show('se-menu');},500);
+}
+
+// === HAQIQIY AUDIO (bazadan) ===
+var DAY_AUDIOS={};
+var DAY_CONTENT={};
+var pAudirov={slot:'audirov',btnId:'play-btn',progId:'audio-prog',durId:'audio-dur',audio:null,_url:null};
+var pTaqlid={slot:'taqlid',btnId:'taqlid-play',progId:'taqlid-prog',durId:'taqlid-dur',audio:null,_url:null};
+function toggleAudio(cfg){
+  var url=DAY_AUDIOS[cfg.slot];
+  var btn=document.getElementById(cfg.btnId);
+  if(!url){alert("Bu kun uchun audio hali qo'shilmagan");return;}
+  if(!cfg.audio||cfg._url!==url){
+    if(cfg.audio)cfg.audio.pause();
+    cfg.audio=new Audio(url);cfg._url=url;
+    cfg.audio.addEventListener('timeupdate',function(){
+      var a=cfg.audio,pct=a.duration?(a.currentTime/a.duration*100):0;
+      var p=document.getElementById(cfg.progId);if(p)p.style.width=pct+'%';
+      var dd=document.getElementById(cfg.durId);if(dd)dd.textContent=fmt(Math.round(a.currentTime))+' / '+fmt(Math.round(a.duration||0));
+    });
+    cfg.audio.addEventListener('ended',function(){
+      var b=document.getElementById(cfg.btnId);if(b)b.textContent='▶';
+      var p=document.getElementById(cfg.progId);if(p)p.style.width='0%';
+    });
+  }
+  if(cfg.audio.paused){cfg.audio.play();if(btn)btn.textContent='⏸';}
+  else{cfg.audio.pause();if(btn)btn.textContent='▶';}
+}
+function togglePlay(){toggleAudio(pAudirov);}
+function loadDayAudios(d){
+  var lvl=(curLevel==='B1-B2')?'B1':'A1';
+  DAY_AUDIOS={};DAY_CONTENT={};applyDayTasks();
+  [pAudirov,pTaqlid].forEach(function(c){if(c.audio)c.audio.pause();c.audio=null;c._url=null;
+    var b=document.getElementById(c.btnId);if(b)b.textContent='▶';
+    var p=document.getElementById(c.progId);if(p)p.style.width='0%';});
+  fetch('/api/content?level='+lvl+'&day='+d,{headers:{'X-Telegram-Init-Data':INIT_DATA}}).then(function(r){return r.json();})
+    .then(function(data){DAY_CONTENT=data;DAY_AUDIOS=data.audios||{};applyDayTasks();
+      if(data.title){var s=document.getElementById('ex-menu-sub');if(s)s.textContent=curLevel+' · '+data.title;}})
+    .catch(function(){DAY_AUDIOS={};});
+}
+function applyDayTasks(){
+  var et=DAY_CONTENT&&DAY_CONTENT.enabled_tasks;
+  var map={vocab:'mc-lugat',formula:'mc-formula',audio:'mc-audio',speaking:'mc-gapiruv',grammar:'mc-grammar',writing:'mc-writing'};
+  for(var k in map){var el=document.getElementById(map[k]);if(!el)continue;
+    var on=(!et)?true:(et.indexOf(k)!==-1);el.style.display=on?'':'none';}
+  applyMaterials();
+  try{updateProgress();}catch(e){}
+}
+function applyMaterials(){
+  var mats=(DAY_CONTENT&&DAY_CONTENT.materials)||{};
+  document.querySelectorAll('.mat-slot').forEach(function(slot){
+    var sec=slot.getAttribute('data-sec');var m=mats[sec];
+    if(m&&m.url){
+      slot.style.display='';
+      slot.innerHTML="<button onclick=\"openMaterial('"+sec+"')\" style=\"width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;border-radius:14px;border:1.5px solid #1D9E75;background:#e0f5ed;font-size:14px;font-weight:600;color:#0a5a40;cursor:pointer;font-family:'Inter',sans-serif;\">📎 Qo'shimcha material (PDF)</button>";
+    } else { slot.style.display='none'; slot.innerHTML=''; }
+  });
+}
+function openMaterial(sec){
+  var mats=(DAY_CONTENT&&DAY_CONTENT.materials)||{};var m=mats[sec];
+  if(!m||!m.url)return;
+  if(tg&&tg.openLink)tg.openLink(m.url);else window.open(m.url,'_blank');
+}
+function loadUI(){
+  fetch('/api/ui').then(function(r){return r.json();}).then(function(u){
+    function set(id,v){var e=document.getElementById(id);if(e&&v!=null&&v!=='')e.textContent=v;}
+    set('ui-wtitle',u.ui_welcome_title);set('ui-wsub',u.ui_welcome_sub);set('ui-wdesc',u.ui_welcome_desc);
+    set('ui-clabel',u.ui_course_label);set('ui-cdesc',u.ui_course_desc);
+    set('lbl-vocab',u.label_vocab);set('lbl-formula',u.label_formula);set('lbl-audio',u.label_audio);
+    set('lbl-speaking',u.label_speaking);set('lbl-grammar',u.label_grammar);
+  }).catch(function(){});
+}
+if(tg){try{tg.ready();tg.expand();}catch(e){}}
+loadUI();
+loadAccess();
+
+function fmt(s){return Math.floor(s/60)+':'+(s%60<10?'0':'')+s%60;}
+function rateStar(n){if(document.getElementById('stars'))document.querySelectorAll('#stars .star').forEach((s,i)=>s.classList.toggle('on',i<n));}
+
+// B1-B2 KONTENT
+var B1_DAYS = {
+  1: {
+    title: "O'z-o'zini taqdim etish",
+    vocab: [
+      {ru:'занима́ться',stress:'занима́ться',uz:'shug\'ullanmoq',ex1ru:'Я занимаюсь обучением.',ex1uz:'Men ta\'lim bilan shug\'ullanaman.',ex2ru:'Я занимаюсь развитием проектов.',ex2uz:'Men loyihalarni rivojlantirish bilan shug\'ullanaman.',sin:'работать, практиковать',ant:'бездельничать',nsv:'занима́ться',sv:'заня́ться'},
+      {ru:'развива́ться',stress:'развива́ться',uz:'rivojlanmoq',ex1ru:'Я постоянно развиваюсь.',ex1uz:'Men doimo rivojlanaman.',ex2ru:'Компания развивается быстро.',ex2uz:'Kompaniya tez rivojlanmoqda.',sin:'совершенствоваться, расти',ant:'деградировать',nsv:'развива́ться',sv:'разви́ться'},
+      {ru:'достига́ть',stress:'достига́ть',uz:'erishmoq',ex1ru:'Я достигаю своих целей.',ex1uz:'Men o\'z maqsadlarimga erishaman.',ex2ru:'Она достигла успеха.',ex2uz:'U muvaffaqiyatga erishdi.',sin:'добиваться, получать',ant:'терять',nsv:'достига́ть',sv:'дости́чь'},
+      {ru:'стреми́ться',stress:'стреми́ться',uz:'intilmoq',ex1ru:'Я стремлюсь к росту.',ex1uz:'Men o\'sishga intilyapman.',ex2ru:'Он стремится стать экспертом.',ex2uz:'U ekspert bo\'lishga intiladi.',sin:'добиваться, направляться',ant:'отказываться',nsv:'стреми́ться',sv:''},
+      {ru:'изуча́ть',stress:'изуча́ть',uz:'o\'rganmoq',ex1ru:'Я изучаю русский язык.',ex1uz:'Men rus tilini o\'rganaman.',ex2ru:'Мы изучаем рынок.',ex2uz:'Biz bozorni o\'rganamiz.',sin:'осваивать, учить',ant:'игнорировать',nsv:'изуча́ть',sv:'изучи́ть'},
+      {ru:'обща́ться',stress:'обща́ться',uz:'muloqot qilmoq',ex1ru:'Я люблю общаться с людьми.',ex1uz:'Men odamlar bilan muloqot qilishni yaxshi ko\'raman.',ex2ru:'Мы часто общаемся онлайн.',ex2uz:'Biz tez-tez onlayn muloqot qilamiz.',sin:'разговаривать, контактировать',ant:'избегать',nsv:'обща́ться',sv:'пообща́ться'},
+      {ru:'интересова́ться',stress:'интересова́ться',uz:'qiziqmoq',ex1ru:'Я интересуюсь психологией.',ex1uz:'Men psixologiyaga qiziqaman.',ex2ru:'Она интересуется искусством.',ex2uz:'U san\'atga qiziqadi.',sin:'увлекаться, изучать',ant:'игнорировать',nsv:'интересова́ться',sv:'заинтересова́ться'},
+      {ru:'управля́ть',stress:'управля́ть',uz:'boshqarmoq',ex1ru:'Я управляю командой.',ex1uz:'Men jamoani boshqaraman.',ex2ru:'Он управляет проектом.',ex2uz:'U loyihani boshqaradi.',sin:'руководить, координировать',ant:'подчиняться',nsv:'управля́ть',sv:''},
+      {ru:'вдохновля́ть',stress:'вдохновля́ть',uz:'ilhomlantirmoq',ex1ru:'Меня вдохновляют книги.',ex1uz:'Meni kitoblar ilhomlantiradi.',ex2ru:'Он вдохновляет сотрудников.',ex2uz:'U xodimlarni ilhomlantiradi.',sin:'мотивировать, воодушевлять',ant:'демотивировать',nsv:'вдохновля́ть',sv:'вдохнови́ть'},
+      {ru:'о́пыт',stress:'о́пыт',uz:'tajriba',ex1ru:'У меня большой опыт работы.',ex1uz:'Menda katta ish tajribasi bor.',ex2ru:'Этот опыт был полезным.',ex2uz:'Bu tajriba foydali bo\'ldi.',sin:'практика, стаж',ant:'неопытность',nsv:'',sv:''},
+      {ru:'навы́к',stress:'навы́к',uz:'ko\'nikma',ex1ru:'Это важный навык.',ex1uz:'Bu muhim ko\'nikma.',ex2ru:'Я развиваю новые навыки.',ex2uz:'Men yangi ko\'nikmalar rivojlantiraman.',sin:'умение, способность',ant:'неумение',nsv:'',sv:''},
+      {ru:'достиже́ние',stress:'достиже́ние',uz:'yutuq',ex1ru:'Это моё достижение.',ex1uz:'Bu mening yutuqim.',ex2ru:'Я горжусь достижениями.',ex2uz:'Men yutuqlarim bilan faxrlanaman.',sin:'успех, результат',ant:'неудача',nsv:'',sv:''},
+      {ru:'цель',stress:'цель',uz:'maqsad',ex1ru:'У меня есть цель.',ex1uz:'Mening maqsadim bor.',ex2ru:'Цель помогает двигаться вперёд.',ex2uz:'Maqsad oldinga harakat qilishga yordam beradi.',sin:'задача, намерение',ant:'бесцельность',nsv:'',sv:''},
+      {ru:'це́леустремлённый',stress:'це́леустремлённый',uz:'maqsadga intiluvchan',ex1ru:'Я целеустремлённый человек.',ex1uz:'Men maqsadga intiluvchi insonman.',ex2ru:'Она очень целеустремлённая.',ex2uz:'U juda maqsadga intiluvchi.',sin:'мотивированный, настойчивый',ant:'бесцельный',nsv:'',sv:''},
+      {ru:'отве́тственный',stress:'отве́тственный',uz:'mas\'uliyatli',ex1ru:'Я ответственный сотрудник.',ex1uz:'Men mas\'uliyatli xodimman.',ex2ru:'Он ответственный лидер.',ex2uz:'U mas\'uliyatli lider.',sin:'надёжный, серьёзный',ant:'безответственный',nsv:'',sv:''},
+      {ru:'акти́вный',stress:'акти́вный',uz:'faol',ex1ru:'Я веду активный образ жизни.',ex1uz:'Men faol turmush tarzi kechiryapman.',ex2ru:'Он активный участник.',ex2uz:'U faol ishtirokchi.',sin:'энергичный, деятельный',ant:'пассивный',nsv:'',sv:''},
+      {ru:'коммуника́бельный',stress:'коммуника́бельный',uz:'kirishimli',ex1ru:'Я коммуникабельный человек.',ex1uz:'Men kirishimli odamman.',ex2ru:'Она легко знакомится с людьми.',ex2uz:'U odamlar bilan osongina tanishadi.',sin:'общительный, открытый',ant:'замкнутый',nsv:'',sv:''},
+      {ru:'профессиона́льный',stress:'профессиона́льный',uz:'professional',ex1ru:'У нас профессиональная команда.',ex1uz:'Bizda professional jamoa bor.',ex2ru:'Это профессиональный подход.',ex2uz:'Bu professional yondashuv.',sin:'квалифицированный, экспертный',ant:'любительский',nsv:'',sv:''},
+      {ru:'амбицио́зный',stress:'амбицио́зный',uz:'ambitsiyali',ex1ru:'У меня амбициозные цели.',ex1uz:'Mening ambitsiyali maqsadlarim bor.',ex2ru:'Он очень амбициозный.',ex2uz:'U juda ambitsiyali.',sin:'целеустремлённый, мотивированный',ant:'безынициативный',nsv:'',sv:''},
+      {ru:'надёжный',stress:'надёжный',uz:'ishonchli',ex1ru:'Он надёжный партнёр.',ex1uz:'U ishonchli hamkor.',ex2ru:'Это надёжный человек.',ex2uz:'Bu ishonchli inson.',sin:'верный, ответственный',ant:'ненадёжный',nsv:'',sv:''},
+      {ru:'тво́рческий',stress:'тво́рческий',uz:'ijodkor',ex1ru:'У меня творческий подход.',ex1uz:'Menda ijodiy yondashuv bor.',ex2ru:'Она творческий человек.',ex2uz:'U ijodkor inson.',sin:'креативный, оригинальный',ant:'шаблонный',nsv:'',sv:''},
+      {ru:'любозна́тельный',stress:'любозна́тельный',uz:'qiziquvchan',ex1ru:'Я любознательный человек.',ex1uz:'Men qiziquvchan odamman.',ex2ru:'Любознательные люди много читают.',ex2uz:'Qiziquvchan odamlar ko\'p o\'qiydi.',sin:'заинтересованный, пытливый',ant:'равнодушный',nsv:'',sv:''},
+      {ru:'уве́ренный',stress:'уве́ренный',uz:'o\'ziga ishonchli',ex1ru:'Я уверенно выступаю.',ex1uz:'Men ishonch bilan chiqish qilaman.',ex2ru:'Она уверена в себе.',ex2uz:'U o\'ziga ishonadi.',sin:'спокойный, решительный',ant:'неуверенный',nsv:'',sv:''},
+      {ru:'разви́тие',stress:'разви́тие',uz:'rivojlanish',ex1ru:'Я инвестирую в развитие.',ex1uz:'Men rivojlanishga sarmoya kiritaman.',ex2ru:'Развитие требует времени.',ex2uz:'Rivojlanish vaqt talab qiladi.',sin:'рост, совершенствование',ant:'деградация',nsv:'',sv:''},
+      {ru:'специали́ст',stress:'специали́ст',uz:'mutaxassis',ex1ru:'Я специалист по обучению.',ex1uz:'Men o\'qitish bo\'yicha mutaxassisман.',ex2ru:'Он хороший специалист.',ex2uz:'U yaxshi mutaxassis.',sin:'эксперт, профессионал',ant:'новичок',nsv:'',sv:''},
+      {ru:'ли́дерство',stress:'ли́дерство',uz:'liderlik',ex1ru:'Лидерство важно в бизнесе.',ex1uz:'Biznesda liderlik muhim.',ex2ru:'Я изучаю лидерство.',ex2uz:'Men liderlikni o\'rganaman.',sin:'руководство, влияние',ant:'подчинение',nsv:'',sv:''},
+      {ru:'компете́нция',stress:'компете́нция',uz:'kompetensiya',ex1ru:'Это моя компетенция.',ex1uz:'Bu mening kompetensiyam.',ex2ru:'Нужно развивать компетенции.',ex2uz:'Kompetensiyalarni rivojlantirish kerak.',sin:'квалификация, знание',ant:'некомпетентность',nsv:'',sv:''},
+      {ru:'инте́рес',stress:'инте́рес',uz:'qiziqish',ex1ru:'У меня много интересов.',ex1uz:'Menda ko\'p qiziqishlar bor.',ex2ru:'Этот интерес появился недавно.',ex2uz:'Bu qiziqish yaqinda paydo bo\'ldi.',sin:'увлечение, любопытство',ant:'безразличие',nsv:'',sv:''},
+      {ru:'прое́кт',stress:'прое́кт',uz:'loyiha',ex1ru:'Сейчас я веду проект.',ex1uz:'Hozir men loyiha olib bormoqdaman.',ex2ru:'Проект оказался успешным.',ex2uz:'Loyiha muvaffaqiyatli chiqdi.',sin:'задача, инициатива',ant:'',nsv:'',sv:''},
+      {ru:'са́моразвитие',stress:'са́моразвитие',uz:'o\'z-o\'zini rivojlantirish',ex1ru:'Я занимаюсь саморазвитием.',ex1uz:'Men o\'z-o\'zimni rivojlantiraman.',ex2ru:'Саморазвитие — это важно.',ex2uz:'O\'z-o\'zini rivojlantirish muhim.',sin:'самосовершенствование',ant:'деградация',nsv:'',sv:''},
+    ],
+    formulas: [
+      {ru:'Позвольте представиться.',uz:'O\'zimni tanishtirishga ruxsat bering.',ex:[{ru:'Позвольте представиться. Меня зовут Азиза.',uz:'O\'zimni tanishtirishga ruxsat bering. Mening ismim Aziza.'},{ru:'Позвольте представиться — я директор компании.',uz:'O\'zimni tanishtirishga ruxsat bering — men kompaniya direktori.'}]},
+      {ru:'Кратко расскажу о себе.',uz:'O\'zim haqimda qisqacha aytib beraman.',ex:[{ru:'Кратко расскажу о себе: я работаю в образовании.',uz:'O\'zim haqimda qisqacha: men ta\'lim sohasida ishlayman.'},{ru:'Позвольте кратко рассказать о себе.',uz:'O\'zim haqimda qisqacha gapirishga ruxsat bering.'}]},
+      {ru:'По профессии я …',uz:'Kasbim bo\'yicha men …',ex:[{ru:'По профессии я преподаватель.',uz:'Kasbim bo\'yicha men o\'qituvchiman.'},{ru:'По профессии я инженер.',uz:'Kasbim bo\'yicha men muhandisман.'}]},
+      {ru:'В настоящее время я занимаюсь …',uz:'Hozirda men … bilan shug\'ullanaman.',ex:[{ru:'В настоящее время я занимаюсь разработкой курсов.',uz:'Hozirda men kurslar ishlab chiqish bilan shug\'ullanaman.'},{ru:'В настоящее время я занимаюсь бизнесом.',uz:'Hozirda men biznes bilan shug\'ullanaman.'}]},
+      {ru:'Мне особенно интересно …',uz:'Menga ayniqsa … qiziq.',ex:[{ru:'Мне особенно интересно изучать языки.',uz:'Menga ayniqsa tillarni o\'rganish qiziq.'},{ru:'Мне особенно интересна психология.',uz:'Menga ayniqsa psixologiya qiziq.'}]},
+      {ru:'Одной из моих сильных сторон является …',uz:'Kuchli tomonlarimdan biri …',ex:[{ru:'Одной из моих сильных сторон является коммуникабельность.',uz:'Kuchli tomonlarimdan biri kirishimliligimdir.'},{ru:'Одной из моих сильных сторон является ответственность.',uz:'Kuchli tomonlarimdan biri mas\'uliyatlilikdir.'}]},
+      {ru:'За последние годы я приобрёл опыт в …',uz:'So\'nggi yillarda men … bo\'yicha tajriba orttirdim.',ex:[{ru:'За последние годы я приобрёл опыт в управлении.',uz:'So\'nggi yillarda men boshqaruv bo\'yicha tajriba orttirdim.'},{ru:'За последние годы я приобрёл опыт в маркетинге.',uz:'So\'nggi yillarda men marketing bo\'yicha tajriba orttirdim.'}]},
+      {ru:'Сейчас я стремлюсь к …',uz:'Hozir men … ga intilyapman.',ex:[{ru:'Сейчас я стремлюсь к профессиональному росту.',uz:'Hozir men kasbiy o\'sishga intilyapman.'},{ru:'Сейчас я стремлюсь к новым знаниям.',uz:'Hozir men yangi bilimlar egallashga intilyapman.'}]},
+      {ru:'В будущем я хотел(а) бы …',uz:'Kelajakda men … ni istardim.',ex:[{ru:'В будущем я хотел бы открыть свою компанию.',uz:'Kelajakda men o\'z kompaniyamni ochishni istardim.'},{ru:'В будущем я хотела бы работать за рубежом.',uz:'Kelajakda men chet elda ishlashni istardim.'}]},
+      {ru:'Буду рад(а) нашему сотрудничеству.',uz:'Hamkorligimizdan xursand bo\'laman.',ex:[{ru:'Буду рад нашему сотрудничеству!',uz:'Hamkorligimizdan xursand bo\'laman!'},{ru:'Надеюсь на плодотворное сотрудничество.',uz:'Samarali hamkorlikka umid qilaman.'}]},
+    ],
+    grammar: [
+      {title:'Конструкция «Я занимаюсь…»',sub:'Я занимаюсь + Tvoritelny padej',rows:[{base:'преподавание',res:'занимаюсь преподаванием'},{base:'развитие',res:'занимаюсь развитием'},{base:'обучение',res:'занимаюсь обучением'}],ex:'Я занимаюсь преподаванием русского языка. — Men rus tilini o\'qitish bilan shug\'ullanaman.'},
+      {title:'Конструкция «Мне интересно…»',sub:'Мне интересно + существительное / инфинитив',rows:[{base:'изучать языки',res:'Мне интересно изучать языки'},{base:'психология',res:'Мне интересна психология'},{base:'современные технологии',res:'Мне интересны технологии'}],ex:'Мне интересно изучать иностранные языки. — Menga chet tillarini o\'rganish qiziq.'},
+      {title:'Конструкция «Я стремлюсь к…»',sub:'Я стремлюсь к + Datelny padej',rows:[{base:'профессиональный рост',res:'стремлюсь к профессиональному росту'},{base:'новые знания',res:'стремлюсь к новым знаниям'},{base:'высокие результаты',res:'стремлюсь к высоким результатам'}],ex:'Я стремлюсь к профессиональному росту. — Men kasbiy o\'sishga intilyapman.'},
+    ],
+    savollar: ['Расскажите о себе. Кто вы по профессии?','Чем вы занимаетесь в настоящее время?','Какие у вас сильные стороны?','К чему вы стремитесь в жизни?','Каковы ваши профессиональные цели?','Что вам особенно интересно в вашей работе?'],
+    audio_q: [
+      {q:'Азиза каким делом занимается?',opts:['Tibbiyot','O\'qitish','Savdo','Qurilish'],ans:'O\'qitish'},
+      {q:'Azizaning kuchli tomoni nima?',opts:['Sportchi','Kommunikabelligi','Oshpazligi','Rasmchiligi'],ans:'Kommunikabelligi'},
+      {q:'Aziza kelajakda nima qilmoqchi?',opts:['Chet elga ketish','Ta\'lim loyihalarini kengaytirish','Pensiyaga chiqish','Do\'kon ochish'],ans:'Ta\'lim loyihalarini kengaytirish'},
+      {q:'Azizaga nima qiziq?',opts:['Sport','Zamonaviy o\'qitish metodlari','Moda','Ovqat pishirish'],ans:'Zamonaviy o\'qitish metodlari'},
+      {q:'Azizaning maqsadi nima?',opts:['Rus tilida erkin gapirish','Ko\'p pul topish','Dunyo kezish','Kitob yozish'],ans:'Rus tilida erkin gapirish'},
+    ]
+  },
+  2: {
+    title: "Tashqi ko'rinish",
+    vocab: [
+      {ru:'черты́ лица́',stress:'черты́ лица́',uz:'yuz qiyofasi',ex1ru:'У неё мягкие черты лица.',ex1uz:'Uning yuz qiyofasi muloyim.',ex2ru:'Черты лица очень выразительные.',ex2uz:'Yuz qiyofasi juda ifodali.',sin:'лицо, облик',ant:'',nsv:'',sv:''},
+      {ru:'подборо́док',stress:'подборо́док',uz:'iyak',ex1ru:'У него волевой подбородок.',ex1uz:'Uning irodali iyagi bor.',ex2ru:'Подбородок немного острый.',ex2uz:'Iyak biroz o\'tkir.',sin:'',ant:'',nsv:'',sv:''},
+      {ru:'оса́нка',stress:'оса́нка',uz:'qomat, yurish-turish',ex1ru:'У неё хорошая осанка.',ex1uz:'Uning qomati yaxshi.',ex2ru:'Правильная осанка украшает человека.',ex2uz:'To\'g\'ri qomat insonni bezaydi.',sin:'',ant:'',nsv:'',sv:''},
+      {ru:'телосложе́ние',stress:'телосложе́ние',uz:'tana tuzilishi',ex1ru:'У него спортивное телосложение.',ex1uz:'Uning sportcha tana tuzilishi bor.',ex2ru:'Телосложение у неё хрупкое.',ex2uz:'Uning tana tuzilishi nozik.',sin:'фигура',ant:'',nsv:'',sv:''},
+      {ru:'похо́дка',stress:'похо́дка',uz:'yurish usuli',ex1ru:'У неё уверенная походка.',ex1uz:'Uning yurishi ishonchli.',ex2ru:'По походке его легко узнать.',ex2uz:'Uni yurishi bilan osongina tanish mumkin.',sin:'',ant:'',nsv:'',sv:''},
+      {ru:'взгляд',stress:'взгляд',uz:'nigoh',ex1ru:'У него серьёзный взгляд.',ex1uz:'Uning jiddiy nigohi bor.',ex2ru:'Её взгляд очень добрый.',ex2uz:'Uning nigohi juda mehribon.',sin:'',ant:'',nsv:'',sv:''},
+      {ru:'улы́бка',stress:'улы́бка',uz:'tabassum',ex1ru:'У неё искренняя улыбка.',ex1uz:'Uning tabassumi samimiy.',ex2ru:'Его улыбка располагает к общению.',ex2uz:'Uning tabassumi muloqotga undaydi.',sin:'',ant:'',nsv:'',sv:''},
+      {ru:'волни́стый',stress:'волни́стый',uz:'to\'lqinsimon',ex1ru:'У неё волнистые волосы.',ex1uz:'Uning to\'lqinsimon sochlari bor.',ex2ru:'Волнистые волосы ей идут.',ex2uz:'To\'lqinsimon soch unga yarashadi.',sin:'',ant:'прямой',nsv:'',sv:''},
+      {ru:'ухо́женный',stress:'ухо́женный',uz:'ozoda, parvarishlangan',ex1ru:'Он всегда ухоженный.',ex1uz:'U har doim ozoda.',ex2ru:'Она выглядит очень ухоженно.',ex2uz:'U juda ozoda ko\'rinadi.',sin:'аккуратный',ant:'небрежный',nsv:'',sv:''},
+      {ru:'загоре́лый',stress:'загоре́лый',uz:'qoraygan (oftobdan)',ex1ru:'Он загорелый после отдыха.',ex1uz:'U dam olganidan keyin qoraygan.',ex2ru:'Она выглядит загорелой.',ex2uz:'U qoraygan ko\'rinadi.',sin:'',ant:'бледный',nsv:'',sv:''},
+      {ru:'подтя́нутый',stress:'подтя́нутый',uz:'tetik, sportiv',ex1ru:'Он подтянутый и энергичный.',ex1uz:'U tetik va energiyali.',ex2ru:'Она поддерживает подтянутую фигуру.',ex2uz:'U sportcha qomatni saqlab turadi.',sin:'спортивный',ant:'',nsv:'',sv:''},
+      {ru:'харизмати́чный',stress:'харизмати́чный',uz:'xarizmali',ex1ru:'Он очень харизматичный человек.',ex1uz:'U juda xarizmali inson.',ex2ru:'Харизматичная внешность привлекает.',ex2uz:'Xarizmali tashqi ko\'rinish e\'tiborni jalb qiladi.',sin:'яркий, притягательный',ant:'',nsv:'',sv:''},
+      {ru:'привлека́тельный',stress:'привлека́тельный',uz:'jozibador',ex1ru:'Она выглядит привлекательно.',ex1uz:'U jozibador ko\'rinadi.',ex2ru:'Это привлекательный мужчина.',ex2uz:'Bu jozibador erkak.',sin:'красивый, симпатичный',ant:'непривлекательный',nsv:'',sv:''},
+      {ru:'вырази́тельный',stress:'вырази́тельный',uz:'ifodali',ex1ru:'У неё выразительные глаза.',ex1uz:'Uning ko\'zlari ifodali.',ex2ru:'Очень выразительное лицо.',ex2uz:'Juda ifodali yuz.',sin:'яркий, красноречивый',ant:'невыразительный',nsv:'',sv:''},
+      {ru:'эле́гантный',stress:'эле́гантный',uz:'nafis, didli',ex1ru:'Она элегантно одета.',ex1uz:'U nafis kiyingan.',ex2ru:'У него элегантный внешний вид.',ex2uz:'Uning nafis tashqi ko\'rinishi bor.',sin:'стильный, изысканный',ant:'безвкусный',nsv:'',sv:''},
+      {ru:'со́лидный',stress:'со́лидный',uz:'salobatli',ex1ru:'Он выглядит солидно.',ex1uz:'U salobatli ko\'rinadi.',ex2ru:'Это солидный мужчина.',ex2uz:'Bu salobatli erkak.',sin:'представительный',ant:'',nsv:'',sv:''},
+      {ru:'дружелю́бный',stress:'дружелю́бный',uz:'do\'stona',ex1ru:'У неё дружелюбная внешность.',ex1uz:'Uning do\'stona qiyofasi bor.',ex2ru:'Он производит дружелюбное впечатление.',ex2uz:'U do\'stona taassurot qoldiradi.',sin:'открытый, добродушный',ant:'враждебный',nsv:'',sv:''},
+      {ru:'запомина́ющийся',stress:'запомина́ющийся',uz:'yodda qoladigan',ex1ru:'У него запоминающаяся внешность.',ex1uz:'Uning yodda qoladigan qiyofasi bor.',ex2ru:'Она выглядит очень необычно.',ex2uz:'U juda g\'ayrioddiy ko\'rinadi.',sin:'яркий, незабываемый',ant:'',nsv:'',sv:''},
+      {ru:'ста́тный',stress:'ста́тный',uz:'kelishgan, salobatli',ex1ru:'Он статный мужчина.',ex1uz:'U kelishgan erkak.',ex2ru:'Статная женщина вошла в зал.',ex2uz:'Kelishgan ayol zalga kirdi.',sin:'высокий, представительный',ant:'',nsv:'',sv:''},
+      {ru:'молоджа́вый',stress:'молоджа́вый',uz:'yosh ko\'rinadigan',ex1ru:'Он моложаво выглядит.',ex1uz:'U yoshroq ko\'rinadi.',ex2ru:'Для своего возраста она очень моложавая.',ex2uz:'Yoshiga nisbatan u juda yosh ko\'rinadi.',sin:'',ant:'',nsv:'',sv:''},
+      {ru:'бо́рода',stress:'бо́рода',uz:'soqol',ex1ru:'У него красивая борода.',ex1uz:'Uning chiroyli soqoli bor.',ex2ru:'Сейчас многие носят бороду.',ex2uz:'Hozir ko\'pchilik soqol qo\'yadi.',sin:'',ant:'',nsv:'',sv:''},
+    ],
+    formulas: [
+      {ru:'Он производит впечатление уверенного человека.',uz:'U o\'ziga ishongan inson taassurotini qoldiradi.',ex:[{ru:'Она производит впечатление очень умного человека.',uz:'U juda aqlli inson taassurotini qoldiradi.'},{ru:'Он производит хорошее впечатление.',uz:'U yaxshi taassurot qoldiradi.'}]},
+      {ru:'Она выглядит моложе своего возраста.',uz:'U yoshidan yoshroq ko\'rinadi.',ex:[{ru:'Он выглядит старше своего возраста.',uz:'U yoshidan kattaroq ko\'rinadi.'},{ru:'Она выглядит моложе сестры.',uz:'U singlisidan yoshroq ko\'rinadi.'}]},
+      {ru:'У него выразительные глаза и открытая улыбка.',uz:'Uning ko\'zlari ifodali va tabassumi ochiq.',ex:[{ru:'У неё красивые волосы и добрый взгляд.',uz:'Uning sochlari chiroyli va nigohi mehribon.'},{ru:'У него хорошая осанка и уверенная походка.',uz:'Uning qomati yaxshi va yurishi ishonchli.'}]},
+      {ru:'Его внешность вызывает доверие.',uz:'Uning tashqi ko\'rinishi ishonch uyg\'otadi.',ex:[{ru:'Её внешность располагает к общению.',uz:'Uning qiyofasi muloqotga undaydi.'},{ru:'Его улыбка вызывает симпатию.',uz:'Uning tabassumi hamdardlik uyg\'otadi.'}]},
+      {ru:'Она одета просто, но со вкусом.',uz:'U oddiy, lekin did bilan kiyingan.',ex:[{ru:'Он одет строго и элегантно.',uz:'U qat\'iy va nafis kiyingan.'},{ru:'Она всегда одета со вкусом.',uz:'U har doim did bilan kiyinadi.'}]},
+      {ru:'На первый взгляд он кажется строгим.',uz:'Birinchi qarashda u qattiqqo\'ldek tuyuladi.',ex:[{ru:'На первый взгляд она кажется серьёзной.',uz:'Birinchi qarashda u jiddiy tuyuladi.'},{ru:'На первый взгляд он кажется закрытым.',uz:'Birinchi qarashda u yopiq tuyuladi.'}]},
+      {ru:'Она производит приятное впечатление.',uz:'U yoqimli taassurot qoldiradi.',ex:[{ru:'Он производит сильное впечатление.',uz:'U kuchli taassurot qoldiradi.'},{ru:'Она производит впечатление умного человека.',uz:'U aqlli inson taassurotini qoldiradi.'}]},
+      {ru:'У него уверенная походка.',uz:'Uning yurishi ishonchli.',ex:[{ru:'У неё лёгкая походка.',uz:'Uning yurishi yengil.'},{ru:'По походке его легко узнать.',uz:'Uni yurishi bilan osongina tanish mumkin.'}]},
+    ],
+    grammar: [
+      {title:'Кто? Что? — Jins (Rod)',sub:'Otlarning jinsi',rows:[{base:'мужской: стол, друг, город',res:'согл. буква, -й, -ь'},{base:'женский: книга, мама, осанка',res:'-а, -я, -ь'},{base:'средний: окно, место, имя',res:'-о, -е, -мя'}],ex:'У него спортивное телосложение. — Uning sportcha tana tuzilishi bor.'},
+      {title:'Местоимение (Olmosh) — ЧЕЙ?',sub:'Kimniki?',rows:[{base:'Я → мой/моя/моё/мои',res:'mening'},{base:'Ты → твой/твоя/твоё/твои',res:'sening'},{base:'Он → его / Она → её',res:'uning'},{base:'Мы → наш/наша/наше/наши',res:'bizning'}],ex:'Моя осанка хорошая. — Mening qomatim yaxshi.'},
+      {title:'Имя прилагательное (Sifat)',sub:'Jinsi bo\'yicha o\'zgarishi',rows:[{base:'КАКОЙ? (муж)',res:'-ый/-ий/-ой'},{base:'КАКАЯ? (жен)',res:'-ая/-яя'},{base:'КАКОЕ? (ср)',res:'-ое/-ее'},{base:'КАКИЕ? (мн.ч)',res:'-ые/-ие'}],ex:'У него выразительные карие глаза. — Uning ifodali jigarrang ko\'zlari bor.'},
+    ],
+    savollar: ['Опишите свою внешность.','Как выглядит ваш близкий человек?','Что для вас важно во внешности человека?','Опишите известного человека, чья внешность вам нравится.','Согласны ли вы: «Внешность — это визитная карточка человека»?','Какое первое впечатление вы обычно производите на людей?'],
+    audio_q: [
+      {q:'Andrey qaysi o\'rinda bo\'ldi?',opts:['Birinchi','Ikkinchi','Uchinchi','To\'rtinchi'],ans:'Birinchi'},
+      {q:'Yelenaga necha yosh?',opts:['28','32','40','41'],ans:'32'},
+      {q:'Timurning tana tuzilishi qanday?',opts:['Nozik','Sportcha','Baland','Past'],ans:'Sportcha'},
+      {q:'Yelenaning sochi qanday?',opts:['Qisqa qora','To\'lqinsimon sariq','To\'z jingalak','Uzun qo\'ng\'ir'],ans:'To\'lqinsimon sariq'},
+      {q:'Andrey qanday inson sifatida tanilgan?',opts:['Qattiqqo\'l','Xarizmali lider','Shoshqaloq','Uyatchan'],ans:'Xarizmali lider'},
+    ]
+  },
+  3: {
+    title: "Sonlar",
+    vocab: [
+      {ru:'оди́н',stress:'оди́н',uz:'bir',ex1ru:'У меня один брат.',ex1uz:'Mening bitta akam bor.',ex2ru:'Я купил один билет.',ex2uz:'Men bitta chipta sotib oldim.',sin:'',ant:'',nsv:'',sv:''},
+      {ru:'два́',stress:'два́',uz:'ikki',ex1ru:'У меня два друга.',ex1uz:'Mening ikki do\'stim bor.',ex2ru:'Мы купили два яблока.',ex2uz:'Biz ikki dona olma sotib oldik.',sin:'',ant:'',nsv:'',sv:''},
+      {ru:'три́',stress:'три́',uz:'uch',ex1ru:'В комнате три стула.',ex1uz:'Xonada uchta stul bor.',ex2ru:'У меня три книги.',ex2uz:'Menda uchta kitob bor.',sin:'',ant:'',nsv:'',sv:''},
+      {ru:'пять',stress:'пять',uz:'besh',ex1ru:'Мне пять лет.',ex1uz:'Men besh yoshdaman.',ex2ru:'У неё пять карандашей.',ex2uz:'Unda beshta qalam bor.',sin:'',ant:'',nsv:'',sv:''},
+      {ru:'де́сять',stress:'де́сять',uz:'o\'n',ex1ru:'В классе десять учеников.',ex1uz:'Sinfda o\'nta o\'quvchi bor.',ex2ru:'Я знаю десять слов.',ex2uz:'Men o\'nta so\'z bilaman.',sin:'',ant:'',nsv:'',sv:''},
+      {ru:'два́дцать',stress:'два́дцать',uz:'yigirma',ex1ru:'Мне двадцать лет.',ex1uz:'Men yigirma yoshdaman.',ex2ru:'В группе двадцать человек.',ex2uz:'Guruhda yigirma kishi bor.',sin:'',ant:'',nsv:'',sv:''},
+      {ru:'три́дцать',stress:'три́дцать',uz:'o\'ttiz',ex1ru:'Мне тридцать лет.',ex1uz:'Menga o\'ttiz yosh.',ex2ru:'В группе тридцать студентов.',ex2uz:'Guruhda o\'ttiz talaba bor.',sin:'',ant:'',nsv:'',sv:''},
+      {ru:'со́рок',stress:'со́рок',uz:'qirq',ex1ru:'Ему сорок лет.',ex1uz:'Unga qirq yosh.',ex2ru:'Сорок минут — это много.',ex2uz:'Qirq daqiqa — bu ko\'p.',sin:'',ant:'',nsv:'',sv:''},
+      {ru:'пятьдеся́т',stress:'пятьдеся́т',uz:'ellik',ex1ru:'Ей пятьдесят лет.',ex1uz:'Unga ellik yosh.',ex2ru:'Пятьдесят человек пришло.',ex2uz:'Ellik kishi keldi.',sin:'',ant:'',nsv:'',sv:''},
+      {ru:'сто́',stress:'сто́',uz:'yuz',ex1ru:'У меня сто рублей.',ex1uz:'Menda yuz rubl bor.',ex2ru:'В книге сто страниц.',ex2uz:'Kitobda yuz sahifa bor.',sin:'',ant:'',nsv:'',sv:''},
+      {ru:'ты́сяча',stress:'ты́сяча',uz:'ming',ex1ru:'Это стоит тысячу рублей.',ex1uz:'Bu ming rubl turadi.',ex2ru:'В городе тысяча жителей.',ex2uz:'Shaharda ming aholi yashaydi.',sin:'',ant:'',nsv:'',sv:''},
+      {ru:'пе́рвый',stress:'пе́рвый',uz:'birinchi',ex1ru:'Я живу на первом этаже.',ex1uz:'Men birinchi qavatda yashayman.',ex2ru:'Это первое место.',ex2uz:'Bu birinchi o\'rin.',sin:'',ant:'последний',nsv:'',sv:''},
+      {ru:'второ́й',stress:'второ́й',uz:'ikkinchi',ex1ru:'Второй урок начинается в десять.',ex1uz:'Ikkinchi dars o\'nda boshlanadi.',ex2ru:'Она заняла второе место.',ex2uz:'U ikkinchi o\'rinni egalladi.',sin:'',ant:'',nsv:'',sv:''},
+      {ru:'тре́тий',stress:'тре́тий',uz:'uchinchi',ex1ru:'Третий этаж — это моя квартира.',ex1uz:'Uchinchi qavat — bu mening kvartiram.',ex2ru:'Он получил третье место.',ex2uz:'U uchinchi o\'rinni oldi.',sin:'',ant:'',nsv:'',sv:''},
+      {ru:'деся́тый',stress:'деся́тый',uz:'o\'ninchi',ex1ru:'Сегодня десятое января.',ex1uz:'Bugun o\'ninchi yanvar.',ex2ru:'Он живёт на десятом этаже.',ex2uz:'U o\'ninchi qavatda yashaydi.',sin:'',ant:'',nsv:'',sv:''},
+      {ru:'двадца́тый',stress:'двадца́тый',uz:'yigirmanchi',ex1ru:'Сегодня двадцатое июня.',ex1uz:'Bugun yigirmanchi iyun.',ex2ru:'Двадцатый век — важная эпоха.',ex2uz:'Yigirmanchi asr — muhim davr.',sin:'',ant:'',nsv:'',sv:''},
+      {ru:'со́тый',stress:'со́тый',uz:'yuzinchi',ex1ru:'Это сотая страница.',ex1uz:'Bu yuzinchi sahifa.',ex2ru:'Сотый пассажир получил подарок.',ex2uz:'Yuzinchi yo\'lovchi sovg\'a oldi.',sin:'',ant:'',nsv:'',sv:''},
+      {ru:'сколько',stress:'ско́лько',uz:'nechta, qancha',ex1ru:'Сколько вам лет?',ex1uz:'Sizga necha yosh?',ex2ru:'Сколько человек в группе?',ex2uz:'Guruhda nechta kishi bor?',sin:'',ant:'',nsv:'',sv:''},
+      {ru:'мно́го',stress:'мно́го',uz:'ko\'p',ex1ru:'У меня много книг.',ex1uz:'Menda ko\'p kitob bor.',ex2ru:'В городе много людей.',ex2uz:'Shaharda ko\'p odam bor.',sin:'',ant:'мало',nsv:'',sv:''},
+      {ru:'ма́ло',stress:'ма́ло',uz:'kam, oz',ex1ru:'У меня мало времени.',ex1uz:'Menda oz vaqt bor.',ex2ru:'Здесь мало студентов.',ex2uz:'Bu yerda kam talaba bor.',sin:'немного',ant:'много',nsv:'',sv:''},
+      {ru:'не́сколько',stress:'не́сколько',uz:'bir nechta',ex1ru:'Я знаю несколько языков.',ex1uz:'Men bir nechta til bilaman.',ex2ru:'Подождите несколько минут.',ex2uz:'Bir necha daqiqa kuting.',sin:'',ant:'',nsv:'',sv:''},
+    ],
+    formulas: [
+      {ru:'Сколько вам лет?',uz:'Sizga necha yosh?',ex:[{ru:'Сколько вам лет? Мне тридцать лет.',uz:'Sizga necha yosh? Menga o\'ttiz yosh.'},{ru:'Сколько тебе лет? Мне двадцать пять.',uz:'Senga necha yosh? Menga yigirma besh.'}]},
+      {ru:'Мне … лет.',uz:'Menga … yosh.',ex:[{ru:'Мне двадцать восемь лет.',uz:'Menga yigirma sakkiz yosh.'},{ru:'Ей тридцать два года.',uz:'Unga o\'ttiz ikki yosh.'}]},
+      {ru:'Сколько человек в вашей семье?',uz:'Oilangizda necha kishi bor?',ex:[{ru:'В моей семье пять человек.',uz:'Mening oilamda besh kishi bor.'},{ru:'Нас трое в семье.',uz:'Biz oilada uch kishimiz.'}]},
+      {ru:'На каком этаже вы живёте?',uz:'Qaysi qavatda yashaysiz?',ex:[{ru:'Я живу на третьем этаже.',uz:'Men uchinchi qavatda yashayman.'},{ru:'Мы живём на пятом этаже.',uz:'Biz beshinchi qavatda yashaymiz.'}]},
+      {ru:'Какой сегодня день?',uz:'Bugun nechanchi?',ex:[{ru:'Сегодня двадцатое июня.',uz:'Bugun yigirmanchi iyun.'},{ru:'Сегодня первое января.',uz:'Bugun birinchi yanvar.'}]},
+      {ru:'Сколько это стоит?',uz:'Bu qancha turadi?',ex:[{ru:'Это стоит тысячу рублей.',uz:'Bu ming rubl turadi.'},{ru:'Сколько стоит билет? Пятьсот рублей.',uz:'Chipta qancha turadi? Besh yuz rubl.'}]},
+    ],
+    grammar: [
+      {title:'Miqdor sonlar bilan kelishik',sub:'Сколько? + падеж',rows:[{base:'1 → Именительный',res:'один студент, одна книга'},{base:'2-4 → Родительный ед.',res:'два студента, три книги'},{base:'5+ → Родительный мн.',res:'пять студентов, шесть книг'}],ex:'У меня три книги. — Menda uchta kitob bor.'},
+      {title:'Tartib sonlar (Порядковые числительные)',sub:'Какой? / Какая? / Какое?',rows:[{base:'1-й → первый/первая/первое',res:'birinchi'},{base:'2-й → второй/вторая/второе',res:'ikkinchi'},{base:'5-й → пятый/пятая/пятое',res:'beshinchi'},{base:'20-й → двадцатый',res:'yigirmanchi'}],ex:'Сегодня двадцатое июня. — Bugun yigirmanchi iyun.'},
+      {title:'Притяжательные местоимения',sub:'Чей? Чья? Чьё? Чьи?',rows:[{base:'мой/моя/моё/мои',res:'mening'},{base:'твой/твоя/твоё/твои',res:'sening'},{base:'наш/наша/наше/наши',res:'bizning'},{base:'ваш/ваша/ваше/ваши',res:'sizning'}],ex:'Это моя первая книга. — Bu mening birinchi kitobim.'},
+    ],
+    savollar: ['Сколько вам лет?','Сколько человек в вашей семье?','На каком этаже вы живёте?','Сколько языков вы знаете?','Какое сегодня число?','Сколько лет вы изучаете русский язык?'],
+    audio_q: [
+      {q:'Andrey necha yoshda?',opts:['28','35','38','41'],ans:'38'},
+      {q:'Elena necha yoshda?',opts:['25','28','32','35'],ans:'32'},
+      {q:'Timurga necha yosh?',opts:['35','38','40','41'],ans:'41'},
+      {q:'Finalga nechta kishi chiqdi?',opts:['2','3','4','5'],ans:'3'},
+      {q:'Andrey qaysi o\'rindi egalladi?',opts:['Birinchi','Ikkinchi','Uchinchi','To\'rtinchi'],ans:'Birinchi'},
+    ]
+  }
+};
+
+function renderCalendar(){
+  var grid=document.getElementById('cal-grid');
+  if(!grid)return;
+  var doneDays=[1,2];
+  var today=3;
+  var firstDay=1;
+  var daysInMonth=30;
+  var html='';
+  for(var i=0;i<firstDay-1;i++) html+="<div class='cal-day empty'>·</div>";
+  for(var d=1;d<=daysInMonth;d++){
+    var isWeekend=((d+firstDay-2)%7>=5);
+    var cls='cal-day';
+    if(doneDays.indexOf(d)!==-1) cls+=' done';
+    else if(d===today) cls+=' today';
+    else if(isWeekend) cls+=' weekend';
+    html+="<div class='"+cls+"'>"+d+"</div>";
+  }
+  grid.innerHTML=html;
+}
+
+renderDays();
+renderCalendar();
+</script>
+</body>
+</html>

@@ -1,8 +1,0 @@
-Flask
-python-telegram-bot
-psycopg2-binary
-APScheduler
-pytz
-boto3
-anthropic
-pypdf

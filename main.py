@@ -212,6 +212,9 @@ AI_SYSTEM = (
     "speaking_questions: title — PDF dagi savol (rus tilida); answer — PDF da shu savolga berilgan namunaviy javob (rus tilida); "
     "agar PDF da tayyor javob bo'lsa o'shani ol, bo'lmasa darajaga mos qisqa (2-3 gap) namuna javob yoz; desc — kerak bo'lsa qisqa izoh (uz), aks holda bo'sh. "
     "audio_questions — audio matniga oid 7 ta tushunish savoli; har biriga 3-4 ta variant (options) va correct (to'g'ri variantning tartib raqami, 1 dan boshlab). "
+    "formulas — darsga mos 10 taga yaqin tayyor ibora/formula (imkon bo'lsa aynan 10 ta). "
+    "reading_tasks — o'qish matniga oid 4-6 ta Правда/Не правда gapi (rus tilida); har biriga answer: '1' = Правда, '0' = Не правда. "
+    "dialog — mavzu bo'yicha qisqa tabiiy suhbat (6-10 qator); har qator: sp — 'A' yoki 'B', ru — ruscha gap, uz — o'zbekcha tarjima. "
     "sin/ant/nsv/sv mos kelmasa bo'sh qoldir. Bo'lim umuman bo'lmasa bo'sh ro'yxat [] qoldir. "
     "Agar daraja B1 bo'lsa, har lug'at so'ziga kontekst mashqi qo'sh: kx_q — so'z ishlatilgan tabiiy rus gapi, "
     "lekin o'sha so'z o'rniga ___ (uchta pastki chiziq) qo'yilgan; kx_a — bo'sh joyga to'g'ri keladigan so'z (gapdagi shakli); "
@@ -223,7 +226,9 @@ AI_SYSTEM = (
     '"grammar":[{"title":"","sub":"","base":"","res":"","example":""}],'
     '"speaking_questions":[{"title":"","desc":"","format":"","answer":""}],'
     '"audio_questions":[{"q":"","options":["",""],"correct":"1"}],'
-    '"writing_tasks":[{"ru":"","uz":"","sample":""}]}'
+    '"writing_tasks":[{"ru":"","uz":"","sample":""}],'
+    '"reading_tasks":[{"q":"","answer":"1"}],'
+    '"dialog":[{"sp":"A","ru":"","uz":""}]}'
 )
 
 def extract_pdf_text(file_storage):

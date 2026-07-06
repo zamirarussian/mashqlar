@@ -305,12 +305,17 @@ def get_stored_pdf_text(level, day):
         return None
 
 AI_TOPUP_SYSTEM = (
-    "Sen rus tili darsligini boyituvchisan. Berilgan matndan FAQAT ikki narsani tayyorla va JSON qaytar. "
-    "formulas — dars mavzusiga mos ANIQ 10 ta tayyor ibora/formula (matnda kam bo'lsa mavzuga mos qo'shib roppa-rosa 10 taga yetkaz); "
-    "har biri: ru (ruscha ibora), uz (o'zbekcha tarjima), ex1ru (misol gap rus), ex1uz (misol tarjima). "
-    "dialog — mavzu bo'yicha qisqa tabiiy suhbat, 6-10 qator; har qator: sp ('A' yoki 'B'), ru (ruscha gap), uz (o'zbekcha tarjima). "
+    "Sen rus tili darsligini boyituvchisan. Berilgan PDF matnidan IKKI narsani ALOHIDA ajratib JSON qaytar.\n"
+    "1) dialog — PDF dagi «Диалог» jadvali (Реплика/Перевод ustunlari) yoki suhbat qatorlari. "
+    "HAR bir replika alohida qator bo'lsin. sp — navbatma-navbat 'A' va 'B' (1-qator A, 2-qator B, 3-qator A...). "
+    "ru — replikaning ruscha matni (boshidagi «—» chiziqchasiz), uz — shu qatorning o'zbekcha tarjimasi. "
+    "Suhbat/dialog qatorlarini FAQAT shu 'dialog' ro'yxatiga qo'y — formulaga MUTLAQO qo'yma.\n"
+    "2) formulas — dars mavzusiga oid tayyor IBORALAR / nutq formulalari, ANIQ 10 ta. "
+    "Bular suhbat replikasi EMAS — alohida, qayta ishlatiladigan foydali iboralar. "
+    "Har biri: ru (ruscha ibora), uz (o'zbekcha tarjima), ex1ru (qisqa misol gap), ex1uz (misol tarjimasi). "
+    "PDF da 10 ta formula bo'lmasa, mavzuga mos iboralar o'ylab topib roppa-rosa 10 taga yetkaz.\n"
     "Faqat to'g'ri JSON qaytar (``` yoki izohsiz). Sxema:\n"
-    '{"formulas":[{"ru":"","uz":"","ex1ru":"","ex1uz":""}],"dialog":[{"sp":"A","ru":"","uz":""}]}'
+    '{"dialog":[{"sp":"A","ru":"","uz":""}],"formulas":[{"ru":"","uz":"","ex1ru":"","ex1uz":""}]}'
 )
 def ai_topup(pdf_text, level, day):
     import anthropic

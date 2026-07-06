@@ -212,7 +212,7 @@ AI_SYSTEM = (
     "speaking_questions: title — PDF dagi savol (rus tilida); answer — PDF da shu savolga berilgan namunaviy javob (rus tilida); "
     "agar PDF da tayyor javob bo'lsa o'shani ol, bo'lmasa darajaga mos qisqa (2-3 gap) namuna javob yoz; desc — kerak bo'lsa qisqa izoh (uz), aks holda bo'sh. "
     "audio_questions — audio matniga oid 7 ta tushunish savoli; har biriga 3-4 ta variant (options) va correct (to'g'ri variantning tartib raqami, 1 dan boshlab). "
-    "formulas — darsga mos 10 taga yaqin tayyor ibora/formula (imkon bo'lsa aynan 10 ta). "
+    "formulas — darsga mos ANIQ 10 ta tayyor ibora/formula ber. Agar PDF da kam bo'lsa, o'sha dars mavzusiga mos qo'shimcha iboralar o'ylab topib 10 taga yetkaz (kam ham, ko'p ham emas — roppa-rosa 10 ta). "
     "reading_tasks — o'qish matniga oid 4-6 ta Правда/Не правда gapi (rus tilida); har biriga answer: '1' = Правда, '0' = Не правда. "
     "dialog — mavzu bo'yicha qisqa tabiiy suhbat (6-10 qator); har qator: sp — 'A' yoki 'B', ru — ruscha gap, uz — o'zbekcha tarjima. "
     "sin/ant/nsv/sv mos kelmasa bo'sh qoldir. Bo'lim umuman bo'lmasa bo'sh ro'yxat [] qoldir. "
@@ -288,6 +288,43 @@ def ai_generate_lesson(pdf_text, level, day):
     if data is not None:
         return data
     raise ValueError("AI to'g'ri JSON qaytarmadi. Qayta urinib ko'ring (yoki PDF ni soddalashtiring).")
+
+def get_stored_pdf_text(level, day):
+    if not r2_configured():
+        return None
+    import io
+    from pypdf import PdfReader
+    key = f"pdfs/{level}/{int(day)}.pdf"
+    try:
+        obj = get_r2_client().get_object(Bucket=R2_BUCKET, Key=key)
+        data = obj["Body"].read()
+        reader = PdfReader(io.BytesIO(data))
+        txt = "\n".join((p.extract_text() or "") for p in reader.pages)
+        return txt if txt.strip() else None
+    except Exception:
+        return None
+
+AI_TOPUP_SYSTEM = (
+    "Sen rus tili darsligini boyituvchisan. Berilgan matndan FAQAT ikki narsani tayyorla va JSON qaytar. "
+    "formulas — dars mavzusiga mos ANIQ 10 ta tayyor ibora/formula (matnda kam bo'lsa mavzuga mos qo'shib roppa-rosa 10 taga yetkaz); "
+    "har biri: ru (ruscha ibora), uz (o'zbekcha tarjima), ex1ru (misol gap rus), ex1uz (misol tarjima). "
+    "dialog — mavzu bo'yicha qisqa tabiiy suhbat, 6-10 qator; har qator: sp ('A' yoki 'B'), ru (ruscha gap), uz (o'zbekcha tarjima). "
+    "Faqat to'g'ri JSON qaytar (``` yoki izohsiz). Sxema:\n"
+    '{"formulas":[{"ru":"","uz":"","ex1ru":"","ex1uz":""}],"dialog":[{"sp":"A","ru":"","uz":""}]}'
+)
+def ai_topup(pdf_text, level, day):
+    import anthropic
+    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+    msg = client.messages.create(
+        model=AI_MODEL, max_tokens=4000, system=AI_TOPUP_SYSTEM,
+        messages=[{"role": "user",
+                   "content": f"Daraja: {level}, {day}-kun. Shu matndan 10 ta formula va dialog tayyorla. FAQAT JSON:\n\n{pdf_text[:40000]}"}]
+    )
+    text = "".join(getattr(b, "text", "") for b in msg.content).strip()
+    data = _try_json(_extract_json(text))
+    if data is None:
+        raise ValueError("AI to'g'ri JSON qaytarmadi.")
+    return data
 
 # --- DATABASE (connection pool) ---
 _db_pool = None
@@ -1765,7 +1802,7 @@ h2{font-size:18px;font-weight:600;margin:6px 0 14px;}
 label.flbl{font-size:12px;color:var(--muted);display:block;margin:2px 0 4px;}
 input,textarea,select{width:100%;background:var(--ibg);border:1px solid var(--ib);border-radius:8px;padding:9px 11px;font-size:14px;color:var(--text);font-family:inherit;}
 input.etask{width:18px;height:18px;flex:none;margin:0;padding:0;}
-textarea{min-height:56px;resize:vertical;}
+textarea{min-height:96px;resize:vertical;line-height:1.55;}
 .fixed{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:14px;}
 .ecard{position:relative;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px 16px;margin-bottom:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;}
 .ecard .efield{display:flex;flex-direction:column;min-width:0;}
@@ -1818,6 +1855,8 @@ textarea{min-height:56px;resize:vertical;}
 </div>
 <div class="screen" id="sc-formulas">
   <button class="backbtn" onclick="showMenu()">← Menyu</button><h2>💬 Nutq formulalari</h2>
+  <button id="topupBtn" onclick="aiTopup()" style="width:100%;padding:13px;border-radius:12px;border:none;background:#6b4ef0;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:8px;">🤖 AI: 10 formula + dialogni PDF'dan to'ldir</button>
+  <div class="hint" style="margin-bottom:12px;">Bu kun uchun saqlangan PDF'dan AI formula (10 ta) va dialog tayyorlaydi. Lug'at va boshqa mazmunga tegmaydi — faqat formula va dialog. Ko'rib chiqib «Saqlash» bosing.</div>
   <div id="L_formulas"></div><button class="add" onclick="addCard('formulas')">+ Formula qo'shish</button>
   <div class="subt" style="margin-top:16px;">DIALOG (mavzu bo'yicha suhbat)</div>
   <div class="hint" style="margin-bottom:8px;">Har qator: <b>A</b> yoki <b>B</b> (kim gapiryapti) + ruscha + o'zbekcha. Ketma-ket qo'shing.</div>
@@ -1936,6 +1975,21 @@ function updateCounts(){
 }
 function openSec(s){document.querySelectorAll('.screen').forEach(function(x){x.classList.remove('on');});document.getElementById('sc-'+s).classList.add('on');window.scrollTo(0,0);}
 function showMenu(){updateCounts();openSec('menu');}
+async function aiTopup(){
+  var btn=document.getElementById('topupBtn');if(!btn)return;
+  if(!confirm("Bu kun uchun saqlangan PDF'dan formula va dialog AI bilan to'ldiriladi. Mavjud formula/dialog almashadi (lug'at va boshqasi saqlanadi). Davom etamizmi?"))return;
+  btn.disabled=true;var ot=btn.textContent;btn.textContent='⏳ AI ishlayapti (30-60 soniya)...';
+  try{
+    var r=await fetch('/admin/ai-topup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({level:LEVEL,day:DAY})});
+    var j=await r.json();
+    if(!j.ok){alert(j.error||'Xato');btn.disabled=false;btn.textContent=ot;return;}
+    if(j.formulas&&j.formulas.length){document.getElementById('L_formulas').innerHTML='';j.formulas.forEach(function(it){addCard('formulas',it);});}
+    if(j.dialog&&j.dialog.length){document.getElementById('L_dialog').innerHTML='';j.dialog.forEach(function(it){addCard('dialog',it);});}
+    updateCounts();
+    alert('✓ AI to\u2018ldirdi: '+((j.formulas||[]).length)+' formula, '+((j.dialog||[]).length)+' dialog qatori.\n\nKo\u2018rib chiqing va pastdagi «Saqlash» ni bosing.');
+  }catch(e){alert('Xato: '+e);}
+  btn.disabled=false;btn.textContent=ot;
+}
 
 function renderAudio(audios){
   audios=audios||{};var box=document.getElementById('audioBox');box.innerHTML='';
@@ -2201,6 +2255,24 @@ def admin_delete_lesson():
     d = request.json or {}
     delete_content(d["level"], int(d["day"]))
     return {"ok": True}
+
+@flask_app.route("/admin/ai-topup", methods=["POST"])
+def admin_ai_topup():
+    check_api_auth()
+    if not ai_configured():
+        return {"ok": False, "error": "AI sozlanmagan (ANTHROPIC_API_KEY yo'q)"}, 400
+    d = request.json or {}
+    level = d.get("level"); day = d.get("day")
+    if not (level and day):
+        return {"ok": False, "error": "ma'lumot to'liq emas"}, 400
+    txt = get_stored_pdf_text(level, int(day))
+    if not txt:
+        return {"ok": False, "error": "Bu kun uchun saqlangan PDF topilmadi. Avval «AI bilan to'ldirish» orqali PDF yuklang."}, 400
+    try:
+        res = ai_topup(txt, level, int(day))
+    except Exception as e:
+        return {"ok": False, "error": str(e)}, 500
+    return {"ok": True, "formulas": res.get("formulas", []), "dialog": res.get("dialog", [])}
 
 @flask_app.route("/admin/ai-fill", methods=["POST"])
 def admin_ai_fill():

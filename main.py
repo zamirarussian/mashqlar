@@ -1986,7 +1986,7 @@ async function aiTopup(){
     if(j.formulas&&j.formulas.length){document.getElementById('L_formulas').innerHTML='';j.formulas.forEach(function(it){addCard('formulas',it);});}
     if(j.dialog&&j.dialog.length){document.getElementById('L_dialog').innerHTML='';j.dialog.forEach(function(it){addCard('dialog',it);});}
     updateCounts();
-    alert('✓ AI to\u2018ldirdi: '+((j.formulas||[]).length)+' formula, '+((j.dialog||[]).length)+' dialog qatori.\n\nKo\u2018rib chiqing va pastdagi «Saqlash» ni bosing.');
+    alert("AI to'ldirdi: "+((j.formulas||[]).length)+" formula, "+((j.dialog||[]).length)+" dialog qatori. Ko'rib chiqing va pastdagi Saqlash ni bosing.");
   }catch(e){alert('Xato: '+e);}
   btn.disabled=false;btn.textContent=ot;
 }

@@ -1860,13 +1860,22 @@ textarea{min-height:96px;resize:vertical;line-height:1.55;}
 </div>
 <div class="screen" id="sc-formulas">
   <button class="backbtn" onclick="showMenu()">← Menyu</button><h2>💬 Nutq formulalari</h2>
-  <button id="topupBtn" onclick="aiTopup()" style="width:100%;padding:13px;border-radius:12px;border:none;background:#6b4ef0;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:8px;">🤖 AI: 10 formula + dialogni PDF'dan to'ldir</button>
-  <div class="hint" style="margin-bottom:12px;">Bu kun uchun saqlangan PDF'dan AI formula (10 ta) va dialog tayyorlaydi. Lug'at va boshqa mazmunga tegmaydi — faqat formula va dialog. Ko'rib chiqib «Saqlash» bosing.</div>
+  <div class="scard" onclick="openSec('formulalar')"><div class="ic" style="background:#EEEDFE;color:#3C3489;">📝</div><div><div class="snm">Formulalar</div><div class="ssub">Tayyor iboralar</div></div><span class="chev">›</span></div>
+  <div class="scard" onclick="openSec('dialogedit')"><div class="ic" style="background:#E7F6EE;color:#0e8a73;">🗨️</div><div><div class="snm">Dialog</div><div class="ssub">Mavzu bo'yicha suhbat (A/B)</div></div><span class="chev">›</span></div>
+</div>
+<div class="screen" id="sc-formulalar">
+  <button class="backbtn" onclick="openSec('formulas')">← Nutq formulalari</button><h2>📝 Formulalar</h2>
+  <button id="topupBtnF" onclick="aiTopupFormulas()" style="width:100%;padding:13px;border-radius:12px;border:none;background:#6b4ef0;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:8px;">🤖 AI: 10 formulani PDF'dan to'ldir</button>
+  <div class="hint" style="margin-bottom:12px;">Faqat formula tayyorlanadi (dialogga tegmaydi). Ko'rib chiqib «Saqlash» bosing.</div>
   <div id="L_formulas"></div><button class="add" onclick="addCard('formulas')">+ Formula qo'shish</button>
-  <div class="subt" style="margin-top:16px;">DIALOG (mavzu bo'yicha suhbat)</div>
-  <div class="hint" style="margin-bottom:8px;">Har qator: <b>A</b> yoki <b>B</b> (kim gapiryapti) + ruscha + o'zbekcha. Ketma-ket qo'shing.</div>
+  <button class="save" onclick="saveLesson(0)">💾 Saqlash</button>
+</div>
+<div class="screen" id="sc-dialogedit">
+  <button class="backbtn" onclick="openSec('formulas')">← Nutq formulalari</button><h2>🗨️ Dialog</h2>
+  <button id="topupBtnD" onclick="aiTopupDialog()" style="width:100%;padding:13px;border-radius:12px;border:none;background:#6b4ef0;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:8px;">🤖 AI: dialogni PDF'dan to'ldir</button>
+  <div class="hint" style="margin-bottom:12px;">Faqat dialog — «Диалог» jadvalidan A/B qatorlar. Har qator: A yoki B + ruscha + o'zbekcha. Ko'rib chiqib «Saqlash» bosing.</div>
   <div id="L_dialog"></div><button class="add" onclick="addCard('dialog')">+ Dialog qatori qo'shish</button>
-  <button class="save" onclick="saveLesson(1)">💾 Saqlash</button>
+  <button class="save" onclick="saveLesson(0)">💾 Saqlash</button>
 </div>
 <div class="screen" id="sc-audio">
   <button class="backbtn" onclick="showMenu()">← Menyu</button><h2>🎧 Audio mashq</h2>
@@ -1980,21 +1989,27 @@ function updateCounts(){
 }
 function openSec(s){document.querySelectorAll('.screen').forEach(function(x){x.classList.remove('on');});document.getElementById('sc-'+s).classList.add('on');window.scrollTo(0,0);}
 function showMenu(){updateCounts();openSec('menu');}
-async function aiTopup(){
-  var btn=document.getElementById('topupBtn');if(!btn)return;
-  if(!confirm("Bu kun uchun saqlangan PDF'dan formula va dialog AI bilan to'ldiriladi. Mavjud formula/dialog almashadi (lug'at va boshqasi saqlanadi). Davom etamizmi?"))return;
-  btn.disabled=true;var ot=btn.textContent;btn.textContent='⏳ AI ishlayapti (30-60 soniya)...';
+async function _aiTopupCall(btn,which){
+  if(!btn)return;
+  if(!confirm("Saqlangan PDF'dan AI "+(which==='f'?'formula':'dialog')+" tayyorlaydi. Mavjud "+(which==='f'?'formula':'dialog')+" almashadi. Davom etamizmi?"))return;
+  var ob=btn.textContent;btn.disabled=true;btn.textContent='⏳ AI ishlayapti (30-60 soniya)...';
   try{
     var r=await fetch('/admin/ai-topup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({level:LEVEL,day:DAY})});
     var j=await r.json();
-    if(!j.ok){alert(j.error||'Xato');btn.disabled=false;btn.textContent=ot;return;}
-    if(j.formulas&&j.formulas.length){document.getElementById('L_formulas').innerHTML='';j.formulas.forEach(function(it){addCard('formulas',it);});}
-    if(j.dialog&&j.dialog.length){document.getElementById('L_dialog').innerHTML='';j.dialog.forEach(function(it){addCard('dialog',it);});}
+    if(!j.ok){alert(j.error||'Xato');btn.disabled=false;btn.textContent=ob;return;}
+    if(which==='f'){
+      if(j.formulas&&j.formulas.length){document.getElementById('L_formulas').innerHTML='';j.formulas.forEach(function(it){addCard('formulas',it);});}
+      alert("AI to'ldirdi: "+((j.formulas||[]).length)+" formula. Ko'rib chiqing va Saqlash ni bosing.");
+    }else{
+      if(j.dialog&&j.dialog.length){document.getElementById('L_dialog').innerHTML='';j.dialog.forEach(function(it){addCard('dialog',it);});}
+      alert("AI to'ldirdi: "+((j.dialog||[]).length)+" dialog qatori. Ko'rib chiqing va Saqlash ni bosing.");
+    }
     updateCounts();
-    alert("AI to'ldirdi: "+((j.formulas||[]).length)+" formula, "+((j.dialog||[]).length)+" dialog qatori. Ko'rib chiqing va pastdagi Saqlash ni bosing.");
   }catch(e){alert('Xato: '+e);}
-  btn.disabled=false;btn.textContent=ot;
+  btn.disabled=false;btn.textContent=ob;
 }
+function aiTopupFormulas(){_aiTopupCall(document.getElementById('topupBtnF'),'f');}
+function aiTopupDialog(){_aiTopupCall(document.getElementById('topupBtnD'),'d');}
 
 function renderAudio(audios){
   audios=audios||{};var box=document.getElementById('audioBox');box.innerHTML='';

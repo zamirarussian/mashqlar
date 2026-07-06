@@ -2060,7 +2060,7 @@ async function saveLesson(toMenu){
     enabled_tasks:(et.length===6)?null:et,
     vocab:collect('vocab'),formulas:collect('formulas'),reading_texts:collect('reading_texts'),
     grammar:collect('grammar'),speaking_questions:collect('speaking_questions'),audio_questions:collect('audio_questions'),
-    writing_tasks:collect('writing_tasks')};
+    writing_tasks:collect('writing_tasks'),reading_tasks:collect('reading_tasks'),dialog:collect('dialog')};
   var r=await fetch('/admin/save-lesson',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
   if(r.ok){var m=document.getElementById('msg');m.style.display='block';window.scrollTo(0,0);setTimeout(function(){m.style.display='none';},1800);
     try{sessionStorage.removeItem('ai_draft_'+LEVEL+'_'+DAY);}catch(e){}var bn=document.getElementById('draftBanner');if(bn)bn.style.display='none';

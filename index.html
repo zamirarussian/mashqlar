@@ -496,14 +496,9 @@ body{font-family:'Inter',sans-serif;color:#1a1a1a;}
       <div style="flex:1;"><div class="mashq-name" id="lbl-grammar">Grammatika</div><div class="mashq-desc">3 ta konstruktsiya</div></div>
       <div id="ms-grammar"><div class="status-arrow">›</div></div>
     </div>
-    <div class="mashq-card" id="mc-writing" onclick="openWriting()">
-      <div class="mashq-icon-big" style="background:#e8f1ff;">✍️</div>
-      <div style="flex:1;"><div class="mashq-name" id="lbl-writing">Yozish mashqi</div><div class="mashq-desc">Topshiriq + namuna javob</div></div>
-      <div id="ms-writing"><div class="status-arrow">›</div></div>
-    </div>
     <div class="mashq-card" id="mc-reading" onclick="openReading()">
       <div class="mashq-icon-big" style="background:#fde8ea;">📄</div>
-      <div style="flex:1;"><div class="mashq-name">O'qish mashqi</div><div class="mashq-desc">Matn + Правда/Не правда</div></div>
+      <div style="flex:1;"><div class="mashq-name">O'qish mashqi</div><div class="mashq-desc">Matn o'qing va mashq bajaring</div></div>
       <div id="ms-reading"><div class="status-arrow">›</div></div>
     </div>
   </div>
@@ -631,11 +626,6 @@ body{font-family:'Inter',sans-serif;color:#1a1a1a;}
     <div class="mashq-card" onclick="openFormulaList()">
       <div class="mashq-icon-big" style="background:#f0eeff;">💬</div>
       <div style="flex:1;"><div class="mashq-name">Formulalar ro'yxati</div><div class="mashq-desc" id="fl-menu-count">Tayyor iboralar</div></div>
-      <div class="status-arrow">›</div>
-    </div>
-    <div class="mashq-card" onclick="openFormulaMashq()">
-      <div class="mashq-icon-big" style="background:#e8eefc;">✏️</div>
-      <div style="flex:1;"><div class="mashq-name">Mashq</div><div class="mashq-desc">Tarjimadan ruscha tanlang</div></div>
       <div class="status-arrow">›</div>
     </div>
     <div class="mashq-card" onclick="openFormulaMatn()">
@@ -1170,7 +1160,7 @@ function openDay(d){
 }
 
 function updateMenuCards(){
-  ['formula','audio','gapiruv','grammar','writing','reading'].forEach(function(k){
+  ['formula','audio','gapiruv','grammar','reading'].forEach(function(k){
     var ms=document.getElementById('ms-'+k);var mc=document.getElementById('mc-'+k);
     if(!ms||!mc)return;
     if(doneExercises[k]){mc.classList.add('done-card');ms.innerHTML="<div class='status-done'>✓</div>";}
@@ -1182,7 +1172,7 @@ function updateProgress(){
   var items=[['mc-lugat',document.getElementById('mc-lugat').classList.contains('done-card')],
     ['mc-formula',doneExercises.formula],['mc-audio',doneExercises.audio],
     ['mc-gapiruv',doneExercises.gapiruv],['mc-grammar',doneExercises.grammar],
-    ['mc-writing',doneExercises.writing],['mc-reading',doneExercises.reading]];
+    ['mc-reading',doneExercises.reading]];
   var total=0,done=0;
   items.forEach(function(x){var el=document.getElementById(x[0]);if(el&&el.style.display!=='none'){total++;if(x[1])done++;}});
   var pct=total?Math.round(done/total*100):0;
@@ -2081,11 +2071,9 @@ function loadDayAudios(d){
 }
 function applyDayTasks(){
   var et=DAY_CONTENT&&DAY_CONTENT.enabled_tasks;
-  var map={vocab:'mc-lugat',formula:'mc-formula',audio:'mc-audio',speaking:'mc-gapiruv',grammar:'mc-grammar',writing:'mc-writing'};
+  var map={vocab:'mc-lugat',formula:'mc-formula',audio:'mc-audio',speaking:'mc-gapiruv',grammar:'mc-grammar',reading:'mc-reading'};
   for(var k in map){var el=document.getElementById(map[k]);if(!el)continue;
     var on=(!et)?true:(et.indexOf(k)!==-1);el.style.display=on?'':'none';}
-  var mcr=document.getElementById('mc-reading');
-  if(mcr){var hasR=!!(DAY_CONTENT&&((DAY_CONTENT.reading_texts&&DAY_CONTENT.reading_texts.length)||(DAY_CONTENT.reading_tasks&&DAY_CONTENT.reading_tasks.length)));mcr.style.display=hasR?'':'none';}
   try{refreshLugatDone();}catch(e){}
   applyMaterials();
   try{updateProgress();}catch(e){}

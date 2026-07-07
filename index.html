@@ -1674,23 +1674,56 @@ function openReading(){
   document.getElementById('reading-sub').textContent=(window.curDay||1)+'-kun · '+curLevel;
   var body=document.getElementById('reading-ex-body');
   var texts=(DAY_CONTENT&&DAY_CONTENT.reading_texts)||[];
-  var rt=(DAY_CONTENT&&DAY_CONTENT.reading_tasks)||[];window.RT_DATA=rt;
+  var rt=(DAY_CONTENT&&DAY_CONTENT.reading_tasks)||[];window.RT_LIST=rt;
   if(!texts.length&&!rt.length){body.innerHTML="<div style='text-align:center;color:#999;padding:26px;'>Bu kun uchun o\u2018qish mashqi qo\u2018shilmagan.</div>";applyMaterials();show('s-reading-ex');return;}
   var h='';
   texts.forEach(function(m){
     h+="<div class='matn-card' style='position:relative;'><div class='matn-level'>"+escH(m.level||'')+"</div><div class='matn-ru' style='padding-right:34px;'>"+escH(m.ru||'')+"</div><div class='matn-uz'>"+escH(m.uz||'')+"</div><button class='spk spk-abs' data-spk=\""+escAttr(m.ru||'')+"\" onclick='speakEl(this,event)'>🔊</button></div>";
   });
   if(rt.length){
-    h+="<div style='font-size:12px;font-weight:800;color:#1f54e0;letter-spacing:.03em;margin:18px 0 10px;'>ПРАВДА / НЕ ПРАВДА</div>";
-    rt.forEach(function(t,i){
-      h+="<div class='rt-item' id='rt-"+i+"'><div style='font-size:14px;font-weight:600;margin-bottom:10px;'>"+(i+1)+". "+escH(t.q||'')+"</div><div style='display:flex;gap:8px;'><button class='rt-btn' onclick='rtAns("+i+",1,this)'>Правда</button><button class='rt-btn' onclick='rtAns("+i+",0,this)'>Не правда</button></div></div>";
-    });
+    h+="<button class='ex-done-btn' onclick='startReadingEx()' style='background:linear-gradient(135deg,#2f63ee,#163aa6);color:#fff;'>📝 Mashqni bajarish ("+rt.length+" ta savol)</button>";
+  } else {
+    h+="<button class='ex-done-btn' onclick='markReadingDone()'>O\u2018qib chiqdim ✓</button>";
   }
-  h+="<button class='ex-done-btn' onclick='markReadingDone()'>Bajardim ✓</button>";
   body.innerHTML=h;
   applyMaterials();
   show('s-reading-ex');
 }
+var RE_i=0, RE_correct=0, RE_ans=false;
+function startReadingEx(){RE_i=0;RE_correct=0;showREQ();}
+function showREQ(){
+  var rt=window.RT_LIST||[];
+  var body=document.getElementById('reading-ex-body');
+  if(RE_i>=rt.length){
+    var tot=rt.length;
+    body.innerHTML="<div style='text-align:center;padding:34px 10px 20px;'><div style='font-size:46px;margin-bottom:10px;'>"+(RE_correct===tot?'🎉':'✅')+"</div><div style='font-size:22px;font-weight:800;margin-bottom:4px;'>"+RE_correct+" / "+tot+" to\u2018g\u2018ri</div><div style='font-size:13px;color:#8a93a8;'>O\u2018qish mashqi tugadi</div></div>"+
+      "<button class='ex-done-btn' onclick='markReadingDone()'>Bajardim ✓</button>"+
+      "<button class='ex-done-btn' onclick='startReadingEx()' style='background:#fff;border:1.5px solid #e8ecf6;color:#1a1a1a;margin-top:8px;'>🔁 Qaytadan</button>";
+    return;
+  }
+  RE_ans=false;
+  var t=rt[RE_i];
+  var h="<div style='display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;'>"+
+    "<button onclick='openReading()' style='background:none;border:none;color:#8a93a8;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;padding:0;'>← Matnga</button>"+
+    "<span style='font-size:12px;color:#999;font-weight:600;'>Savol "+(RE_i+1)+" / "+rt.length+"</span></div>";
+  h+="<div style='background:#fff;border:1px solid #e8ecf6;border-radius:16px;padding:18px;margin-bottom:12px;'><div style='font-size:17px;font-weight:600;line-height:1.5;'>"+escH(t.q||'')+"</div></div>";
+  h+="<div style='display:flex;gap:10px;' id='re-btns'><button class='rt-btn' onclick='reAns(1,this)'>Правда</button><button class='rt-btn' onclick='reAns(0,this)'>Не правда</button></div>";
+  h+="<div id='re-next-wrap'></div>";
+  body.innerHTML=h;
+}
+function reAns(chosen,btn){
+  if(RE_ans)return;RE_ans=true;
+  var t=(window.RT_LIST||[])[RE_i]||{};
+  var correctAns=(String(t.answer||'').trim()==='1')?1:0;
+  var ok=(chosen===correctAns);
+  if(ok)RE_correct++;
+  var btns=document.querySelectorAll('#re-btns .rt-btn');btns.forEach(function(b){b.classList.add('rt-dis');});
+  btn.classList.add(ok?'rt-ok':'rt-no');
+  if(!ok)btns.forEach(function(b,bi){if((bi===0&&correctAns===1)||(bi===1&&correctAns===0))b.classList.add('rt-reveal');});
+  var last=(RE_i>=(window.RT_LIST||[]).length-1);
+  document.getElementById('re-next-wrap').innerHTML="<button class='ex-done-btn' onclick='reNext()' style='margin-top:16px;'>"+(last?'Natijani ko\u2018rish →':'Keyingisi →')+"</button>";
+}
+function reNext(){RE_i++;showREQ();}
 function markReadingDone(){doneExercises.reading=true;updateMenuCards();updateProgress();show('se-menu');}
 function openFormulaMatn(){
   var c=document.getElementById('formula-matn-content');

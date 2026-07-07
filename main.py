@@ -1840,7 +1840,7 @@ textarea{min-height:96px;resize:vertical;line-height:1.55;}
   <div class="scard" onclick="openSec('audio')"><div class="ic" style="background:#E1F5EE;color:#085041;">🎧</div><div><div class="snm">Audio mashq</div><div class="ssub">Audio + test savollari</div></div><span class="chev">›</span></div>
   <div class="scard" onclick="openSec('speaking')"><div class="ic" style="background:#E6F1FB;color:#0C447C;">🎤</div><div><div class="snm">Gapirish</div><div class="ssub" id="cnt-speaking">0 ta savol</div></div><span class="chev">›</span></div>
   <div class="scard" onclick="openSec('grammar')"><div class="ic" style="background:#FAEEDA;color:#633806;">📘</div><div><div class="snm">Grammatika</div><div class="ssub" id="cnt-grammar">0 ta konstruksiya</div></div><span class="chev">›</span></div>
-  <div class="scard" onclick="openSec('writing')"><div class="ic" style="background:#E6F1FB;color:#0C447C;">✍️</div><div><div class="snm">Yozish mashqi</div><div class="ssub" id="cnt-writing">Topshiriq + namuna</div></div><span class="chev">›</span></div>
+  <div class="scard" onclick="openSec('reading')"><div class="ic" style="background:#FDE8EA;color:#8a1f2b;">📄</div><div><div class="snm">O'qish mashqi</div><div class="ssub" id="cnt-reading_texts">0 ta matn</div></div><span class="chev">›</span></div>
   <div class="scard" onclick="openSec('reading')"><div class="ic" style="background:#F1EFE8;color:#444441;">📖</div><div><div class="snm">O'qish matnlari</div><div class="ssub" id="cnt-reading_texts">0 ta matn</div></div><span class="chev">›</span></div>
   <div style="background:var(--card,#fff);border:1px solid var(--bd,#e5e5df);border-radius:14px;padding:14px 16px;margin-top:8px;">
     <div style="font-size:14px;font-weight:600;margin-bottom:3px;">Ilovada ko'rsatiladigan mashqlar</div>
@@ -1850,7 +1850,7 @@ textarea{min-height:96px;resize:vertical;line-height:1.55;}
     <label style="display:flex;align-items:center;gap:9px;font-size:14px;padding:7px 0;cursor:pointer;"><input type="checkbox" class="etask" data-t="audio" checked> 🎧 Audio mashq</label>
     <label style="display:flex;align-items:center;gap:9px;font-size:14px;padding:7px 0;cursor:pointer;"><input type="checkbox" class="etask" data-t="speaking" checked> 🎤 Gapirish</label>
     <label style="display:flex;align-items:center;gap:9px;font-size:14px;padding:7px 0;cursor:pointer;"><input type="checkbox" class="etask" data-t="grammar" checked> 📚 Grammatika</label>
-    <label style="display:flex;align-items:center;gap:9px;font-size:14px;padding:7px 0;cursor:pointer;"><input type="checkbox" class="etask" data-t="writing" checked> ✍️ Yozish mashqi</label>
+    <label style="display:flex;align-items:center;gap:9px;font-size:14px;padding:7px 0;cursor:pointer;"><input type="checkbox" class="etask" data-t="reading" checked> 📄 O'qish mashqi</label>
   </div>
   <button class="save" onclick="saveLesson()">💾 Saqlash</button>
   <div style="text-align:center;margin-top:14px;"><button class="backbtn" style="color:#d06b6b;" onclick="delLesson()">🗑 Darsni o'chirish</button></div>

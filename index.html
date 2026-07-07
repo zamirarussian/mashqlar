@@ -501,6 +501,11 @@ body{font-family:'Inter',sans-serif;color:#1a1a1a;}
       <div style="flex:1;"><div class="mashq-name">O'qish mashqi</div><div class="mashq-desc">Matn o'qing va mashq bajaring</div></div>
       <div id="ms-reading"><div class="status-arrow">›</div></div>
     </div>
+    <div class="mashq-card" id="mc-imtihon" onclick="openExam()" style="display:none;background:linear-gradient(135deg,#1f54e0,#15347e);">
+      <div class="mashq-icon-big" style="background:rgba(255,255,255,.2);">🎓</div>
+      <div style="flex:1;"><div class="mashq-name" style="color:#fff;">AI imtihon</div><div class="mashq-desc" style="color:#dbe4f7;">Hafta yakuni — AI bilan og'zaki imtihon</div></div>
+      <div><div class="status-arrow" style="color:#fff;">›</div></div>
+    </div>
   </div>
 </div>
 
@@ -1641,7 +1646,17 @@ function toggleSavAns(i){
 }
 function openAIChat(){
   var bot=(UI_LINKS.link_ai_bot||'zamira_suhbatdosh_bot').replace(/^@/,'');
-  var url='https://t.me/'+bot;
+  var lv=(curLevel==='B1-B2')?'b1':'a1';
+  var day=window.curDay||1;
+  var url='https://t.me/'+bot+'?start=d_'+lv+'_'+day;
+  if(window.Telegram&&window.Telegram.WebApp) window.Telegram.WebApp.openTelegramLink(url);
+  else window.open(url,'_blank');
+}
+function openExam(){
+  var bot=(UI_LINKS.link_ai_bot||'zamira_suhbatdosh_bot').replace(/^@/,'');
+  var lv=(curLevel==='B1-B2')?'b1':'a1';
+  var week=Math.ceil((window.curDay||1)/7);
+  var url='https://t.me/'+bot+'?start=ex_'+lv+'_'+week;
   if(window.Telegram&&window.Telegram.WebApp) window.Telegram.WebApp.openTelegramLink(url);
   else window.open(url,'_blank');
 }
@@ -2108,6 +2123,8 @@ function applyDayTasks(){
   for(var k in map){var el=document.getElementById(map[k]);if(!el)continue;
     var on=(!et)?true:(et.indexOf(k)!==-1);el.style.display=on?'':'none';}
   try{refreshLugatDone();}catch(e){}
+  var mci=document.getElementById('mc-imtihon');
+  if(mci){var isExam=((window.curDay||0)%7===0);mci.style.display=isExam?'':'none';}
   applyMaterials();
   try{updateProgress();}catch(e){}
 }

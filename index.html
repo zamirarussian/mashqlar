@@ -501,6 +501,24 @@ body{font-family:'Inter',sans-serif;color:#1a1a1a;}
       <div style="flex:1;"><div class="mashq-name" id="lbl-writing">Yozish mashqi</div><div class="mashq-desc">Topshiriq + namuna javob</div></div>
       <div id="ms-writing"><div class="status-arrow">›</div></div>
     </div>
+    <div class="mashq-card" id="mc-reading" onclick="openReading()">
+      <div class="mashq-icon-big" style="background:#fde8ea;">📄</div>
+      <div style="flex:1;"><div class="mashq-name">O'qish mashqi</div><div class="mashq-desc">Matn + Правда/Не правда</div></div>
+      <div id="ms-reading"><div class="status-arrow">›</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- O'QISH MASHQI -->
+<div class="screen" id="s-reading-ex">
+  <div class="s-header">
+    <button class="back" onclick="show('se-menu')">← Mashqlar</button>
+    <div class="s-title">O'qish mashqi 📄</div>
+    <div class="s-sub" id="reading-sub">Matn + topshiriqlar</div>
+  </div>
+  <div class="ex-detail-scroll">
+    <div class="mat-slot" data-sec="reading" style="margin-bottom:12px;"></div>
+    <div id="reading-ex-body"></div>
   </div>
 </div>
 
@@ -622,7 +640,7 @@ body{font-family:'Inter',sans-serif;color:#1a1a1a;}
     </div>
     <div class="mashq-card" onclick="openFormulaMatn()">
       <div class="mashq-icon-big" style="background:#fff8e0;">📄</div>
-      <div style="flex:1;"><div class="mashq-name">O'qish uchun matn</div><div class="mashq-desc" id="matn-desc">Daraja matnlari</div></div>
+      <div style="flex:1;"><div class="mashq-name">Matn</div><div class="mashq-desc" id="matn-desc">O'qish uchun matn</div></div>
       <div class="status-arrow">›</div>
     </div>
     <div class="mashq-card" onclick="openDialog()">
@@ -693,7 +711,7 @@ body{font-family:'Inter',sans-serif;color:#1a1a1a;}
 <div class="screen" id="s-formula-matn">
   <div class="s-header">
     <button class="back" onclick="show('s-formula-menu')">← Orqaga</button>
-    <div class="s-title">O'qish uchun matn</div>
+    <div class="s-title">Matn</div>
     <div class="s-sub">Matnni o'qing va tushuning</div>
   </div>
   <div style="overflow-y:auto;flex:1;padding:0 20px 32px;" id="formula-matn-content">
@@ -873,7 +891,7 @@ body{font-family:'Inter',sans-serif;color:#1a1a1a;}
 </div>
 <script>
 var curLevel='A1-A2';
-var doneExercises={formula:false,audio:false,gapiruv:false,grammar:false,writing:false};
+var doneExercises={formula:false,audio:false,gapiruv:false,grammar:false,writing:false,reading:false};
 var postedDays={};
 var curExercise='';
 var simTimer=null;var playing=false;
@@ -1142,7 +1160,7 @@ function renderDays(){
 
 function openDay(d){
   window.curDay=d;
-  doneExercises={formula:false,audio:false,gapiruv:false,grammar:false,writing:false};
+  doneExercises={formula:false,audio:false,gapiruv:false,grammar:false,writing:false,reading:false};
   document.getElementById('ex-menu-title').textContent=d+'-kun mashqlari';
   var isB1=(curLevel==="B1-B2");
   var titles={1:"O'z-o'zini taqdim etish",2:"Tashqi ko'rinish",3:"Sonlar"};
@@ -1152,7 +1170,7 @@ function openDay(d){
 }
 
 function updateMenuCards(){
-  ['formula','audio','gapiruv','grammar','writing'].forEach(function(k){
+  ['formula','audio','gapiruv','grammar','writing','reading'].forEach(function(k){
     var ms=document.getElementById('ms-'+k);var mc=document.getElementById('mc-'+k);
     if(!ms||!mc)return;
     if(doneExercises[k]){mc.classList.add('done-card');ms.innerHTML="<div class='status-done'>✓</div>";}
@@ -1164,7 +1182,7 @@ function updateProgress(){
   var items=[['mc-lugat',document.getElementById('mc-lugat').classList.contains('done-card')],
     ['mc-formula',doneExercises.formula],['mc-audio',doneExercises.audio],
     ['mc-gapiruv',doneExercises.gapiruv],['mc-grammar',doneExercises.grammar],
-    ['mc-writing',doneExercises.writing]];
+    ['mc-writing',doneExercises.writing],['mc-reading',doneExercises.reading]];
   var total=0,done=0;
   items.forEach(function(x){var el=document.getElementById(x[0]);if(el&&el.style.display!=='none'){total++;if(x[1])done++;}});
   var pct=total?Math.round(done/total*100):0;
@@ -1662,6 +1680,28 @@ function rtAns(i,chosen,btn){
   btn.classList.add(ok?'rt-ok':'rt-no');
   if(!ok)btns.forEach(function(b,bi){if((bi===0&&correctAns===1)||(bi===1&&correctAns===0))b.classList.add('rt-reveal');});
 }
+function openReading(){
+  document.getElementById('reading-sub').textContent=(window.curDay||1)+'-kun · '+curLevel;
+  var body=document.getElementById('reading-ex-body');
+  var texts=(DAY_CONTENT&&DAY_CONTENT.reading_texts)||[];
+  var rt=(DAY_CONTENT&&DAY_CONTENT.reading_tasks)||[];window.RT_DATA=rt;
+  if(!texts.length&&!rt.length){body.innerHTML="<div style='text-align:center;color:#999;padding:26px;'>Bu kun uchun o\u2018qish mashqi qo\u2018shilmagan.</div>";applyMaterials();show('s-reading-ex');return;}
+  var h='';
+  texts.forEach(function(m){
+    h+="<div class='matn-card' style='position:relative;'><div class='matn-level'>"+escH(m.level||'')+"</div><div class='matn-ru' style='padding-right:34px;'>"+escH(m.ru||'')+"</div><div class='matn-uz'>"+escH(m.uz||'')+"</div><button class='spk spk-abs' data-spk=\""+escAttr(m.ru||'')+"\" onclick='speakEl(this,event)'>🔊</button></div>";
+  });
+  if(rt.length){
+    h+="<div style='font-size:12px;font-weight:800;color:#1f54e0;letter-spacing:.03em;margin:18px 0 10px;'>ПРАВДА / НЕ ПРАВДА</div>";
+    rt.forEach(function(t,i){
+      h+="<div class='rt-item' id='rt-"+i+"'><div style='font-size:14px;font-weight:600;margin-bottom:10px;'>"+(i+1)+". "+escH(t.q||'')+"</div><div style='display:flex;gap:8px;'><button class='rt-btn' onclick='rtAns("+i+",1,this)'>Правда</button><button class='rt-btn' onclick='rtAns("+i+",0,this)'>Не правда</button></div></div>";
+    });
+  }
+  h+="<button class='ex-done-btn' onclick='markReadingDone()'>Bajardim ✓</button>";
+  body.innerHTML=h;
+  applyMaterials();
+  show('s-reading-ex');
+}
+function markReadingDone(){doneExercises.reading=true;updateMenuCards();updateProgress();show('se-menu');}
 function openFormulaMatn(){
   var c=document.getElementById('formula-matn-content');
   if(DAY_CONTENT&&DAY_CONTENT.reading_texts&&DAY_CONTENT.reading_texts.length){
@@ -1669,13 +1709,6 @@ function openFormulaMatn(){
     DAY_CONTENT.reading_texts.forEach(function(m){
       h+="<div class='matn-card' style='position:relative;'><div class='matn-level'>"+escH(m.level||'')+"</div><div class='matn-ru' style='padding-right:34px;'>"+escH(m.ru||'')+"</div><div class='matn-uz'>"+escH(m.uz||'')+"</div><button class='spk spk-abs' data-spk=\""+escAttr(m.ru||'')+"\" onclick='speakEl(this,event)'>🔊</button></div>";
     });
-    var rt=(DAY_CONTENT&&DAY_CONTENT.reading_tasks)||[];window.RT_DATA=rt;
-    if(rt.length){
-      h+="<div style='font-size:12px;font-weight:800;color:#1f54e0;letter-spacing:.03em;margin:18px 0 10px;'>ПРАВДА / НЕ ПРАВДА</div>";
-      rt.forEach(function(t,i){
-        h+="<div class='rt-item' id='rt-"+i+"'><div style='font-size:14px;font-weight:600;margin-bottom:10px;'>"+(i+1)+". "+escH(t.q||'')+"</div><div style='display:flex;gap:8px;'><button class='rt-btn' onclick='rtAns("+i+",1,this)'>Правда</button><button class='rt-btn' onclick='rtAns("+i+",0,this)'>Не правда</button></div></div>";
-      });
-    }
     h+="<button class='ex-done-btn' onclick=\"show('s-formula-menu')\">O'qib chiqdim ✓</button>";
     c.innerHTML=h;show('s-formula-matn');return;
   }
@@ -2051,6 +2084,8 @@ function applyDayTasks(){
   var map={vocab:'mc-lugat',formula:'mc-formula',audio:'mc-audio',speaking:'mc-gapiruv',grammar:'mc-grammar',writing:'mc-writing'};
   for(var k in map){var el=document.getElementById(map[k]);if(!el)continue;
     var on=(!et)?true:(et.indexOf(k)!==-1);el.style.display=on?'':'none';}
+  var mcr=document.getElementById('mc-reading');
+  if(mcr){var hasR=!!(DAY_CONTENT&&((DAY_CONTENT.reading_texts&&DAY_CONTENT.reading_texts.length)||(DAY_CONTENT.reading_tasks&&DAY_CONTENT.reading_tasks.length)));mcr.style.display=hasR?'':'none';}
   try{refreshLugatDone();}catch(e){}
   applyMaterials();
   try{updateProgress();}catch(e){}

@@ -314,8 +314,11 @@ AI_TOPUP_SYSTEM = (
     "Bular suhbat replikasi EMAS — alohida, qayta ishlatiladigan foydali iboralar. "
     "Har biri: ru (ruscha ibora), uz (o'zbekcha tarjima), ex1ru (qisqa misol gap), ex1uz (misol tarjimasi). "
     "PDF da 10 ta formula bo'lmasa, mavzuga mos iboralar o'ylab topib roppa-rosa 10 taga yetkaz.\n"
+    "reading_texts — PDF dagi «Чтение» / «Текст» qismini ol; har biri: level (qisqa sarlavha yoki daraja, mas. 'A1'), ru (ruscha matn PDF dagidek), uz (o'zbekcha tarjima). "
+    "reading_tasks — o'sha o'qish matniga oid 4-6 ta Правда/Не правда gapi (rus tilida); har biri: q (gap), answer ('1'=Правда, '0'=Не правда). "
     "Faqat to'g'ri JSON qaytar (``` yoki izohsiz). Sxema:\n"
-    '{"dialog":[{"sp":"A","ru":"","uz":""}],"formulas":[{"ru":"","uz":"","ex1ru":"","ex1uz":""}]}'
+    '{"dialog":[{"sp":"A","ru":"","uz":""}],"formulas":[{"ru":"","uz":"","ex1ru":"","ex1uz":""}],'
+    '"reading_texts":[{"level":"","ru":"","uz":""}],"reading_tasks":[{"q":"","answer":"1"}]}'
 )
 def ai_topup(pdf_text, level, day):
     import anthropic
@@ -1930,6 +1933,8 @@ textarea{min-height:96px;resize:vertical;line-height:1.55;}
 </div>
 <div class="screen" id="sc-reading">
   <button class="backbtn" onclick="showMenu()">← Menyu</button><h2>📖 O'qish matnlari</h2>
+  <button id="topupBtnR" onclick="aiTopupReading()" style="width:100%;padding:13px;border-radius:12px;border:none;background:#6b4ef0;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:8px;">🤖 AI: PDF'dan chteniye (matn + mashq) ol</button>
+  <div class="hint" style="margin-bottom:12px;">PDF'dagi «Чтение» qismidan matn va Правда/Не правда topshiriqlarini AI oladi. Ko'rib chiqib «Saqlash» bosing.</div>
   <div id="L_reading_texts"></div><button class="add" onclick="addCard('reading_texts')">+ Matn qo'shish</button>
   <div class="subt" style="margin-top:16px;">TOPSHIRIQLAR — Правда / Не правда</div>
   <div class="hint" style="margin-bottom:8px;">Matnga oid gaplar. Javob: <b>1</b> = Правда (to'g'ri), <b>0</b> = Не правда (noto'g'ri).</div>
@@ -2010,6 +2015,21 @@ async function _aiTopupCall(btn,which){
 }
 function aiTopupFormulas(){_aiTopupCall(document.getElementById('topupBtnF'),'f');}
 function aiTopupDialog(){_aiTopupCall(document.getElementById('topupBtnD'),'d');}
+async function aiTopupReading(){
+  var btn=document.getElementById('topupBtnR');if(!btn)return;
+  if(!confirm("Saqlangan PDF'dan AI o'qish matni va topshiriqlarni tayyorlaydi. Mavjud o'qish almashadi. Davom etamizmi?"))return;
+  var ob=btn.textContent;btn.disabled=true;btn.textContent='⏳ AI ishlayapti (30-60 soniya)...';
+  try{
+    var r=await fetch('/admin/ai-topup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({level:LEVEL,day:DAY})});
+    var j=await r.json();
+    if(!j.ok){alert(j.error||'Xato');btn.disabled=false;btn.textContent=ob;return;}
+    if(j.reading_texts&&j.reading_texts.length){document.getElementById('L_reading_texts').innerHTML='';j.reading_texts.forEach(function(it){addCard('reading_texts',it);});}
+    if(j.reading_tasks&&j.reading_tasks.length){document.getElementById('L_reading_tasks').innerHTML='';j.reading_tasks.forEach(function(it){addCard('reading_tasks',it);});}
+    updateCounts();
+    alert("AI to'ldirdi: "+((j.reading_texts||[]).length)+" matn, "+((j.reading_tasks||[]).length)+" gap. Ko'rib chiqing va Saqlash ni bosing.");
+  }catch(e){alert('Xato: '+e);}
+  btn.disabled=false;btn.textContent=ob;
+}
 
 function renderAudio(audios){
   audios=audios||{};var box=document.getElementById('audioBox');box.innerHTML='';
@@ -2292,7 +2312,8 @@ def admin_ai_topup():
         res = ai_topup(txt, level, int(day))
     except Exception as e:
         return {"ok": False, "error": str(e)}, 500
-    return {"ok": True, "formulas": res.get("formulas", []), "dialog": res.get("dialog", [])}
+    return {"ok": True, "formulas": res.get("formulas", []), "dialog": res.get("dialog", []),
+            "reading_texts": res.get("reading_texts", []), "reading_tasks": res.get("reading_tasks", [])}
 
 @flask_app.route("/admin/ai-fill", methods=["POST"])
 def admin_ai_fill():

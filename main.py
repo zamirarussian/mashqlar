@@ -862,6 +862,46 @@ def require_admin(fn):
         return fn(*a, **k)
     return wrapper
 
+@flask_app.route("/api/lesson-brief")
+def api_lesson_brief():
+    # Suhbatdosh bot uchun: bir kunning to'liq mazmunini beradi (secret bilan himoyalangan)
+    secret = request.args.get("secret", "")
+    expected = os.environ.get("BOT_API_SECRET", ADMIN_SECRET)
+    if secret != expected:
+        return jsonify({"ok": False, "error": "forbidden"}), 403
+    lvl_raw = (request.args.get("level") or "").lower()
+    day = request.args.get("day")
+    if not day:
+        return jsonify({"ok": False, "error": "day required"}), 400
+    level_db = {"a1": "A1", "a2": "A1", "b1": "B1-B2", "b2": "B1-B2"}.get(lvl_raw, lvl_raw.upper())
+    try:
+        day = int(day)
+    except Exception:
+        return jsonify({"ok": False, "error": "bad day"}), 400
+    row = get_content(level_db, day)
+    if not row:
+        return jsonify({"ok": False, "error": "lesson not found"}), 404
+    d = dict(row)
+    try:
+        pdf_text = get_stored_pdf_text(level_db, day) or ""
+    except Exception:
+        pdf_text = ""
+    return jsonify({
+        "ok": True,
+        "level": lvl_raw or level_db, "day": day,
+        "topic": d.get("title") or "",
+        "text": pdf_text[:12000],
+        "shadowing_ru": d.get("shadowing_ru") or "",
+        "vocab": d.get("vocab") or [],
+        "formulas": d.get("formulas") or [],
+        "dialog": d.get("dialog") or [],
+        "grammar": d.get("grammar") or [],
+        "reading_texts": d.get("reading_texts") or [],
+        "reading_tasks": d.get("reading_tasks") or [],
+        "speaking_questions": d.get("speaking_questions") or [],
+        "razgovor_start": d.get("razgovor_start") or "",
+    })
+
 def check_api_auth():
     if not session.get("admin"):
         abort(401)

@@ -1684,8 +1684,6 @@ function buildExamQuestions(pool){
     opts.push(v.uz);opts=shuffle(opts);
     qs.push({tag:"LUG'AT",q:'«'+v.ru+'» so‘zining tarjimasi?',options:opts,correct:opts.indexOf(v.uz)});
   });
-  (pool.reading_tasks||[]).forEach(function(t){qs.push({tag:"O'QISH",q:t.q,pn:true,answer:(String(t.answer).trim()==='1')?1:0});});
-  (pool.audio_questions||[]).forEach(function(a){var opts=a.options||[];var ci=(parseInt(a.correct)||1)-1;if(opts.length>1)qs.push({tag:'AUDIO',q:a.q,options:opts,correct:ci});});
   return shuffle(qs).slice(0,12);
 }
 function renderExamStart(){
@@ -1741,6 +1739,10 @@ function renderExamResult(){
   if(passed){
     h+="<div style='background:#fff;border:1px solid #e8ecf6;border-radius:16px;padding:16px;margin-bottom:12px;'><div style='font-size:12px;font-weight:800;color:#8a93a8;margin-bottom:6px;'>OG‘ZAKI QISM</div><div style='font-size:13px;color:#475067;line-height:1.6;'>Hafta mavzusida AI bilan ruscha suhbatlashing. Tugma bosilsa suhbatdosh bot ochiladi.</div></div>";
     h+="<button class='ex-done-btn' onclick=\"(window.Telegram&&window.Telegram.WebApp)?window.Telegram.WebApp.openTelegramLink('"+url+"'):window.open('"+url+"','_blank')\" style='background:linear-gradient(135deg,#2f63ee,#163aa6);color:#fff;'>🤖 AI bilan og‘zaki suhbat</button>";
+    if(ACCESS&&ACCESS.teacher_exam){
+      var turl='https://t.me/'+((UI_LINKS.link_teacher||'zamira_russian').replace(/^@/,''));
+      h+="<button class='ex-done-btn' onclick=\"(window.Telegram&&window.Telegram.WebApp)?window.Telegram.WebApp.openTelegramLink('"+turl+"'):window.open('"+turl+"','_blank')\" style='background:#fff;border:1.5px solid #e8ecf6;color:#1a1a1a;margin-top:8px;'>👨‍🏫 Ustoz bilan imtihon</button>";
+    }
   }
   h+="<button class='ex-done-btn' onclick='startExam()' style='background:#fff;border:1.5px solid #e8ecf6;color:#1a1a1a;margin-top:8px;'>🔁 Qaytadan</button>";
   body.innerHTML=h;

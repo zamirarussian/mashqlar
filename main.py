@@ -457,7 +457,7 @@ def init_db():
                 "writing_task TEXT DEFAULT ''", "writing_sample TEXT DEFAULT ''",
                 "taqlid_video TEXT DEFAULT ''", "taqlid_type TEXT DEFAULT ''",
                 "writing_tasks JSONB DEFAULT '[]'", "reading_tasks JSONB DEFAULT '[]'",
-                "dialog JSONB DEFAULT '[]'"]:
+                "dialog JSONB DEFAULT '[]'", "exam_questions JSONB DEFAULT '[]'"]:
         cur.execute(f"ALTER TABLE content ADD COLUMN IF NOT EXISTS {col};")
     cur.execute("INSERT INTO settings (key, value) VALUES ('reminder_hour','9') ON CONFLICT (key) DO NOTHING;")
     cur.execute("INSERT INTO settings (key, value) VALUES ('reminder_text',%s) ON CONFLICT (key) DO NOTHING;",
@@ -737,7 +737,15 @@ def get_content(level, day):
 def get_all_content():
     conn = get_conn(); cur = conn.cursor(cursor_factory=RealDictCursor)
     cur.execute("SELECT level, day, title FROM content ORDER BY level, day")
-    rows = cur.fetchall(); cur.close(); conn.close(); return rows
+    rows = cur.fetchall(); cur.close(); conn.close()
+    have = {(r["level"], r["day"]) for r in rows}
+    for lvl in ("A1", "B1-B2"):
+        wk_days = {r["day"] for r in rows if r["level"] == lvl}
+        for ed in (7, 14, 21, 28):
+            if (lvl, ed) not in have and any((ed - 6 + i) in wk_days for i in range(6)):
+                rows.append({"level": lvl, "day": ed, "title": "🎓 Imtihon kuni"})
+    rows.sort(key=lambda r: (r["level"], r["day"]))
+    return rows
 
 def get_lessons_status():
     conn = get_conn(); cur = conn.cursor(cursor_factory=RealDictCursor)
@@ -758,8 +766,8 @@ def save_content_full(level, day, d):
     cur.execute("""
         INSERT INTO content (level, day, title, shadowing_ru, shadowing_uz, razgovor_start,
             vocab, formulas, grammar, reading_texts, audio_questions, speaking_questions, enabled_tasks,
-            grammar_video, writing_task, writing_sample, taqlid_video, taqlid_type, writing_tasks, reading_tasks, dialog)
-        VALUES (%s,%s,%s,%s,%s,%s,%s::jsonb,%s::jsonb,%s::jsonb,%s::jsonb,%s::jsonb,%s::jsonb,%s::jsonb,%s,%s,%s,%s,%s,%s::jsonb,%s::jsonb,%s::jsonb)
+            grammar_video, writing_task, writing_sample, taqlid_video, taqlid_type, writing_tasks, reading_tasks, dialog, exam_questions)
+        VALUES (%s,%s,%s,%s,%s,%s,%s::jsonb,%s::jsonb,%s::jsonb,%s::jsonb,%s::jsonb,%s::jsonb,%s::jsonb,%s,%s,%s,%s,%s,%s::jsonb,%s::jsonb,%s::jsonb,%s::jsonb)
         ON CONFLICT (level, day) DO UPDATE SET
             title=EXCLUDED.title, shadowing_ru=EXCLUDED.shadowing_ru, shadowing_uz=EXCLUDED.shadowing_uz,
             razgovor_start=EXCLUDED.razgovor_start, vocab=EXCLUDED.vocab, formulas=EXCLUDED.formulas,
@@ -768,7 +776,7 @@ def save_content_full(level, day, d):
             enabled_tasks=EXCLUDED.enabled_tasks, grammar_video=EXCLUDED.grammar_video,
             writing_task=EXCLUDED.writing_task, writing_sample=EXCLUDED.writing_sample,
             taqlid_video=EXCLUDED.taqlid_video, taqlid_type=EXCLUDED.taqlid_type,
-            writing_tasks=EXCLUDED.writing_tasks, reading_tasks=EXCLUDED.reading_tasks, dialog=EXCLUDED.dialog;
+            writing_tasks=EXCLUDED.writing_tasks, reading_tasks=EXCLUDED.reading_tasks, dialog=EXCLUDED.dialog, exam_questions=EXCLUDED.exam_questions;
     """, (level, int(day), d.get("title", ""), d.get("shadowing_ru", ""), d.get("shadowing_uz", ""),
           d.get("razgovor_start", ""),
           json.dumps(d.get("vocab", []), ensure_ascii=False),
@@ -782,7 +790,8 @@ def save_content_full(level, day, d):
           d.get("taqlid_video", "") or "", d.get("taqlid_type", "") or "",
           json.dumps(d.get("writing_tasks", []), ensure_ascii=False),
           json.dumps(d.get("reading_tasks", []), ensure_ascii=False),
-          json.dumps(d.get("dialog", []), ensure_ascii=False)))
+          json.dumps(d.get("dialog", []), ensure_ascii=False),
+          json.dumps(d.get("exam_questions", []), ensure_ascii=False)))
     conn.commit(); cur.close(); conn.close()
 
 def delete_content(level, day):
@@ -888,7 +897,13 @@ def api_exam_pool():
         for v in (d.get("vocab") or []):
             if v.get("ru") and v.get("uz"):
                 vocab.append({"ru": v.get("ru"), "uz": v.get("uz")})
-    return jsonify({"ok": True, "week": week, "level": level, "vocab": vocab})
+    manual = []
+    exrow = get_content(level_db, start + 6)
+    if exrow:
+        for q in (dict(exrow).get("exam_questions") or []):
+            if q.get("q"):
+                manual.append(q)
+    return jsonify({"ok": True, "week": week, "level": level, "vocab": vocab, "manual": manual})
 
 @flask_app.route("/api/lesson-brief")
 def api_lesson_brief():
@@ -1912,6 +1927,7 @@ textarea{min-height:96px;resize:vertical;line-height:1.55;}
   <div class="scard" onclick="openSec('speaking')"><div class="ic" style="background:#E6F1FB;color:#0C447C;">🎤</div><div><div class="snm">Gapirish</div><div class="ssub" id="cnt-speaking">0 ta savol</div></div><span class="chev">›</span></div>
   <div class="scard" onclick="openSec('grammar')"><div class="ic" style="background:#FAEEDA;color:#633806;">📘</div><div><div class="snm">Grammatika</div><div class="ssub" id="cnt-grammar">0 ta konstruksiya</div></div><span class="chev">›</span></div>
   <div class="scard" onclick="openSec('reading')"><div class="ic" style="background:#FDE8EA;color:#8a1f2b;">📄</div><div><div class="snm">O'qish mashqi</div><div class="ssub" id="cnt-reading_texts">matn + Правда/Не правда</div></div><span class="chev">›</span></div>
+  <div class="scard" onclick="openSec('exam')"><div class="ic" style="background:#E8EEFC;color:#15347e;">🎓</div><div><div class="snm">Imtihon savollari</div><div class="ssub" id="cnt-exam_questions">Imtihon kuni uchun</div></div><span class="chev">›</span></div>
   <div style="background:var(--card,#fff);border:1px solid var(--bd,#e5e5df);border-radius:14px;padding:14px 16px;margin-top:8px;">
     <div style="font-size:14px;font-weight:600;margin-bottom:3px;">Ilovada ko'rsatiladigan mashqlar</div>
     <div style="font-size:12px;color:var(--mut,#888);margin-bottom:10px;">Belgilanmagan mashq shu kunda ilovada ko'rinmaydi. Hammasi belgili bo'lsa — barchasi ko'rinadi.</div>
@@ -2011,6 +2027,12 @@ textarea{min-height:96px;resize:vertical;line-height:1.55;}
   <div id="L_reading_tasks"></div><button class="add" onclick="addCard('reading_tasks')">+ Gap qo'shish</button>
   <button class="save" onclick="saveLesson(1)">💾 Saqlash</button>
 </div>
+<div class="screen" id="sc-exam">
+  <button class="backbtn" onclick="showMenu()">← Menyu</button><h2>🎓 Imtihon savollari</h2>
+  <div class="hint" style="margin-bottom:10px;">Imtihon kuni (7, 14, 21, 28) uchun qo'lda savollar. Har savol: savol matni + variantlar (har qatorda bitta) + to'g'ri variant raqami. Bu savollar haftaning lug'ati bilan birga chiqadi.</div>
+  <div id="L_exam_questions"></div><button class="add" onclick="addCard('exam_questions')">+ Savol qo'shish</button>
+  <button class="save" onclick="saveLesson(1)">💾 Saqlash</button>
+</div>
 
 <script>
 (function(){var t='dark';try{t=localStorage.getItem('admin_theme')||'dark';}catch(e){}if(t==='light')document.body.classList.add('light');})();
@@ -2026,9 +2048,10 @@ var SCHEMA={
   audio_questions:[{k:'q',l:'Savol',full:1},{k:'options',l:'Variantlar (har qatorda bitta)',lines:1,full:1},{k:'correct',l:"To'g'ri variant raqami"}],
   writing_tasks:[{k:'ru',l:'Ruscha matn (topshiriq)',a:1,full:1},{k:'uz',l:"O'zbekcha matn (tarjima)",a:1,full:1},{k:'sample',l:'Misol / Namuna javob (rus)',a:1,full:1}],
   reading_tasks:[{k:'q',l:'Gap (rus)',full:1},{k:'answer',l:'Javob: 1 = Правда, 0 = Не правда'}],
-  dialog:[{k:'sp',l:'Kim gapiryapti (A yoki B)'},{k:'ru',l:'Ruscha',a:1,full:1},{k:'uz',l:"O'zbekcha",a:1,full:1}]
+  dialog:[{k:'sp',l:'Kim gapiryapti (A yoki B)'},{k:'ru',l:'Ruscha',a:1,full:1},{k:'uz',l:"O'zbekcha",a:1,full:1}],
+  exam_questions:[{k:'q',l:'Savol (rus)',full:1},{k:'options',l:'Variantlar (har qatorda bitta)',lines:1,full:1},{k:'correct',l:"To'g'ri variant raqami"}]
 };
-var LISTS=['vocab','formulas','reading_texts','grammar','speaking_questions','audio_questions','writing_tasks','reading_tasks','dialog'];
+var LISTS=['vocab','formulas','reading_texts','grammar','speaking_questions','audio_questions','writing_tasks','reading_tasks','dialog','exam_questions'];
 
 function addCard(name,it){
   it=it||{};var sc=SCHEMA[name];var c=document.getElementById('L_'+name);

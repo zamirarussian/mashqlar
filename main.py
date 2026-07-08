@@ -759,6 +759,14 @@ def get_lessons_status():
     cur.close(); conn.close()
     for r in rows:
         r["has_audio"] = (r["level"], r["day"]) in auds
+    have = {(r["level"], r["day"]) for r in rows}
+    for lvl in ("A1", "B1-B2"):
+        wk_days = {r["day"] for r in rows if r["level"] == lvl}
+        for ed in (7, 14, 21, 28):
+            if (lvl, ed) not in have and any((ed - 6 + i) in wk_days for i in range(6)):
+                rows.append({"level": lvl, "day": ed, "title": "🎓 Imtihon kuni",
+                             "nvocab": 0, "ngrammar": 0, "has_audio": False})
+    rows.sort(key=lambda r: (r["level"], r["day"]))
     return rows
 
 def save_content_full(level, day, d):
@@ -1213,6 +1221,8 @@ def admin():
 
     lessons = get_lessons_status()
     def _mini(c):
+        if c['day'] % 7 == 0:
+            return "<span class='lmc ok'>🎓 Imtihon savollari</span>"
         m = ("<span class='lmc'>Lug'at %d</span>" % c['nvocab']) if c['nvocab'] else "<span class='lmc off'>Lug'at yo'q</span>"
         m += "<span class='lmc ok'>Audio</span>" if c['has_audio'] else "<span class='lmc off'>Audio yo'q</span>"
         m += ("<span class='lmc'>Gram %d</span>" % c['ngrammar']) if c['ngrammar'] else "<span class='lmc off'>Gram yo'q</span>"

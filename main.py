@@ -105,9 +105,9 @@ def upload_pdf_to_r2(data, level, day):
     get_r2_client().put_object(Bucket=R2_BUCKET, Key=key, Body=data, ContentType="application/pdf")
     return f"{R2_PUBLIC_URL}/{key}?v={int(time.time())}"
 
-def upload_material_to_r2(data, level, day, section):
+def upload_material_to_r2(data, level, day, section, slot=1):
     import time
-    key = f"materials/{level}/{day}/{section}.pdf"
+    key = f"materials/{level}/{day}/{section}_{int(slot)}.pdf"
     get_r2_client().put_object(Bucket=R2_BUCKET, Key=key, Body=data, ContentType="application/pdf")
     return f"{R2_PUBLIC_URL}/{key}?v={int(time.time())}"
 
@@ -129,23 +129,26 @@ def delete_lesson_file(level, day):
     cur.execute("DELETE FROM lesson_files WHERE level=%s AND day=%s", (level, int(day)))
     conn.commit(); cur.close(); conn.close()
 
-def save_material(level, day, section, filename, url):
+def save_material(level, day, section, slot, filename, url):
     conn = get_conn(); cur = conn.cursor()
-    cur.execute("""INSERT INTO materials (level, day, section, filename, url, uploaded_at)
-        VALUES (%s,%s,%s,%s,%s, NOW())
-        ON CONFLICT (level, day, section) DO UPDATE SET filename=EXCLUDED.filename, url=EXCLUDED.url, uploaded_at=NOW()""",
-        (level, int(day), section, filename, url))
+    cur.execute("""INSERT INTO materials (level, day, section, slot, filename, url, uploaded_at)
+        VALUES (%s,%s,%s,%s,%s,%s, NOW())
+        ON CONFLICT (level, day, section, slot) DO UPDATE SET filename=EXCLUDED.filename, url=EXCLUDED.url, uploaded_at=NOW()""",
+        (level, int(day), section, int(slot), filename, url))
     conn.commit(); cur.close(); conn.close()
 
 def get_materials(level, day):
     conn = get_conn(); cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute("SELECT section, filename, url FROM materials WHERE level=%s AND day=%s", (level, int(day)))
+    cur.execute("SELECT section, slot, filename, url FROM materials WHERE level=%s AND day=%s ORDER BY section, slot", (level, int(day)))
     rows = cur.fetchall(); cur.close(); conn.close()
-    return {r["section"]: {"url": r["url"], "filename": r["filename"]} for r in rows}
+    out = {}
+    for r in rows:
+        out.setdefault(r["section"], []).append({"slot": r.get("slot") or 1, "url": r["url"], "filename": r["filename"]})
+    return out
 
-def delete_material(level, day, section):
+def delete_material(level, day, section, slot):
     conn = get_conn(); cur = conn.cursor()
-    cur.execute("DELETE FROM materials WHERE level=%s AND day=%s AND section=%s", (level, int(day), section))
+    cur.execute("DELETE FROM materials WHERE level=%s AND day=%s AND section=%s AND slot=%s", (level, int(day), section, int(slot)))
     conn.commit(); cur.close(); conn.close()
 
 def get_videos(section=None):
@@ -459,6 +462,12 @@ def init_db():
                 "writing_tasks JSONB DEFAULT '[]'", "reading_tasks JSONB DEFAULT '[]'",
                 "dialog JSONB DEFAULT '[]'", "exam_questions JSONB DEFAULT '[]'"]:
         cur.execute(f"ALTER TABLE content ADD COLUMN IF NOT EXISTS {col};")
+    try:
+        cur.execute("ALTER TABLE materials ADD COLUMN IF NOT EXISTS slot INTEGER DEFAULT 1;")
+        cur.execute("ALTER TABLE materials DROP CONSTRAINT IF EXISTS materials_pkey;")
+        cur.execute("CREATE UNIQUE INDEX IF NOT EXISTS materials_uniq ON materials(level, day, section, slot);")
+    except Exception as _e:
+        print("materials migration:", _e)
     cur.execute("INSERT INTO settings (key, value) VALUES ('reminder_hour','9') ON CONFLICT (key) DO NOTHING;")
     cur.execute("INSERT INTO settings (key, value) VALUES ('reminder_text',%s) ON CONFLICT (key) DO NOTHING;",
                 (DEFAULT_REMINDER_TEXT,))
@@ -2224,34 +2233,37 @@ function setupMaterials(){
 function renderMaterial(sec){
   var screen=document.getElementById(MAT_SECS[sec]);if(!screen)return;
   var box=screen.querySelector('.matbox');if(!box)return;
-  var m=MATERIALS[sec];box.innerHTML='';
-  var t=document.createElement('div');t.className='subt';t.textContent="\\uD83D\\uDCCE QO'SHIMCHA MATERIAL (PDF)";box.appendChild(t);
-  if(m&&m.url){
+  var list=MATERIALS[sec]||[];if(!Array.isArray(list))list=(list&&list.url)?[list]:[];MATERIALS[sec]=list;box.innerHTML='';
+  var t=document.createElement('div');t.className='subt';t.textContent="\\uD83D\\uDCCE QO'SHIMCHA MATERIAL (PDF) — 4 tagacha";box.appendChild(t);
+  if(!list.length){var hint=document.createElement('div');hint.className='hint';hint.style.marginBottom='6px';hint.textContent="Hozircha material yo'q";box.appendChild(hint);}
+  list.forEach(function(m){
     var row=document.createElement('div');row.className='aud';
     var a=document.createElement('a');a.className='btn-sm';a.href=m.url;a.target='_blank';a.textContent="Ko'rish";
-    var fn=document.createElement('span');fn.className='hint';fn.style.flex='1';fn.textContent=m.filename||'';
-    var del=document.createElement('button');del.className='up';del.style.background='#c0392b';del.textContent="O'chirish";del.onclick=function(){delMaterial(sec);};
+    var fn=document.createElement('span');fn.className='hint';fn.style.flex='1';fn.textContent=(m.filename||'')+' ('+m.slot+')';
+    var del=document.createElement('button');del.className='up';del.style.background='#c0392b';del.textContent="O'chirish";del.onclick=(function(sl){return function(){delMaterial(sec,sl);};})(m.slot);
     row.appendChild(a);row.appendChild(fn);row.appendChild(del);box.appendChild(row);
-  } else {
-    var hint=document.createElement('div');hint.className='hint';hint.style.marginBottom='6px';hint.textContent="Hozircha material yo'q";box.appendChild(hint);
+  });
+  if(list.length<4){
+    var row2=document.createElement('div');row2.className='aud';
+    var inp=document.createElement('input');inp.type='file';inp.accept='application/pdf';inp.className='matf';inp.style.maxWidth='190px';
+    var btn=document.createElement('button');btn.className='up';btn.textContent='Yuklash';btn.onclick=function(){uploadMaterial(sec,btn,inp);};
+    row2.appendChild(inp);row2.appendChild(btn);box.appendChild(row2);
   }
-  var row2=document.createElement('div');row2.className='aud';
-  var inp=document.createElement('input');inp.type='file';inp.accept='application/pdf';inp.className='matf';inp.style.maxWidth='190px';
-  var btn=document.createElement('button');btn.className='up';btn.textContent='Yuklash';btn.onclick=function(){uploadMaterial(sec,btn,inp);};
-  row2.appendChild(inp);row2.appendChild(btn);box.appendChild(row2);
 }
+function nextMatSlot(sec){var used={};(MATERIALS[sec]||[]).forEach(function(x){used[x.slot]=1;});for(var i=1;i<=4;i++){if(!used[i])return i;}return 0;}
 async function uploadMaterial(sec,btn,inp){
   if(!inp.files.length)return alert('PDF tanlang');
-  var fd=new FormData();fd.append('level',LEVEL);fd.append('day',DAY);fd.append('section',sec);fd.append('file',inp.files[0]);
+  var slot=nextMatSlot(sec);if(!slot)return alert('4 tadan ortiq bo\\u2018lmaydi');
+  var fd=new FormData();fd.append('level',LEVEL);fd.append('day',DAY);fd.append('section',sec);fd.append('slot',slot);fd.append('file',inp.files[0]);
   btn.disabled=true;btn.textContent='...';
   var r=await fetch('/admin/upload-material',{method:'POST',body:fd});btn.disabled=false;btn.textContent='Yuklash';
-  if(r.ok){var j=await r.json();MATERIALS[sec]={url:j.url,filename:j.filename};renderMaterial(sec);}
+  if(r.ok){var j=await r.json();if(!MATERIALS[sec])MATERIALS[sec]=[];MATERIALS[sec].push({slot:slot,url:j.url,filename:j.filename});renderMaterial(sec);}
   else{var j=await r.json().catch(function(){return{};});alert('Xato: '+(j.error||r.status));}
 }
-async function delMaterial(sec){
+async function delMaterial(sec,slot){
   if(!confirm("Material o'chirilsinmi?"))return;
-  var r=await fetch('/admin/delete-material',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({level:LEVEL,day:DAY,section:sec})});
-  if(r.ok){delete MATERIALS[sec];renderMaterial(sec);}else alert('Xato');
+  var r=await fetch('/admin/delete-material',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({level:LEVEL,day:DAY,section:sec,slot:slot})});
+  if(r.ok){MATERIALS[sec]=(MATERIALS[sec]||[]).filter(function(x){return x.slot!==slot;});renderMaterial(sec);}else alert('Xato');
 }
 load();
 </script></body></html>
@@ -2603,12 +2615,16 @@ def admin_upload_material():
     if not r2_configured():
         return {"ok": False, "error": "R2 sozlanmagan"}, 400
     try:
-        url = upload_material_to_r2(f.read(), level, day, section)
+        slot = int(request.form.get("slot") or 1)
+    except Exception:
+        slot = 1
+    try:
+        url = upload_material_to_r2(f.read(), level, day, section, slot)
     except Exception as e:
         return {"ok": False, "error": str(e)}, 500
     fname = f.filename or "material.pdf"
-    save_material(level, day, section, fname, url)
-    return {"ok": True, "url": url, "filename": fname}
+    save_material(level, day, section, slot, fname, url)
+    return {"ok": True, "url": url, "filename": fname, "slot": slot}
 
 @flask_app.route("/admin/delete-material", methods=["POST"])
 @require_admin
@@ -2621,11 +2637,15 @@ def admin_delete_material():
     except Exception:
         return {"ok": False, "error": "day"}, 400
     try:
+        slot = int(d.get("slot") or 1)
+    except Exception:
+        slot = 1
+    try:
         if r2_configured():
-            get_r2_client().delete_object(Bucket=R2_BUCKET, Key=f"materials/{level}/{day}/{section}.pdf")
+            get_r2_client().delete_object(Bucket=R2_BUCKET, Key=f"materials/{level}/{day}/{section}_{slot}.pdf")
     except Exception as e:
         print("R2 delete-material error:", e)
-    delete_material(level, day, section)
+    delete_material(level, day, section, slot)
     return {"ok": True}
 
 @flask_app.route("/admin/broadcast-media", methods=["POST"])

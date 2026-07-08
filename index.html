@@ -785,9 +785,9 @@ body{font-family:'Inter',sans-serif;color:#1a1a1a;}
   </div>
   <div style="overflow-y:auto;flex:1;padding:0 20px 32px;">
     <div class="mat-slot" data-sec="speaking" style="margin-bottom:12px;"></div>
-    <div class="mashq-card" onclick="openTaqlid()">
-      <div class="mashq-icon-big" style="background:#e8f8f0;">🎧</div>
-      <div style="flex:1;"><div class="mashq-name">Taqlid mashqi</div><div class="mashq-desc">Audio eshiting va qaytaring</div></div>
+    <div class="mashq-card" style="opacity:.6;" onclick="(window.Telegram&&window.Telegram.WebApp&&window.Telegram.WebApp.showAlert)?window.Telegram.WebApp.showAlert('Taqlid mashqi tez orada qo\u2018shiladi.'):alert('Tez orada')">
+      <div class="mashq-icon-big" style="background:#eef0f4;">🔒</div>
+      <div style="flex:1;"><div class="mashq-name">Taqlid mashqi</div><div class="mashq-desc">Tez orada</div></div>
       <div class="status-arrow">›</div>
     </div>
     <div class="mashq-card" onclick="show('s-savollar')">
@@ -1177,6 +1177,7 @@ function openDay(d){
   document.getElementById('ex-menu-sub').textContent=curLevel+' · '+(isB1&&titles[d]?titles[d]:"Tanishuv");
   loadDayAudios(d);
   updateMenuCards();updateProgress();show('se-menu');
+  loadDoneState(function(){updateMenuCards();try{refreshLugatDone();}catch(e){}updateProgress();});
 }
 
 function updateMenuCards(){
@@ -1205,6 +1206,21 @@ function updateProgress(){
         .then(function(){loadAccess();}).catch(function(){});
     }
   }
+  if(done>0)saveDoneState();
+}
+function doneKey(){return 'done_'+curLevel+'_'+(window.curDay||1);}
+function saveDoneState(){
+  try{var cs=window.Telegram&&window.Telegram.WebApp&&window.Telegram.WebApp.CloudStorage;
+    if(cs)cs.setItem(doneKey(),JSON.stringify({ex:doneExercises,lm:(window.LM_completed||{})}),function(){});}catch(e){}
+}
+function loadDoneState(cb){
+  try{var cs=window.Telegram&&window.Telegram.WebApp&&window.Telegram.WebApp.CloudStorage;
+    if(!cs){if(cb)cb();return;}
+    cs.getItem(doneKey(),function(err,val){
+      if(!err&&val){try{var s=JSON.parse(val);if(s.ex){for(var k in s.ex){if(k in doneExercises)doneExercises[k]=s.ex[k];}}if(s.lm){window.LM_completed=s.lm;}}catch(e){}}
+      if(cb)cb();
+    });
+  }catch(e){if(cb)cb();}
 }
 
 function getActiveVocab(){
@@ -2229,15 +2245,22 @@ function applyDayTasks(){
 function applyMaterials(){
   var mats=(DAY_CONTENT&&DAY_CONTENT.materials)||{};
   document.querySelectorAll('.mat-slot').forEach(function(slot){
-    var sec=slot.getAttribute('data-sec');var m=mats[sec];
-    if(m&&m.url){
-      slot.style.display='';
-      slot.innerHTML="<button onclick=\"openMaterial('"+sec+"')\" style=\"width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;border-radius:14px;border:1.5px solid #1f54e0;background:#e8eefc;font-size:14px;font-weight:600;color:#15347e;cursor:pointer;font-family:'Inter',sans-serif;\">📎 Qo'shimcha material (PDF)</button>";
+    var sec=slot.getAttribute('data-sec');var list=mats[sec];
+    if(list&&!Array.isArray(list))list=(list.url)?[list]:[];
+    if(list&&list.length){
+      slot.style.display='';var h='';
+      list.forEach(function(m,i){
+        var nm=(list.length>1)?('Material '+(i+1)):"Qo'shimcha material (PDF)";
+        h+="<button onclick=\"openMaterial('"+sec+"',"+i+")\" style=\"width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;border-radius:14px;border:1.5px solid #1f54e0;background:#e8eefc;font-size:14px;font-weight:600;color:#15347e;cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:8px;\">📎 "+nm+"</button>";
+      });
+      slot.innerHTML=h;
     } else { slot.style.display='none'; slot.innerHTML=''; }
   });
 }
-function openMaterial(sec){
-  var mats=(DAY_CONTENT&&DAY_CONTENT.materials)||{};var m=mats[sec];
+function openMaterial(sec,i){
+  var mats=(DAY_CONTENT&&DAY_CONTENT.materials)||{};var list=mats[sec];
+  if(list&&!Array.isArray(list))list=[list];
+  var m=(list||[])[i||0];
   if(!m||!m.url)return;
   if(tg&&tg.openLink)tg.openLink(m.url);else window.open(m.url,'_blank');
 }

@@ -153,6 +153,7 @@ body{font-family:'Inter',sans-serif;color:#1a1a1a;}
 .dt-badge{position:absolute;right:9px;top:9px;font-size:9px;font-weight:800;border-radius:6px;padding:3px 7px;letter-spacing:.02em;}
 .dt-new{background:#e8eefc;color:#1f54e0;}
 .dt-tak{background:#fff3e0;color:#e8890c;}
+.dt-exam{background:#e8eefc;color:#15347e;}
 .rt-item{background:#fff;border:1px solid #e8ecf6;border-radius:14px;padding:14px;margin-bottom:9px;}
 .rt-btn{flex:1;padding:11px;border-radius:11px;border:1.5px solid #e6ebf5;background:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;color:#1a1a1a;}
 .rt-btn.rt-dis{pointer-events:none;opacity:.85;}
@@ -1152,7 +1153,9 @@ function renderDays(){
             var rr=(day-1)%7;var badge='';
             if(rr===0||rr===3)badge="<div class='dt-badge dt-new'>Yangi</div>";
             else if(rr===1||rr===2||rr===4||rr===5)badge="<div class='dt-badge dt-tak'>Takror</div>";
-            html+="<div class='"+cls+"' id='dtile-"+day+"' onclick='openDay("+day+")'>"+badge+"<div class='dt-num'>"+day+"</div><div class='dt-lbl'>"+day+"-kun</div>"+extra+"</div>";
+            else if(rr===6)badge="<div class='dt-badge dt-exam'>Imtihon</div>";
+            var dlbl=(rr===6)?"Imtihon kuni":(day+"-kun");
+            html+="<div class='"+cls+"' id='dtile-"+day+"' onclick='openDay("+day+")'>"+badge+"<div class='dt-num'>"+day+"</div><div class='dt-lbl'>"+dlbl+"</div>"+extra+"</div>";
           } else {
             html+="<div class='day-tile locked'><div class='dt-num'>"+day+"</div><div class='dt-lbl'>"+day+"-kun</div><div class='dt-soon'>Tez orada</div></div>";
           }
@@ -1677,7 +1680,12 @@ function openExam(){
     .catch(function(){body.innerHTML="<div style='text-align:center;color:#999;padding:34px;'>Xatolik. Qayta urinib ko‘ring.</div>";});
 }
 function buildExamQuestions(pool){
-  var qs=[];var vocab=pool.vocab||[];
+  var qs=[];
+  (pool.manual||[]).forEach(function(m){
+    var opts=(typeof m.options==='string')?m.options.split(/\n/).map(function(s){return s.trim();}).filter(Boolean):(m.options||[]);
+    if(opts.length>1)qs.push({tag:'IMTIHON',q:m.q,options:opts,correct:(parseInt(m.correct)||1)-1});
+  });
+  var vocab=pool.vocab||[];
   vocab.forEach(function(v){
     var others=vocab.filter(function(x){return x.uz!==v.uz;});
     var opts=shuffle(others).slice(0,3).map(function(x){return x.uz;});
@@ -2206,12 +2214,15 @@ function loadDayAudios(d){
 }
 function applyDayTasks(){
   var et=DAY_CONTENT&&DAY_CONTENT.enabled_tasks;
+  var isExam=((window.curDay||0)%7===0);
   var map={vocab:'mc-lugat',formula:'mc-formula',audio:'mc-audio',speaking:'mc-gapiruv',grammar:'mc-grammar',reading:'mc-reading'};
   for(var k in map){var el=document.getElementById(map[k]);if(!el)continue;
-    var on=(!et)?true:(et.indexOf(k)!==-1);el.style.display=on?'':'none';}
+    var on=isExam?false:((!et)?true:(et.indexOf(k)!==-1));el.style.display=on?'':'none';}
   try{refreshLugatDone();}catch(e){}
   var mci=document.getElementById('mc-imtihon');
-  if(mci){var isExam=((window.curDay||0)%7===0);mci.style.display=isExam?'':'none';}
+  if(mci)mci.style.display=isExam?'':'none';
+  var sub=document.getElementById('ex-menu-sub');
+  if(sub&&isExam)sub.textContent='🎓 Imtihon kuni · '+curLevel;
   applyMaterials();
   try{updateProgress();}catch(e){}
 }

@@ -651,6 +651,10 @@ def get_available_days(level):
     cur.execute("SELECT DISTINCT day FROM audios WHERE level=%s", (level,))
     for r in cur.fetchall():
         days.setdefault(r["day"], "")
+    for ed in (7, 14, 21, 28):
+        wk_start = ed - 6
+        if any((wk_start + i) in days for i in range(6)):
+            days.setdefault(ed, "Imtihon")
     cur.close(); conn.close()
     return [{"day": d, "title": days[d]} for d in sorted(days)]
 
@@ -861,6 +865,37 @@ def require_admin(fn):
             return redirect(url_for("admin_login"))
         return fn(*a, **k)
     return wrapper
+
+@flask_app.route("/api/exam-pool")
+def api_exam_pool():
+    level = request.args.get("level", "A1")
+    if not session.get("admin"):
+        user = verify_init_data(request.headers.get("X-Telegram-Init-Data", ""))
+        if user is None or not user.get("id"):
+            return jsonify({"error": "auth"}), 401
+    try:
+        week = int(request.args.get("week", 1))
+    except Exception:
+        week = 1
+    level_db = "B1-B2" if str(level).upper().startswith("B1") else "A1"
+    start = (week - 1) * 7 + 1
+    vocab, reading_tasks, audio_questions = [], [], []
+    for dday in range(start, start + 6):
+        row = get_content(level_db, dday)
+        if not row:
+            continue
+        d = dict(row)
+        for v in (d.get("vocab") or []):
+            if v.get("ru") and v.get("uz"):
+                vocab.append({"ru": v.get("ru"), "uz": v.get("uz")})
+        for t in (d.get("reading_tasks") or []):
+            if t.get("q"):
+                reading_tasks.append({"q": t.get("q"), "answer": str(t.get("answer", "1"))})
+        for a in (d.get("audio_questions") or []):
+            if a.get("q") and a.get("options"):
+                audio_questions.append({"q": a.get("q"), "options": a.get("options"), "correct": a.get("correct")})
+    return jsonify({"ok": True, "week": week, "level": level,
+                    "vocab": vocab, "reading_tasks": reading_tasks, "audio_questions": audio_questions})
 
 @flask_app.route("/api/lesson-brief")
 def api_lesson_brief():

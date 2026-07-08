@@ -509,6 +509,18 @@ body{font-family:'Inter',sans-serif;color:#1a1a1a;}
   </div>
 </div>
 
+<!-- IMTIHON -->
+<div class="screen" id="s-exam">
+  <div class="s-header">
+    <button class="back" onclick="show('se-menu')">← Mashqlar</button>
+    <div class="s-title">🎓 Imtihon</div>
+    <div class="s-sub" id="exam-sub">Hafta yakuni</div>
+  </div>
+  <div class="ex-detail-scroll">
+    <div id="exam-body"></div>
+  </div>
+</div>
+
 <!-- O'QISH MASHQI -->
 <div class="screen" id="s-reading-ex">
   <div class="s-header">
@@ -1652,13 +1664,86 @@ function openAIChat(){
   if(window.Telegram&&window.Telegram.WebApp) window.Telegram.WebApp.openTelegramLink(url);
   else window.open(url,'_blank');
 }
+var EXAM_Q=[], EX_i=0, EX_correct=0, EX_ans=false, EXAM_WEEK=1;
 function openExam(){
+  EXAM_WEEK=Math.ceil((window.curDay||1)/7);
+  document.getElementById('exam-sub').textContent=EXAM_WEEK+'-hafta · '+curLevel;
+  var body=document.getElementById('exam-body');
+  body.innerHTML="<div style='text-align:center;color:#999;padding:34px;'>Yuklanmoqda…</div>";
+  show('s-exam');
+  fetch('/api/exam-pool?level='+encodeURIComponent(curLevel)+'&week='+EXAM_WEEK,{headers:{'X-Telegram-Init-Data':INIT_DATA}})
+    .then(function(r){return r.json();})
+    .then(function(j){EXAM_Q=buildExamQuestions(j||{});renderExamStart();})
+    .catch(function(){body.innerHTML="<div style='text-align:center;color:#999;padding:34px;'>Xatolik. Qayta urinib ko‘ring.</div>";});
+}
+function buildExamQuestions(pool){
+  var qs=[];var vocab=pool.vocab||[];
+  vocab.forEach(function(v){
+    var others=vocab.filter(function(x){return x.uz!==v.uz;});
+    var opts=shuffle(others).slice(0,3).map(function(x){return x.uz;});
+    opts.push(v.uz);opts=shuffle(opts);
+    qs.push({tag:"LUG'AT",q:'«'+v.ru+'» so‘zining tarjimasi?',options:opts,correct:opts.indexOf(v.uz)});
+  });
+  (pool.reading_tasks||[]).forEach(function(t){qs.push({tag:"O'QISH",q:t.q,pn:true,answer:(String(t.answer).trim()==='1')?1:0});});
+  (pool.audio_questions||[]).forEach(function(a){var opts=a.options||[];var ci=(parseInt(a.correct)||1)-1;if(opts.length>1)qs.push({tag:'AUDIO',q:a.q,options:opts,correct:ci});});
+  return shuffle(qs).slice(0,12);
+}
+function renderExamStart(){
+  var body=document.getElementById('exam-body');
+  if(!EXAM_Q.length){body.innerHTML="<div style='text-align:center;color:#999;padding:34px;line-height:1.6;'>Bu hafta uchun imtihon savollari topilmadi.<br>Avval hafta kunlarini (lug‘at, o‘qish, audio) to‘ldiring.</div>";return;}
+  body.innerHTML="<div style='text-align:center;'><div style='font-size:48px;margin:6px 0 10px;'>🎓</div>"+
+    "<div style='font-size:21px;font-weight:800;margin-bottom:4px;'>Hafta yakuni imtihoni</div>"+
+    "<div style='font-size:13px;color:#8a93a8;margin-bottom:18px;'>Shu haftada o‘rgangan mavzular</div>"+
+    "<div style='background:#fff;border:1px solid #e8ecf6;border-radius:16px;padding:16px;text-align:left;font-size:13.5px;color:#475067;line-height:2;margin-bottom:18px;'>• <b>"+EXAM_Q.length+"</b> ta test savoli (avtomatik)<br>• O‘tish uchun: <b>70%</b><br>• O‘tsangiz → og‘zaki qism (AI suhbat) ochiladi</div>"+
+    "<button class='ex-done-btn' onclick='startExam()' style='background:linear-gradient(135deg,#2f63ee,#163aa6);color:#fff;'>Imtihonni boshlash</button></div>";
+}
+function startExam(){EX_i=0;EX_correct=0;showEXQ();}
+function showEXQ(){
+  var body=document.getElementById('exam-body');
+  if(EX_i>=EXAM_Q.length){renderExamResult();return;}
+  EX_ans=false;var t=EXAM_Q[EX_i];
+  var pct=Math.round(EX_i/EXAM_Q.length*100);
+  var h="<div style='height:6px;background:#e8ecf6;border-radius:99px;margin-bottom:8px;overflow:hidden;'><div style='height:100%;width:"+pct+"%;background:#1f54e0;'></div></div>";
+  h+="<div style='display:flex;justify-content:space-between;font-size:12px;color:#999;font-weight:600;margin-bottom:14px;'><span>Savol "+(EX_i+1)+" / "+EXAM_Q.length+"</span><span>"+escH(t.tag)+"</span></div>";
+  h+="<div style='background:#fff;border:1px solid #e8ecf6;border-radius:16px;padding:18px;margin-bottom:14px;'><div style='font-size:16px;font-weight:600;line-height:1.5;'>"+escH(t.q)+"</div></div>";
+  h+="<div id='ex-opts'>";
+  if(t.pn){
+    h+="<div style='display:flex;gap:10px;'><button class='rt-btn' onclick='exAns(1,this)'>Правда</button><button class='rt-btn' onclick='exAns(0,this)'>Не правда</button></div>";
+  }else{
+    t.options.forEach(function(o,i){h+="<button class='test-opt' style='display:block;width:100%;margin-bottom:8px;' onclick='exAns("+i+",this)'>"+escH(o)+"</button>";});
+  }
+  h+="</div><div id='ex-next'></div>";
+  body.innerHTML=h;
+}
+function exAns(chosen,btn){
+  if(EX_ans)return;EX_ans=true;var t=EXAM_Q[EX_i];
+  var correctVal=t.pn?t.answer:t.correct;
+  var ok=(chosen===correctVal);if(ok)EX_correct++;
+  var sel=t.pn?'#ex-opts .rt-btn':'#ex-opts .test-opt';
+  var okc=t.pn?'rt-ok':'correct',noc=t.pn?'rt-no':'wrong',revc=t.pn?'rt-reveal':'reveal';
+  var btns=document.querySelectorAll(sel);
+  btns.forEach(function(b,i){b.classList.add(t.pn?'rt-dis':'disabled');if(!ok&&i===correctVal)b.classList.add(revc);});
+  btn.classList.add(ok?okc:noc);
+  var last=(EX_i>=EXAM_Q.length-1);
+  document.getElementById('ex-next').innerHTML="<button class='ex-done-btn' onclick='exNext()' style='margin-top:14px;'>"+(last?'Natija →':'Keyingi →')+"</button>";
+}
+function exNext(){EX_i++;showEXQ();}
+function renderExamResult(){
+  var body=document.getElementById('exam-body');
+  var tot=EXAM_Q.length;var pct=tot?Math.round(EX_correct/tot*100):0;var passed=pct>=70;
   var bot=(UI_LINKS.link_ai_bot||'zamira_suhbatdosh_bot').replace(/^@/,'');
   var lv=(curLevel==='B1-B2')?'b1':'a1';
-  var week=Math.ceil((window.curDay||1)/7);
-  var url='https://t.me/'+bot+'?start=ex_'+lv+'_'+week;
-  if(window.Telegram&&window.Telegram.WebApp) window.Telegram.WebApp.openTelegramLink(url);
-  else window.open(url,'_blank');
+  var url='https://t.me/'+bot+'?start=ex_'+lv+'_'+EXAM_WEEK;
+  var h="<div style='text-align:center;padding:14px 0 8px;'>";
+  h+="<div style='width:120px;height:120px;border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:800;color:#fff;background:"+(passed?'linear-gradient(135deg,#1e8a55,#0e6b40)':'linear-gradient(135deg,#e8890c,#c0392b)')+";'>"+pct+"%</div>";
+  h+="<div style='font-size:21px;font-weight:800;margin-bottom:4px;'>"+(passed?'Imtihondan o‘tdingiz! 🎉':'Yana urinib ko‘ring')+"</div>";
+  h+="<div style='font-size:13px;color:#8a93a8;margin-bottom:20px;'>"+tot+" tadan "+EX_correct+" ta to‘g‘ri</div></div>";
+  if(passed){
+    h+="<div style='background:#fff;border:1px solid #e8ecf6;border-radius:16px;padding:16px;margin-bottom:12px;'><div style='font-size:12px;font-weight:800;color:#8a93a8;margin-bottom:6px;'>OG‘ZAKI QISM</div><div style='font-size:13px;color:#475067;line-height:1.6;'>Hafta mavzusida AI bilan ruscha suhbatlashing. Tugma bosilsa suhbatdosh bot ochiladi.</div></div>";
+    h+="<button class='ex-done-btn' onclick=\"(window.Telegram&&window.Telegram.WebApp)?window.Telegram.WebApp.openTelegramLink('"+url+"'):window.open('"+url+"','_blank')\" style='background:linear-gradient(135deg,#2f63ee,#163aa6);color:#fff;'>🤖 AI bilan og‘zaki suhbat</button>";
+  }
+  h+="<button class='ex-done-btn' onclick='startExam()' style='background:#fff;border:1.5px solid #e8ecf6;color:#1a1a1a;margin-top:8px;'>🔁 Qaytadan</button>";
+  body.innerHTML=h;
 }
 
 var flIdx=0;

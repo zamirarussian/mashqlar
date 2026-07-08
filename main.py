@@ -879,7 +879,7 @@ def api_exam_pool():
         week = 1
     level_db = "B1-B2" if str(level).upper().startswith("B1") else "A1"
     start = (week - 1) * 7 + 1
-    vocab, reading_tasks, audio_questions = [], [], []
+    vocab = []
     for dday in range(start, start + 6):
         row = get_content(level_db, dday)
         if not row:
@@ -888,14 +888,7 @@ def api_exam_pool():
         for v in (d.get("vocab") or []):
             if v.get("ru") and v.get("uz"):
                 vocab.append({"ru": v.get("ru"), "uz": v.get("uz")})
-        for t in (d.get("reading_tasks") or []):
-            if t.get("q"):
-                reading_tasks.append({"q": t.get("q"), "answer": str(t.get("answer", "1"))})
-        for a in (d.get("audio_questions") or []):
-            if a.get("q") and a.get("options"):
-                audio_questions.append({"q": a.get("q"), "options": a.get("options"), "correct": a.get("correct")})
-    return jsonify({"ok": True, "week": week, "level": level,
-                    "vocab": vocab, "reading_tasks": reading_tasks, "audio_questions": audio_questions})
+    return jsonify({"ok": True, "week": week, "level": level, "vocab": vocab})
 
 @flask_app.route("/api/lesson-brief")
 def api_lesson_brief():
@@ -1054,14 +1047,16 @@ def api_access():
         # Test rejimi: adminkaga kirgan brauzerda to'liq dostup
         if session.get("admin"):
             return jsonify({"ok": True, "sections": list(SECTIONS), "status": "test",
-                            "days_left": None, "user_id": "test", "streak": 0})
+                            "days_left": None, "user_id": "test", "streak": 0, "teacher_exam": True})
         return jsonify({"ok": False, "error": "auth"}), 401
     uid = int(user["id"])
     created = ensure_user_trial(uid, user.get("first_name"), user.get("username"))
     if created:
         threading.Thread(target=send_welcome, args=(uid, user.get("first_name")), daemon=True).start()
-    acc = compute_access(get_user(uid))
+    urow = get_user(uid)
+    acc = compute_access(urow)
     acc["ok"] = True; acc["user_id"] = uid
+    acc["teacher_exam"] = bool(urow and "ustoz_imtihon" in (urow.get("allowed_sections") or "").split(","))
     acc["streak"] = bump_streak(uid)
     acc.update(get_profile_stats(uid))
     try:
@@ -1468,7 +1463,8 @@ td{padding:8px 0;border-bottom:1px solid var(--soft);}
             <label class="accrow"><span>🗣️ Talaffuz</span><input type="checkbox" id="acc-talaffuz" class="accbox"></label>
             <label class="accrow"><span>🏛️ Fundament</span><input type="checkbox" id="acc-fundament" class="accbox"></label>
             <label class="accrow"><span>🟢 A1 — A2</span><input type="checkbox" id="acc-a1" class="accbox"></label>
-            <label class="accrow last"><span>🔵 B1 — B2</span><input type="checkbox" id="acc-b1" class="accbox"></label>
+            <label class="accrow"><span>🔵 B1 — B2</span><input type="checkbox" id="acc-b1" class="accbox"></label>
+            <label class="accrow last"><span>🎓 Ustoz bilan imtihon</span><input type="checkbox" id="acc-ustoz_imtihon" class="accbox"></label>
           </div>
           <div class="muted" style="font-size:11px;letter-spacing:.05em;font-weight:600;margin-bottom:8px;">MUDDAT</div>
           <div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;">
@@ -1641,7 +1637,7 @@ function addAdmin(){var u=document.getElementById('ad_u').value.trim(),p=documen
 function delAdmin(u){if(!confirm(u+' o\\'chirilsinmi?'))return;
   fetch('/admin/delete-admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:u})}).then(function(){location.reload();});}
 var ACC_UID=null;
-var ACC_SECS=['talaffuz','fundament','a1','b1'];
+var ACC_SECS=['talaffuz','fundament','a1','b1','ustoz_imtihon'];
 function openAccess(btn){var r=btn.closest('.lrow2');ACC_UID=r.dataset.uid;
   document.getElementById('acc-name').textContent=r.dataset.name;
   document.getElementById('acc-id').textContent='ID: '+r.dataset.uid;

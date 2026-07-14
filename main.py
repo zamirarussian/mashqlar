@@ -933,7 +933,9 @@ def api_lesson_brief():
     day = request.args.get("day")
     if not day:
         return jsonify({"ok": False, "error": "day required"}), 400
-    level_db = {"a1": "A1", "a2": "A1", "b1": "B1-B2", "b2": "B1-B2"}.get(lvl_raw, lvl_raw.upper())
+    # DIQQAT: bazada B1 darajasi "B1" deb saqlanadi (admin muharriridagi <option>B1</option> bilan mos),
+    # "B1-B2" DEGAN LEVEL BAZADA MAVJUD EMAS — shu sabab avvalgi mapping darslarni topolmasdi.
+    level_db = {"a1": "A1", "a2": "A1", "b1": "B1", "b2": "B1"}.get(lvl_raw, lvl_raw.upper())
     try:
         day = int(day)
     except Exception:

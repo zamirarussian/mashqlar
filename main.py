@@ -748,7 +748,7 @@ def get_all_content():
     cur.execute("SELECT level, day, title FROM content ORDER BY level, day")
     rows = cur.fetchall(); cur.close(); conn.close()
     have = {(r["level"], r["day"]) for r in rows}
-    for lvl in ("A1", "B1-B2"):
+    for lvl in ("A1", "B1"):
         wk_days = {r["day"] for r in rows if r["level"] == lvl}
         for ed in (7, 14, 21, 28):
             if (lvl, ed) not in have and any((ed - 6 + i) in wk_days for i in range(6)):
@@ -769,7 +769,7 @@ def get_lessons_status():
     for r in rows:
         r["has_audio"] = (r["level"], r["day"]) in auds
     have = {(r["level"], r["day"]) for r in rows}
-    for lvl in ("A1", "B1-B2"):
+    for lvl in ("A1", "B1"):
         wk_days = {r["day"] for r in rows if r["level"] == lvl}
         for ed in (7, 14, 21, 28):
             if (lvl, ed) not in have and any((ed - 6 + i) in wk_days for i in range(6)):
@@ -903,7 +903,7 @@ def api_exam_pool():
         week = int(request.args.get("week", 1))
     except Exception:
         week = 1
-    level_db = "B1-B2" if str(level).upper().startswith("B1") else "A1"
+    level_db = "B1" if str(level).upper().startswith("B1") else "A1"
     start = (week - 1) * 7 + 1
     vocab = []
     for dday in range(start, start + 6):
@@ -933,8 +933,6 @@ def api_lesson_brief():
     day = request.args.get("day")
     if not day:
         return jsonify({"ok": False, "error": "day required"}), 400
-    # DIQQAT: bazada B1 darajasi "B1" deb saqlanadi (admin muharriridagi <option>B1</option> bilan mos),
-    # "B1-B2" DEGAN LEVEL BAZADA MAVJUD EMAS — shu sabab avvalgi mapping darslarni topolmasdi.
     level_db = {"a1": "A1", "a2": "A1", "b1": "B1", "b2": "B1"}.get(lvl_raw, lvl_raw.upper())
     try:
         day = int(day)

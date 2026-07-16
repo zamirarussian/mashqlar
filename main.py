@@ -660,7 +660,7 @@ def get_available_days(level):
     cur.execute("SELECT DISTINCT day FROM audios WHERE level=%s", (level,))
     for r in cur.fetchall():
         days.setdefault(r["day"], "")
-    for ed in (7, 14, 21, 28):
+    for ed in range(7, 105, 7):
         wk_start = ed - 6
         if any((wk_start + i) in days for i in range(6)):
             days.setdefault(ed, "Imtihon")
@@ -750,7 +750,7 @@ def get_all_content():
     have = {(r["level"], r["day"]) for r in rows}
     for lvl in ("A1", "B1"):
         wk_days = {r["day"] for r in rows if r["level"] == lvl}
-        for ed in (7, 14, 21, 28):
+        for ed in range(7, 105, 7):
             if (lvl, ed) not in have and any((ed - 6 + i) in wk_days for i in range(6)):
                 rows.append({"level": lvl, "day": ed, "title": "🎓 Imtihon kuni"})
     rows.sort(key=lambda r: (r["level"], r["day"]))
@@ -771,7 +771,7 @@ def get_lessons_status():
     have = {(r["level"], r["day"]) for r in rows}
     for lvl in ("A1", "B1"):
         wk_days = {r["day"] for r in rows if r["level"] == lvl}
-        for ed in (7, 14, 21, 28):
+        for ed in range(7, 105, 7):
             if (lvl, ed) not in have and any((ed - 6 + i) in wk_days for i in range(6)):
                 rows.append({"level": lvl, "day": ed, "title": "🎓 Imtihon kuni",
                              "nvocab": 0, "ngrammar": 0, "has_audio": False})
@@ -2048,7 +2048,7 @@ textarea{min-height:96px;resize:vertical;line-height:1.55;}
 </div>
 <div class="screen" id="sc-exam">
   <button class="backbtn" onclick="showMenu()">← Menyu</button><h2>🎓 Imtihon savollari</h2>
-  <div class="hint" style="margin-bottom:10px;">Imtihon kuni (7, 14, 21, 28) uchun qo'lda savollar. Har savol: savol matni + variantlar (har qatorda bitta) + to'g'ri variant raqami. Bu savollar haftaning lug'ati bilan birga chiqadi.</div>
+  <div class="hint" style="margin-bottom:10px;">Imtihon kuni (har 7-kun: 7, 14, 21, 28, 35…) uchun qo'lda savollar. Har savol: savol matni + variantlar (har qatorda bitta) + to'g'ri variant raqami. Bu savollar haftaning lug'ati bilan birga chiqadi.</div>
   <div id="L_exam_questions"></div><button class="add" onclick="addCard('exam_questions')">+ Savol qo'shish</button>
   <button class="save" onclick="saveLesson(1)">💾 Saqlash</button>
 </div>

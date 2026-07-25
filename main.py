@@ -416,6 +416,7 @@ def init_db():
         ALTER TABLE users ADD COLUMN IF NOT EXISTS permanent BOOLEAN DEFAULT FALSE;
         ALTER TABLE users ADD COLUMN IF NOT EXISTS blocked BOOLEAN DEFAULT FALSE;
         ALTER TABLE users ADD COLUMN IF NOT EXISTS bot_blocked BOOLEAN DEFAULT FALSE;
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS user_label TEXT;
         ALTER TABLE users ADD COLUMN IF NOT EXISTS streak INTEGER DEFAULT 0;
         ALTER TABLE users ADD COLUMN IF NOT EXISTS last_seen DATE;
         CREATE TABLE IF NOT EXISTS lesson_files (
@@ -922,6 +923,31 @@ def api_exam_pool():
                 manual.append(q)
     return jsonify({"ok": True, "week": week, "level": level, "vocab": vocab, "manual": manual})
 
+@flask_app.route("/admin/delete-user", methods=["POST"])
+def admin_delete_user():
+    if not session.get("admin"):
+        return {"ok": False}, 403
+    uid = (request.json or {}).get("user_id")
+    if not uid:
+        return {"ok": False}, 400
+    conn = get_conn(); cur = conn.cursor()
+    cur.execute("DELETE FROM users WHERE user_id=%s", (uid,))
+    conn.commit(); cur.close(); conn.close()
+    return {"ok": True}
+
+@flask_app.route("/admin/set-user-label", methods=["POST"])
+def admin_set_user_label():
+    if not session.get("admin"):
+        return {"ok": False}, 403
+    d = request.json or {}
+    uid = d.get("user_id"); lbl = d.get("label") or None
+    if not uid:
+        return {"ok": False}, 400
+    conn = get_conn(); cur = conn.cursor()
+    cur.execute("UPDATE users SET user_label=%s WHERE user_id=%s", (lbl, uid))
+    conn.commit(); cur.close(); conn.close()
+    return {"ok": True}
+
 @flask_app.route("/api/lesson-brief")
 def api_lesson_brief():
     # Suhbatdosh bot uchun: bir kunning to'liq mazmunini beradi (secret bilan himoyalangan)
@@ -1270,6 +1296,17 @@ def admin():
     rows_lessons = "".join(_blocks)
 
     SEC_LABEL = {"talaffuz": "Talaffuz", "fundament": "Fundament", "a1": "A1", "b1": "B1"}
+    import datetime as _dt
+    _now = _dt.datetime.now()
+    def _isnew(u):
+        jd = u.get("joined_at")
+        try:
+            return bool(jd and (_now - jd.replace(tzinfo=None)).days <= 7)
+        except Exception:
+            return False
+    LBL_MAP = {"free": ("🎁 Bepul", "#E1F5EE", "#0F6E56"),
+               "old": ("🔵 Eski", "#E6F1FB", "#0C447C"),
+               "vip": ("⭐ VIP", "#FBF3E0", "#8A6D1F")}
     def _user_row(u):
         acc = compute_access(u)
         uid = u["user_id"]
@@ -1292,17 +1329,56 @@ def admin():
         }
         bg, fg, lbl = cm.get(st, cm["expired"])
         secchips = "".join("<span class='sec %s'>%s</span>" % ("on" if s in granted else "off", SEC_LABEL[s]) for s in SECTIONS)
-        nm = name.replace('"', '&quot;')
+        nm = name.replace(chr(34), "&quot;")
+        lab = (u.get("user_label") or "")
+        labchip = ""
+        if lab in LBL_MAP:
+            lt, lbg, lfg = LBL_MAP[lab]
+            labchip = "<span class='st' style='background:%s;color:%s;margin-right:6px'>%s</span>" % (lbg, lfg, lt)
+        joined = str(u.get("joined_at") or "")[:10]
+        isnew = 1 if _isnew(u) else 0
+        streak = int(u.get("streak") or 0)
+        jsort = str(u.get("joined_at") or "")
+        meta = "ID: %s · 📅 %s%s" % (uid, joined or "—", (" · 🔥%d" % streak if streak else ""))
+        DQ = chr(34)
         return (
-            "<div class='lrow2' data-uid='%s' data-name=\"%s\" data-secs='%s' data-mode='%s' data-until='%s' data-search='%s %s %s'>"
+            "<div class='lrow2' data-uid='%s' data-name=" + DQ + "%s" + DQ + " data-secs='%s' data-mode='%s' data-until='%s' "
+            "data-status='%s' data-label='%s' data-new='%s' data-joined='%s' data-streak='%s' data-search='%s %s %s'>"
             "<div style='flex:1;min-width:150px'><div style='font-weight:500'>%s <span class='muted' style='font-weight:400'>%s</span></div>"
-            "<div class='muted' style='font-size:12px'>ID: %s</div>"
-            "<div style='margin-top:6px'>%s</div></div>"
+            "<div class='muted' style='font-size:12px'>%s</div>"
+            "<div style='margin-top:6px'>%s%s</div></div>"
             "<span class='st' style='background:%s;color:%s'>%s</span>"
-            "<button class='btn-sm' onclick='openAccess(this)'>⚙️ Dostup</button></div>"
-            % (uid, nm, ",".join(granted), mode, until, name.lower(), un.lower(), uid, name, un, uid, secchips, bg, fg, lbl)
-        )
+            "<button class='btn-sm' onclick='openAccess(this)'>⚙️ Dostup</button>"
+            "<button class='icon-btn' style='color:#c0392b' onclick=" + DQ + "delUser('%s')" + DQ + ">🗑</button></div>"
+        ) % (uid, nm, ",".join(granted), mode, until, st, lab, isnew, jsort, streak,
+             name.lower(), un.lower(), uid, name, un, meta, labchip, secchips, bg, fg, lbl, uid)
     rows_users = "".join(_user_row(u) for u in users[:300]) or "<div class='muted' style='padding:10px'>Foydalanuvchi yo'q</div>"
+    _ntot = len(users)
+    _nnew = sum(1 for u in users if _isnew(u))
+    _npaid = sum(1 for u in users if compute_access(u).get("status") in ("paid", "permanent"))
+    _nfree = sum(1 for u in users if (u.get("user_label") == "free") or compute_access(u).get("status") == "trial")
+    users_controls = (
+        "<div class='usumg'>"
+        "<div class='usum'><div class='n'>%d</div><div class='l'>Jami</div></div>"
+        "<div class='usum b'><div class='n'>%d</div><div class='l'>Yangi (7 kun)</div></div>"
+        "<div class='usum g'><div class='n'>%d</div><div class='l'>To'lovchi</div></div>"
+        "<div class='usum y'><div class='n'>%d</div><div class='l'>Bepul/Sinov</div></div>"
+        "</div>"
+        "<div class='uctrl'><select id='usort' class='usel' onchange='sortUsers()'>"
+        "<option value='new'>Yangi → eski</option><option value='old'>Eski → yangi</option>"
+        "<option value='id'>ID bo'yicha</option><option value='name'>Ism (A-Z)</option>"
+        "<option value='streak'>Streak bo'yicha</option></select></div>"
+        "<div class='utabs'>"
+        "<span class='utab on' data-f='all' onclick='filterUsers(this)'>Hammasi</span>"
+        "<span class='utab' data-f='new' onclick='filterUsers(this)'>🆕 Yangi</span>"
+        "<span class='utab' data-f='paid' onclick='filterUsers(this)'>💳 To'lovchi</span>"
+        "<span class='utab' data-f='free' onclick='filterUsers(this)'>🎁 Bepul</span>"
+        "<span class='utab' data-f='old' onclick='filterUsers(this)'>🔵 Eski</span>"
+        "<span class='utab' data-f='a1' onclick='filterUsers(this)'>A1 ruxsat</span>"
+        "<span class='utab' data-f='b1' onclick='filterUsers(this)'>B1 ruxsat</span>"
+        "<span class='utab' data-f='blocked' onclick='filterUsers(this)'>⛔ Bloklangan</span>"
+        "</div>"
+    ) % (_ntot, _nnew, _npaid, _nfree)
 
     def ui_field(key, label, area=False):
         v = esc(ui.get(key, ""))
@@ -1355,6 +1431,17 @@ td{padding:8px 0;border-bottom:1px solid var(--soft);}
 .seg-btn.active{background:var(--acc);color:#fff;border-color:var(--acc);}
 .row2{display:flex;gap:10px;}.row2>div{flex:1;}
 .lrow2{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin-bottom:10px;}
+.usumg{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;}
+.usum{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px;}
+.usum .n{font-size:20px;font-weight:800;}.usum .l{font-size:11px;color:#7a8398;margin-top:1px;}
+.usum.g .n{color:#0F6E56;}.usum.b .n{color:#0C447C;}.usum.y .n{color:#8A6D1F;}
+.uctrl{display:flex;gap:8px;margin-bottom:10px;}
+.usel{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 11px;color:var(--text);font-size:13px;}
+.utabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+.utab{padding:6px 12px;border-radius:99px;font-size:12px;font-weight:600;background:var(--card);border:1px solid var(--border);color:#7a8398;cursor:pointer;}
+.utab.on{background:#2f63ee;border-color:#2f63ee;color:#fff;}
+.lblbtn{padding:7px 11px;border-radius:9px;font-size:12.5px;font-weight:600;background:var(--card);border:1px solid var(--border);color:var(--text);cursor:pointer;}
+.lblbtn.on{background:#2f63ee;border-color:#2f63ee;color:#fff;}
 .daybadge{width:40px;height:40px;border-radius:10px;background:rgba(29,158,117,.2);color:var(--accs);display:flex;align-items:center;justify-content:center;font-weight:600;flex-shrink:0;}
 .chip{font-size:11px;padding:2px 8px;border-radius:7px;margin-right:4px;display:inline-block;margin-top:2px;}
 .chip.on{background:rgba(29,158,117,.2);color:var(--accs);}
@@ -1484,7 +1571,7 @@ td{padding:8px 0;border-bottom:1px solid var(--soft);}
     <div style="display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:9px 12px;margin-bottom:14px;">
       🔍 <input oninput="userSearch(this.value)" placeholder="Ism, @username yoki ID bo'yicha qidirish" style="border:none;flex:1;background:transparent;padding:2px;">
     </div>
-    """ + rows_users + """
+    """ + users_controls + """<div id="ulist">""" + rows_users + """</div>
     <div id="accModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:60;align-items:center;justify-content:center;padding:16px;">
       <div style="background:var(--card);border:1px solid var(--border);border-radius:18px;max-width:430px;width:100%;overflow:hidden;">
         <div style="padding:18px 20px 14px;border-bottom:1px solid var(--soft);">
@@ -1499,6 +1586,13 @@ td{padding:8px 0;border-bottom:1px solid var(--soft);}
             <label class="accrow"><span>🟢 A1 — A2</span><input type="checkbox" id="acc-a1" class="accbox"></label>
             <label class="accrow"><span>🔵 B1 — B2</span><input type="checkbox" id="acc-b1" class="accbox"></label>
             <label class="accrow last"><span>🎓 Ustoz bilan imtihon</span><input type="checkbox" id="acc-ustoz_imtihon" class="accbox"></label>
+          </div>
+          <div class="muted" style="font-size:11px;letter-spacing:.05em;font-weight:600;margin:0 0 8px;">BELGI</div>
+          <div id="acc-labels" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;">
+            <button type="button" class="lblbtn on" data-lbl="" onclick="pickLabel(this)">— Yo'q</button>
+            <button type="button" class="lblbtn" data-lbl="free" onclick="pickLabel(this)">🎁 Bepul</button>
+            <button type="button" class="lblbtn" data-lbl="old" onclick="pickLabel(this)">🔵 Eski</button>
+            <button type="button" class="lblbtn" data-lbl="vip" onclick="pickLabel(this)">⭐ VIP</button>
           </div>
           <div class="muted" style="font-size:11px;letter-spacing:.05em;font-weight:600;margin-bottom:8px;">MUDDAT</div>
           <div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;">
@@ -1680,6 +1774,7 @@ function openAccess(btn){var r=btn.closest('.lrow2');ACC_UID=r.dataset.uid;
   var mode=r.dataset.mode||'trial';
   document.querySelectorAll('input[name=accmode]').forEach(function(x){x.checked=(x.value===mode);});
   document.getElementById('acc-until').value=r.dataset.until||'';
+  CUR_LABEL=r.dataset.label||'';document.querySelectorAll('#acc-labels .lblbtn').forEach(function(x){x.classList.toggle('on',(x.dataset.lbl||'')===CUR_LABEL);});
   document.getElementById('accModal').style.display='flex';}
 function closeAccess(){document.getElementById('accModal').style.display='none';}
 function saveAccess(){
@@ -1687,10 +1782,45 @@ function saveAccess(){
   var m=document.querySelector('input[name=accmode]:checked');var mode=m?m.value:'trial';
   var until=document.getElementById('acc-until').value;
   if(mode==='dated'&&!until)return alert('Sana tanlang');
+  fetch('/admin/set-user-label',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:ACC_UID,label:CUR_LABEL})}).catch(function(){});
   fetch('/admin/user-access',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:ACC_UID,sections:secs,mode:mode,until:until})}).then(function(r){if(r.ok)location.reload();else alert('Xato');});}
 function blockUser(){if(!confirm('Bu foydalanuvchi bloklansinmi?'))return;
   fetch('/admin/user-block',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:ACC_UID,blocked:true})}).then(function(){location.reload();});}
 function userSearch(q){q=(q||'').toLowerCase();document.querySelectorAll('#p-users .lrow2').forEach(function(r){r.style.display=((r.dataset.search||'').indexOf(q)>=0)?'flex':'none';});}
+var CUR_LABEL='';
+function pickLabel(b){CUR_LABEL=b.dataset.lbl||'';document.querySelectorAll('#acc-labels .lblbtn').forEach(function(x){x.classList.toggle('on',x===b);});}
+function filterUsers(t){
+  document.querySelectorAll('#p-users .utab').forEach(function(x){x.classList.toggle('on',x===t);});
+  var f=t.dataset.f;
+  document.querySelectorAll('#ulist .lrow2').forEach(function(r){
+    var d=r.dataset;var show=true;
+    if(f==='new')show=d.new==='1';
+    else if(f==='paid')show=(d.status==='paid'||d.status==='permanent');
+    else if(f==='free')show=(d.label==='free'||d.status==='trial');
+    else if(f==='old')show=d.label==='old';
+    else if(f==='a1')show=(','+(d.secs||'')+',').indexOf(',a1,')>=0;
+    else if(f==='b1')show=(','+(d.secs||'')+',').indexOf(',b1,')>=0;
+    else if(f==='blocked')show=d.status==='blocked';
+    r.style.display=show?'flex':'none';
+  });
+}
+function sortUsers(){
+  var v=document.getElementById('usort').value;var list=document.getElementById('ulist');
+  var rows=Array.prototype.slice.call(list.querySelectorAll('.lrow2'));
+  rows.sort(function(a,b){
+    if(v==='new')return (b.dataset.joined||'').localeCompare(a.dataset.joined||'');
+    if(v==='old')return (a.dataset.joined||'').localeCompare(b.dataset.joined||'');
+    if(v==='id')return (parseInt(a.dataset.uid)||0)-(parseInt(b.dataset.uid)||0);
+    if(v==='name')return (a.dataset.name||'').localeCompare(b.dataset.name||'');
+    if(v==='streak')return (parseInt(b.dataset.streak)||0)-(parseInt(a.dataset.streak)||0);
+    return 0;
+  });
+  rows.forEach(function(r){list.appendChild(r);});
+}
+function delUser(uid){
+  if(!confirm('Bu foydalanuvchi butunlay ochirilsinmi? Ortga qaytarib bolmaydi.'))return;
+  fetch('/admin/delete-user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:uid})}).then(function(r){if(r.ok){var el=document.querySelector('.lrow2[data-uid="'+uid+'"]');if(el)el.remove();}else alert('Xato');});
+}
 var vSec='talaffuz';
 function vTab(btn){document.querySelectorAll('[data-vsec]').forEach(function(b){b.classList.toggle('on',b===btn);});vSec=btn.dataset.vsec;vLoad(vSec);}
 function vEsc(s){return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}

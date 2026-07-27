@@ -2993,7 +2993,7 @@ def send_media_broadcast_sync(mtype, path, caption):
             pass
 
 # ===================== SEGMENTLI ESLATMALAR =====================
-INACTIVE_SEGMENTS = [1, 3, 5]
+INACTIVE_SEGMENTS = [1, 3, 5, 7, 10, 14]
 STREAK_SEGMENTS = [5, 10, 20, 30, 40, 50, 60]
 CONTACT_MIN_DAYS = 10
 
@@ -3001,6 +3001,9 @@ DEFAULT_SEG_TEMPLATES = {
     "in:1": "Salom! Bugun darsni o'tkazib yubordingiz. Bir oz vaqt ajrating, 10 daqiqa ham yetadi. Davom etamizmi?",
     "in:3": "3 kundan beri ko'rinmadingiz. Rus tilini unutmaslik uchun bugun qaytib keling!",
     "in:5": "5 kun bo'ldi. Darslar sizni kutyapti. Keling, qaytadan boshlaymiz!",
+    "in:7": "Bir hafta bo'ldi! Rus tilini tashlab qo'ymang — bugun 10 daqiqa ajrating, qaytamiz!",
+    "in:10": "10 kundan beri yo'qsiz. O'rganganlaringiz esdan chiqmasidan, bugun qaytib keling!",
+    "in:14": "2 hafta bo'ldi. Sizni sog'indik! Bir bosishda darslarga qayting va davom eting.",
     "st:5": "Zo'r! 5 kun ketma-ket o'qidingiz. Shu sur'atni davom ettiring!",
     "st:10": "10 kun ketma-ket! Ajoyib natija, siz bilan faxrlanamiz!",
     "st:20": "20 kun! Bu jiddiy intizom. Davom eting!",

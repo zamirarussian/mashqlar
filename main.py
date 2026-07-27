@@ -183,9 +183,9 @@ def delete_video(vid):
     cur.execute("DELETE FROM video_lessons WHERE id=%s", (vid,))
     conn.commit(); cur.close(); conn.close()
 
-def set_video_task(vid, url):
+def set_video_task(vid, url, name=None):
     conn = get_conn(); cur = conn.cursor()
-    cur.execute("UPDATE video_lessons SET task_pdf_url=%s WHERE id=%s", (url, vid))
+    cur.execute("UPDATE video_lessons SET task_pdf_url=%s, task_pdf_name=%s WHERE id=%s", (url, name, vid))
     conn.commit(); cur.close(); conn.close()
 
 def upload_video_task_to_r2(data, vid):
@@ -417,6 +417,7 @@ def init_db():
         ALTER TABLE users ADD COLUMN IF NOT EXISTS blocked BOOLEAN DEFAULT FALSE;
         ALTER TABLE users ADD COLUMN IF NOT EXISTS bot_blocked BOOLEAN DEFAULT FALSE;
         ALTER TABLE users ADD COLUMN IF NOT EXISTS user_label TEXT;
+        ALTER TABLE video_lessons ADD COLUMN IF NOT EXISTS task_pdf_name TEXT;
         ALTER TABLE users ADD COLUMN IF NOT EXISTS streak INTEGER DEFAULT 0;
         ALTER TABLE users ADD COLUMN IF NOT EXISTS last_seen DATE;
         CREATE TABLE IF NOT EXISTS lesson_files (
@@ -1211,7 +1212,7 @@ def api_videos():
             return jsonify({"error": "locked"}), 403
     vids = get_videos(section)
     out = [{"id": v["id"], "title": v["title"], "descr": v["descr"],
-            "youtube_url": v["youtube_url"], "task_pdf_url": v["task_pdf_url"],
+            "youtube_url": v["youtube_url"], "task_pdf_url": v["task_pdf_url"], "task_pdf_name": v.get("task_pdf_name"),
             "task_text": v["task_text"]} for v in vids]
     return jsonify({"videos": out})
 
@@ -1832,14 +1833,16 @@ function vRender(list){var h='';
       '<div style="font-size:12px;color:#999;margin-bottom:3px;">Nom</div><input class="v-title" value="'+vEsc(v.title)+'"/>'+
       '<div style="font-size:12px;color:#999;margin-bottom:3px;">Tavsif</div><input class="v-descr" value="'+vEsc(v.descr)+'"/>'+
       '<div style="font-size:12px;color:#999;margin-bottom:3px;">YouTube havola</div><input class="v-yt" value="'+vEsc(v.youtube_url)+'" placeholder="https://youtu.be/..."/>'+
-      '<div class="vrow">'+(v.task_pdf_url?'<a class="btn-sm" href="'+vEsc(v.task_pdf_url)+'" target="_blank">📄 Vazifa PDF</a>':'<span class="muted" style="font-size:12px">Vazifa PDF yo\\'q</span>')+
-      '<button class="btn-sm" onclick="vTask('+v.id+')">⬆ PDF yuklash</button>'+
+      '<div class="vrow">'+(v.task_pdf_url?'<a class="btn-sm" href="'+vEsc(v.task_pdf_url)+'" target="_blank">📄 '+vEsc(v.task_pdf_name||'Vazifa PDF')+'</a><button class="btn-sm" onclick="vTaskRename('+v.id+')">✏️ Nom</button><button class="btn-sm" style="color:#d06b6b" onclick="vTaskDel('+v.id+')">🗑 PDF</button>':'<span class="muted" style="font-size:12px">Vazifa PDF yo\\'q</span>')+
+      '<button class="btn-sm" onclick="vTask('+v.id+')">⬆ '+(v.task_pdf_url?'Almashtirish':'PDF yuklash')+'</button>'+
       '<button class="btn-sm" onclick="vMove(this,-1)">↑</button><button class="btn-sm" onclick="vMove(this,1)">↓</button>'+
       '<button class="btn-sm" style="color:#d06b6b" onclick="vDelete('+v.id+')">🗑</button></div></div>';
   });
   document.getElementById('videoList').innerHTML=h||'<div class="muted" style="padding:8px">Dars yo\\'q</div>';}
 function vAdd(){fetch('/admin/video-add',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({section:vSec})}).then(function(r){return r.json();}).then(function(){vLoad(vSec);});}
 function vDelete(id){if(!confirm('Dars o\\'chirilsinmi?'))return;fetch('/admin/video-delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id})}).then(function(){vLoad(vSec);});}
+function vTaskDel(id){if(!confirm('Vazifa PDF ochirilsinmi?'))return;fetch('/admin/video-task-delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id})}).then(function(r){return r.json();}).then(function(j){if(j&&j.ok)vLoad(vSec);else alert('Xato');});}
+function vTaskRename(id){var nm=prompt('PDF nomi:');if(nm===null)return;fetch('/admin/video-task-rename',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:id,name:nm})}).then(function(r){return r.json();}).then(function(j){if(j&&j.ok)vLoad(vSec);else alert('Xato');});}
 function vMove(btn,dir){var c=btn.closest('.vcard');var s=dir<0?c.previousElementSibling:c.nextElementSibling;if(s&&s.classList.contains('vcard')){if(dir<0)c.parentNode.insertBefore(c,s);else c.parentNode.insertBefore(s,c);}}
 function vTask(id){var inp=document.createElement('input');inp.type='file';inp.accept='application/pdf';inp.onchange=function(){if(!inp.files.length)return;var fd=new FormData();fd.append('id',id);fd.append('file',inp.files[0]);fetch('/admin/video-task',{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(j){if(j&&j.ok)vLoad(vSec);else alert('Xato');});};inp.click();}
 function vSave(){var cards=document.querySelectorAll('#videoList .vcard');var lessons=[];cards.forEach(function(c){lessons.push({id:c.dataset.id,title:c.querySelector('.v-title').value,descr:c.querySelector('.v-descr').value,youtube_url:c.querySelector('.v-yt').value});});
@@ -2510,11 +2513,39 @@ def admin_video_task():
         return {"ok": False, "error": "R2 sozlanmagan"}, 400
     try:
         url = upload_video_task_to_r2(f.read(), int(vid))
-        set_video_task(int(vid), url)
+        set_video_task(int(vid), url, (f.filename or "Vazifa PDF"))
     except Exception as e:
         logger.exception("Video task upload xato")
         return {"ok": False, "error": str(e)}, 500
     return {"ok": True, "url": url}
+
+@flask_app.route("/admin/video-task-delete", methods=["POST"])
+@require_admin
+def admin_video_task_delete():
+    check_api_auth()
+    vid = (request.json or {}).get("id")
+    if not vid:
+        return {"ok": False}, 400
+    try:
+        if r2_configured():
+            get_r2_client().delete_object(Bucket=R2_BUCKET, Key=f"vidtasks/{int(vid)}.pdf")
+    except Exception as e:
+        print("video task delete R2:", e)
+    set_video_task(int(vid), None, None)
+    return {"ok": True}
+
+@flask_app.route("/admin/video-task-rename", methods=["POST"])
+@require_admin
+def admin_video_task_rename():
+    check_api_auth()
+    d = request.json or {}
+    vid = d.get("id"); name = (d.get("name") or "").strip()
+    if not vid:
+        return {"ok": False}, 400
+    conn = get_conn(); cur = conn.cursor()
+    cur.execute("UPDATE video_lessons SET task_pdf_name=%s WHERE id=%s", (name or None, vid))
+    conn.commit(); cur.close(); conn.close()
+    return {"ok": True}
 
 @flask_app.route("/admin/save-ui", methods=["POST"])
 def admin_save_ui():

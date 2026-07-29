@@ -1349,6 +1349,7 @@ def admin():
             "<div class='muted' style='font-size:12px'>%s</div>"
             "<div style='margin-top:6px'>%s%s</div></div>"
             "<span class='st' style='background:%s;color:%s'>%s</span>"
+            "<button class='btn-sm' onclick='openUserDetail(this)'>👤 Ma'lumot</button>"
             "<button class='btn-sm' onclick='openAccess(this)'>⚙️ Dostup</button>"
             "<button class='icon-btn' style='color:#c0392b' onclick=" + DQ + "delUser('%s')" + DQ + ">🗑</button></div>"
         ) % (uid, nm, ",".join(granted), mode, until, st, lab, isnew, jsort, streak,
@@ -1443,6 +1444,9 @@ td{padding:8px 0;border-bottom:1px solid var(--soft);}
 .utab.on{background:#2f63ee;border-color:#2f63ee;color:#fff;}
 .lblbtn{padding:7px 11px;border-radius:9px;font-size:12.5px;font-weight:600;background:var(--card);border:1px solid var(--border);color:var(--text);cursor:pointer;}
 .lblbtn.on{background:#2f63ee;border-color:#2f63ee;color:#fff;}
+.udcell{background:#f4f7fc;border:1px solid var(--border);border-radius:10px;padding:9px 11px;}
+.udk{font-size:10.5px;color:#8894ad;font-weight:700;text-transform:uppercase;letter-spacing:.03em;}
+.udv{font-size:14px;font-weight:600;margin-top:2px;}
 .daybadge{width:40px;height:40px;border-radius:10px;background:rgba(29,158,117,.2);color:var(--accs);display:flex;align-items:center;justify-content:center;font-weight:600;flex-shrink:0;}
 .chip{font-size:11px;padding:2px 8px;border-radius:7px;margin-right:4px;display:inline-block;margin-top:2px;}
 .chip.on{background:rgba(29,158,117,.2);color:var(--accs);}
@@ -1573,6 +1577,24 @@ td{padding:8px 0;border-bottom:1px solid var(--soft);}
       🔍 <input oninput="userSearch(this.value)" placeholder="Ism, @username yoki ID bo'yicha qidirish" style="border:none;flex:1;background:transparent;padding:2px;">
     </div>
     """ + users_controls + """<div id="ulist">""" + rows_users + """</div>
+    <div id="userModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:60;align-items:center;justify-content:center;padding:16px;">
+      <div style="background:var(--card);border-radius:16px;padding:20px;max-width:420px;width:100%;max-height:90vh;overflow:auto;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <div style="font-size:18px;font-weight:800;" id="ud-name">—</div>
+          <button onclick="document.getElementById('userModal').style.display='none'" style="background:none;border:none;font-size:22px;cursor:pointer;color:#8894ad;">×</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:16px;">
+          <div class="udcell"><div class="udk">ID</div><div class="udv" id="ud-id">—</div></div>
+          <div class="udcell"><div class="udk">Holat</div><div class="udv" id="ud-status">—</div></div>
+          <div class="udcell"><div class="udk">Shug'ullanadi</div><div class="udv" id="ud-since">—</div></div>
+          <div class="udcell"><div class="udk">Streak</div><div class="udv" id="ud-streak">—</div></div>
+          <div class="udcell" style="grid-column:1/3;"><div class="udk">Ruxsat (darslar)</div><div class="udv" id="ud-secs">—</div></div>
+        </div>
+        <div class="udk" style="margin-bottom:6px;">SHAXSIY XABAR</div>
+        <textarea id="ud-msg" style="width:100%;min-height:90px;border:1px solid var(--border);border-radius:10px;padding:10px;font-size:14px;font-family:inherit;resize:vertical;" placeholder="Xabar matni..."></textarea>
+        <button id="ud-send" onclick="sendPersonal()" style="width:100%;margin-top:10px;padding:12px;border:none;border-radius:11px;background:#2f63ee;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">✉️ Xabar yuborish</button>
+      </div>
+    </div>
     <div id="accModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:60;align-items:center;justify-content:center;padding:16px;">
       <div style="background:var(--card);border:1px solid var(--border);border-radius:18px;max-width:430px;width:100%;overflow:hidden;">
         <div style="padding:18px 20px 14px;border-bottom:1px solid var(--soft);">
@@ -1821,6 +1843,27 @@ function sortUsers(){
 function delUser(uid){
   if(!confirm('Bu foydalanuvchi butunlay ochirilsinmi? Ortga qaytarib bolmaydi.'))return;
   fetch('/admin/delete-user',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:uid})}).then(function(r){if(r.ok){var el=document.querySelector('.lrow2[data-uid="'+uid+'"]');if(el)el.remove();}else alert('Xato');});
+}
+var UD_UID='';
+function openUserDetail(el){
+  var r=el.closest('.lrow2');if(!r)return;var d=r.dataset;
+  document.getElementById('ud-name').textContent=d.name||'—';
+  document.getElementById('ud-id').textContent=d.uid||'—';
+  var days='—';
+  if(d.joined){try{var jd=new Date(d.joined);if(!isNaN(jd))days=Math.max(0,Math.floor((Date.now()-jd.getTime())/86400000))+' kun';}catch(e){}}
+  document.getElementById('ud-since').textContent=days;
+  document.getElementById('ud-streak').textContent=(d.streak||'0')+' kun';
+  document.getElementById('ud-status').textContent=d.status||'—';
+  var secs=(d.secs||'').split(',').filter(Boolean);
+  document.getElementById('ud-secs').textContent=secs.length?secs.join(', ').toUpperCase():'Ruxsat yo‘q';
+  document.getElementById('ud-msg').value='';UD_UID=d.uid;
+  document.getElementById('userModal').style.display='flex';
+}
+function sendPersonal(){
+  var txt=document.getElementById('ud-msg').value.trim();
+  if(!txt)return alert('Xabar matnini yozing');
+  var b=document.getElementById('ud-send');b.disabled=true;b.textContent='Yuborilmoqda...';
+  fetch('/admin/send-personal',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:UD_UID,text:txt})}).then(function(r){return r.json();}).then(function(j){b.disabled=false;b.textContent='✉️ Xabar yuborish';if(j&&j.ok){alert('Yuborildi ✓');document.getElementById('userModal').style.display='none';}else alert('Xato: '+((j&&j.error)||''));}).catch(function(){b.disabled=false;b.textContent='✉️ Xabar yuborish';alert('Xato');});
 }
 var vSec='talaffuz';
 function vTab(btn){document.querySelectorAll('[data-vsec]').forEach(function(b){b.classList.toggle('on',b===btn);});vSec=btn.dataset.vsec;vLoad(vSec);}
@@ -2545,6 +2588,22 @@ def admin_video_task_rename():
     conn = get_conn(); cur = conn.cursor()
     cur.execute("UPDATE video_lessons SET task_pdf_name=%s WHERE id=%s", (name or None, vid))
     conn.commit(); cur.close(); conn.close()
+    return {"ok": True}
+
+@flask_app.route("/admin/send-personal", methods=["POST"])
+def admin_send_personal():
+    if not session.get("admin"):
+        return {"ok": False}, 403
+    d = request.json or {}
+    uid = d.get("user_id"); text = (d.get("text") or "").strip()
+    if not (uid and text):
+        return {"ok": False, "error": "to'liq emas"}, 400
+    try:
+        import urllib.request, urllib.parse
+        data = urllib.parse.urlencode({"chat_id": uid, "text": text}).encode()
+        urllib.request.urlopen("https://api.telegram.org/bot" + BOT_TOKEN + "/sendMessage", data=data, timeout=8)
+    except Exception as e:
+        return {"ok": False, "error": str(e)}, 500
     return {"ok": True}
 
 @flask_app.route("/admin/save-ui", methods=["POST"])

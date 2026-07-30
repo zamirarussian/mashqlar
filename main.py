@@ -1594,6 +1594,17 @@ td{padding:8px 0;border-bottom:1px solid var(--soft);}
         <div class="udk" style="margin-bottom:6px;">SHAXSIY XABAR</div>
         <textarea id="ud-msg" style="width:100%;min-height:90px;border:1px solid var(--border);border-radius:10px;padding:10px;font-size:14px;font-family:inherit;resize:vertical;" placeholder="Xabar matni..."></textarea>
         <button id="ud-send" onclick="sendPersonal()" style="width:100%;margin-top:10px;padding:12px;border:none;border-radius:11px;background:#2f63ee;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">✉️ Xabar yuborish</button>
+        <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px;">
+          <div class="udk" style="margin-bottom:7px;">MEDIA YUBORISH (yuqoridagi matn izoh bo'ladi)</div>
+          <select id="ud-mtype" style="width:100%;border:1px solid var(--border);border-radius:10px;padding:9px 11px;font-size:14px;margin-bottom:8px;">
+            <option value="photo">🖼 Rasm</option>
+            <option value="video">🎬 Katta video</option>
+            <option value="audio">🎵 Audio</option>
+            <option value="video_note">⭕ Dumaloq video</option>
+          </select>
+          <input type="file" id="ud-mfile" style="width:100%;font-size:13px;margin-bottom:8px;">
+          <button id="ud-msend" onclick="sendPersonalMedia()" style="width:100%;padding:11px;border:none;border-radius:11px;background:#0e8a73;color:#fff;font-size:14px;font-weight:700;cursor:pointer;">📎 Media yuborish</button>
+        </div>
       </div>
     </div>
     <div id="accModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:60;align-items:center;justify-content:center;padding:16px;">
@@ -1868,6 +1879,13 @@ function sendPersonal(){
   if(!txt)return alert('Xabar matnini yozing');
   var b=document.getElementById('ud-send');b.disabled=true;b.textContent='Yuborilmoqda...';
   fetch('/admin/send-personal',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:UD_UID,text:txt})}).then(function(r){return r.json();}).then(function(j){b.disabled=false;b.textContent='✉️ Xabar yuborish';if(j&&j.ok){alert('Yuborildi ✓');document.getElementById('userModal').style.display='none';}else alert('Xato: '+((j&&j.error)||''));}).catch(function(){b.disabled=false;b.textContent='✉️ Xabar yuborish';alert('Xato');});
+}
+function sendPersonalMedia(){
+  var f=document.getElementById('ud-mfile').files[0];
+  if(!f)return alert('Fayl tanlang');
+  var fd=new FormData();fd.append('user_id',UD_UID);fd.append('mtype',document.getElementById('ud-mtype').value);fd.append('caption',document.getElementById('ud-msg').value.trim());fd.append('file',f);
+  var b=document.getElementById('ud-msend');b.disabled=true;b.textContent='Yuborilmoqda...';
+  fetch('/admin/send-personal-media',{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(j){b.disabled=false;b.textContent='📎 Media yuborish';if(j&&j.ok){alert('Yuborildi ✓');}else alert('Xato: '+((j&&j.error)||''));}).catch(function(){b.disabled=false;b.textContent='📎 Media yuborish';alert('Xato');});
 }
 var vSec='talaffuz';
 function vTab(btn){document.querySelectorAll('[data-vsec]').forEach(function(b){b.classList.toggle('on',b===btn);});vSec=btn.dataset.vsec;vLoad(vSec);}
@@ -2802,6 +2820,26 @@ def admin_segment_send_media():
     threading.Thread(target=send_segment_sync, args=(ids, caption, mtype, tmp)).start()
     return {"ok": True, "count": len(ids)}
 
+@flask_app.route("/admin/send-personal-media", methods=["POST"])
+@require_admin
+def admin_send_personal_media():
+    check_owner()
+    import tempfile
+    uid = request.form.get("user_id")
+    mtype = (request.form.get("mtype") or "").strip()
+    caption = (request.form.get("caption") or "").strip()
+    f = request.files.get("file")
+    if not uid or not f or mtype not in ("photo", "video", "audio", "video_note"):
+        return {"ok": False, "error": "fayl yoki tur"}, 400
+    try:
+        uid = int(uid)
+    except Exception:
+        return {"ok": False, "error": "user_id"}, 400
+    ext = os.path.splitext(f.filename or "")[1] or ""
+    fd, tmp = tempfile.mkstemp(suffix=ext); os.close(fd); f.save(tmp)
+    threading.Thread(target=send_segment_sync, args=([uid], caption, mtype, tmp)).start()
+    return {"ok": True}
+
 @flask_app.route("/admin/schedule-cancel", methods=["POST"])
 @require_admin
 def admin_schedule_cancel():
@@ -3136,6 +3174,12 @@ def send_segment_sync(user_ids, text, mtype=None, path=None):
                             with open(path, "rb") as fh: m = await bot_app.bot.send_video(chat_id=uid, video=fh, caption=cap)
                             fid = m.video.file_id
                         else: await bot_app.bot.send_video(chat_id=uid, video=fid, caption=cap)
+                    elif mtype == "video_note":
+                        if fid is None:
+                            with open(path, "rb") as fh: m = await bot_app.bot.send_video_note(chat_id=uid, video_note=fh)
+                            fid = m.video_note.file_id
+                        else: await bot_app.bot.send_video_note(chat_id=uid, video_note=fid)
+                        if cap: await bot_app.bot.send_message(chat_id=uid, text=cap)
                     else:
                         if fid is None:
                             with open(path, "rb") as fh: m = await bot_app.bot.send_audio(chat_id=uid, audio=fh, caption=cap)

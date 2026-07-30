@@ -68,6 +68,7 @@ DEFAULT_UI = {
     "text_invite": "Men «Zamira Russian» ilovasida ruscha o'rganyapman 🇷🇺 Sen ham qo'shil!",
     "text_share": "",
     "bot_welcome": "Salom, {ism}! 👋\n\n*Zamira Russian* — ruscha gapirish kursi.\n\nKursga kirish uchun o'qituvchiga murojaat qiling va shu ID ni yuboring:\n🆔 `{id}`",
+    "grant_msg": "🎉 Tabriklaymiz! Sizga kursga dostup berildi.\n\nEndi darslardan bemalol foydalanishingiz mumkin. O'qishlaringizga omad! 📚",
 }
 
 def r2_configured():
@@ -1617,6 +1618,7 @@ td{padding:8px 0;border-bottom:1px solid var(--soft);}
             <button type="button" class="lblbtn" data-lbl="old" onclick="pickLabel(this)">🔵 Eski</button>
             <button type="button" class="lblbtn" data-lbl="vip" onclick="pickLabel(this)">⭐ VIP</button>
           </div>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:16px;cursor:pointer;"><input type="checkbox" id="acc-notify" checked> ✉️ Tabrik xabarini yuborish</label>
           <div class="muted" style="font-size:11px;letter-spacing:.05em;font-weight:600;margin-bottom:8px;">MUDDAT</div>
           <div style="border:1px solid var(--border);border-radius:12px;overflow:hidden;">
             <label class="accrow"><span>🆓 Trial — """ + str(trial_days()) + """ kun bepul</span><input type="radio" name="accmode" value="trial" class="accbox"></label>
@@ -1705,6 +1707,8 @@ td{padding:8px 0;border-bottom:1px solid var(--soft);}
       <div class="hint" style="margin-bottom:10px;">Foydalanuvchi botni ochganda yuboriladigan xabar. <b>{ism}</b> — foydalanuvchi ismi, <b>{id}</b> — ID raqami. Markdown ishlaydi: *qalin*, `kod`. Xabar ostida <b>«✍️ Adminga yozish»</b> tugmasi chiqadi.</div>
       """ + ui_field("bot_welcome", "Welcome matni", True) + """
       """ + ui_field("link_admin", "«Adminga yozish» tugmasi — Telegram username (@ belgisisiz)") + """
+      <div class="hint" style="margin:14px 0 6px;"><b>Dostup berilganda tabrik xabari</b> — foydalanuvchiga dostup berilganda avtomatik yuboriladi (modaldagi belgi yoqilgan bo'lsa).</div>
+      """ + ui_field("grant_msg", "Tabrik xabari matni", True) + """
       <button class="act" onclick="saveUI()" style="margin-top:8px;">💾 Saqlash</button>
     </div>
     <div class="section">
@@ -1806,7 +1810,7 @@ function saveAccess(){
   var until=document.getElementById('acc-until').value;
   if(mode==='dated'&&!until)return alert('Sana tanlang');
   fetch('/admin/set-user-label',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:ACC_UID,label:CUR_LABEL})}).catch(function(){});
-  fetch('/admin/user-access',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:ACC_UID,sections:secs,mode:mode,until:until})}).then(function(r){if(r.ok)location.reload();else alert('Xato');});}
+  fetch('/admin/user-access',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:ACC_UID,sections:secs,mode:mode,until:until,notify:(document.getElementById('acc-notify')||{}).checked})}).then(function(r){if(r.ok)location.reload();else alert('Xato');});}
 function blockUser(){if(!confirm('Bu foydalanuvchi bloklansinmi?'))return;
   fetch('/admin/user-block',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:ACC_UID,blocked:true})}).then(function(){location.reload();});}
 function userSearch(q){q=(q||'').toLowerCase();document.querySelectorAll('#p-users .lrow2').forEach(function(r){r.style.display=((r.dataset.search||'').indexOf(q)>=0)?'flex':'none';});}
@@ -2495,6 +2499,14 @@ def admin_user_access():
             return {"ok": False, "error": "until yo'q"}, 400
         until = u + " 23:59:59"
     set_user_access(uid, sections, mode, until)
+    if d.get("notify") and mode != "none" and sections:
+        try:
+            import urllib.request, urllib.parse
+            msg = get_ui().get("grant_msg") or DEFAULT_UI["grant_msg"]
+            data = urllib.parse.urlencode({"chat_id": uid, "text": msg}).encode()
+            urllib.request.urlopen("https://api.telegram.org/bot" + BOT_TOKEN + "/sendMessage", data=data, timeout=8)
+        except Exception as e:
+            print("grant notify:", e)
     return {"ok": True}
 
 @flask_app.route("/admin/user-block", methods=["POST"])

@@ -2229,14 +2229,15 @@ function loadDayAudios(d){
     .catch(function(){DAY_AUDIOS={};});
 }
 function applyDayTasks(){
+  var loaded=!!(DAY_CONTENT&&Object.keys(DAY_CONTENT).length>0);
   var et=DAY_CONTENT&&DAY_CONTENT.enabled_tasks;
   var isExam=((window.curDay||0)%7===0);
   var map={vocab:'mc-lugat',formula:'mc-formula',audio:'mc-audio',speaking:'mc-gapiruv',grammar:'mc-grammar',reading:'mc-reading'};
   for(var k in map){var el=document.getElementById(map[k]);if(!el)continue;
-    var on=isExam?false:((!et)?true:(et.indexOf(k)!==-1));el.style.display=on?'':'none';}
+    var on=(!loaded)?false:(isExam?false:((!et)?true:(et.indexOf(k)!==-1)));el.style.display=on?'':'none';}
   try{refreshLugatDone();}catch(e){}
   var mci=document.getElementById('mc-imtihon');
-  if(mci)mci.style.display=isExam?'':'none';
+  if(mci)mci.style.display=(loaded&&isExam)?'':'none';
   var sub=document.getElementById('ex-menu-sub');
   if(sub&&isExam)sub.textContent='🎓 Imtihon kuni · '+curLevel;
   applyMaterials();

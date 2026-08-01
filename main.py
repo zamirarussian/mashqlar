@@ -1649,6 +1649,20 @@ td{padding:8px 0;border-bottom:1px solid var(--soft);}
 
   <div class="panel" id="p-broadcast">
     <h1>Xabar yuborish (hammaga)</h1>
+    <div class="section" style="margin-bottom:16px;">
+      <div style="font-weight:800;font-size:15px;margin-bottom:4px;">🎉 Tabrik xabari (dostup berilganda)</div>
+      <div class="hint" style="margin-bottom:10px;">Dostup berilganda avtomatik yuboriladi (modaldagi belgi yoqiq bo'lsa). Matn + ixtiyoriy media (rasm/video/audio).</div>
+      <textarea id="gr-text" style="width:100%;min-height:80px;border:1px solid var(--border);border-radius:10px;padding:10px;font-family:inherit;font-size:14px;">""" + esc(ui.get("grant_msg") or "") + """</textarea>
+      <div style="display:flex;gap:8px;margin:8px 0;flex-wrap:wrap;">
+        <select id="gr-mtype" style="border:1px solid var(--border);border-radius:10px;padding:8px;"><option value="">Media yo'q</option><option value="photo">🖼 Rasm</option><option value="video">🎬 Video</option><option value="audio">🎵 Audio</option></select>
+        <input type="file" id="gr-file" style="flex:1;min-width:150px;">
+      </div>
+      <div id="gr-current" class="hint">""" + ("Hozir media bor: " + esc(get_setting("grant_media_type") or "") if get_setting("grant_media_url") else "Media yo'q") + """</div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button class="act" onclick="saveGrant(this)">💾 Saqlash</button>
+        <button class="act" style="background:#c0392b;" onclick="grantMediaDel()">🗑 Mediani o'chirish</button>
+      </div>
+    </div>
     <div class="section">
       <div id="bm" class="msg">Yuborildi!</div>
       <div class="seg">
@@ -1657,7 +1671,8 @@ td{padding:8px 0;border-bottom:1px solid var(--soft);}
         <button class="seg-btn" data-t="video_note" onclick="setBc('video_note')">⭕ Dumaloq video</button>
       </div>
       <div id="bc-text">
-        <textarea id="bt" placeholder="Bugungi darsni o'tdingizmi? 📚"></textarea>
+        <textarea id="bt" placeholder="Salom, {ism}! Bugungi darsni o'tdingizmi? 📚"></textarea>
+        <div class="hint" style="margin-top:6px;">💡 <b>{ism}</b> — foydalanuvchi ismi bilan almashadi, <b>{id}</b> — ID bilan. Masalan: «Salom, {ism}!» → «Salom, Aziz!»</div>
         <div class="hint" style="font-weight:600;margin-top:8px;">Tugmalar (ixtiyoriy)</div>
         <div style="display:flex;gap:8px;margin-bottom:8px;"><input id="b1label" placeholder="1-tugma matni" style="flex:1;"><select id="b1type" style="max-width:160px;"><option value="app">Darsga kirish</option><option value="link">Havola</option></select></div>
         <input id="b1url" placeholder="1-tugma havolasi (faqat Havola uchun)" style="margin-bottom:10px;">
@@ -1886,6 +1901,18 @@ function sendPersonalMedia(){
   var fd=new FormData();fd.append('user_id',UD_UID);fd.append('mtype',document.getElementById('ud-mtype').value);fd.append('caption',document.getElementById('ud-msg').value.trim());fd.append('file',f);
   var b=document.getElementById('ud-msend');b.disabled=true;b.textContent='Yuborilmoqda...';
   fetch('/admin/send-personal-media',{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(j){b.disabled=false;b.textContent='📎 Media yuborish';if(j&&j.ok){alert('Yuborildi ✓');}else alert('Xato: '+((j&&j.error)||''));}).catch(function(){b.disabled=false;b.textContent='📎 Media yuborish';alert('Xato');});
+}
+function saveGrant(b){
+  var fd=new FormData();fd.append('text',document.getElementById('gr-text').value);
+  var mt=document.getElementById('gr-mtype').value;var f=document.getElementById('gr-file').files[0];
+  if(mt&&f){fd.append('mtype',mt);fd.append('file',f);}
+  b.disabled=true;b.textContent='Saqlanmoqda...';
+  fetch('/admin/grant-save',{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(j){b.disabled=false;b.textContent='💾 Saqlash';if(j&&j.ok){alert('Saqlandi ✓');document.getElementById('gr-current').textContent=j.media_url?('Hozir media bor: '+j.media_type):'Media yo‘q';document.getElementById('gr-file').value='';}else alert('Xato');}).catch(function(){b.disabled=false;b.textContent='💾 Saqlash';alert('Xato');});
+}
+function grantMediaDel(){
+  if(!confirm('Tabrik mediasi ochirilsinmi?'))return;
+  var fd=new FormData();fd.append('remove_media','1');fd.append('text',document.getElementById('gr-text').value);
+  fetch('/admin/grant-save',{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(){document.getElementById('gr-current').textContent='Media yo‘q';});
 }
 var vSec='talaffuz';
 function vTab(btn){document.querySelectorAll('[data-vsec]').forEach(function(b){b.classList.toggle('on',b===btn);});vSec=btn.dataset.vsec;vLoad(vSec);}
@@ -2523,6 +2550,13 @@ def admin_user_access():
             msg = get_ui().get("grant_msg") or DEFAULT_UI["grant_msg"]
             data = urllib.parse.urlencode({"chat_id": uid, "text": msg}).encode()
             urllib.request.urlopen("https://api.telegram.org/bot" + BOT_TOKEN + "/sendMessage", data=data, timeout=8)
+            mu = get_setting("grant_media_url"); mt = get_setting("grant_media_type")
+            if mu and mt:
+                meth = {"photo": "sendPhoto", "video": "sendVideo", "audio": "sendAudio"}.get(mt)
+                fld = {"photo": "photo", "video": "video", "audio": "audio"}.get(mt)
+                if meth:
+                    d2 = urllib.parse.urlencode({"chat_id": uid, fld: mu}).encode()
+                    urllib.request.urlopen("https://api.telegram.org/bot" + BOT_TOKEN + "/" + meth, data=d2, timeout=15)
         except Exception as e:
             print("grant notify:", e)
     return {"ok": True}
@@ -2635,6 +2669,36 @@ def admin_send_personal():
     except Exception as e:
         return {"ok": False, "error": str(e)}, 500
     return {"ok": True}
+
+def upload_grant_media_to_r2(data, ext):
+    import time
+    key = f"grant/media{ext or '.bin'}"
+    e = (ext or "").lstrip(".").lower()
+    ct = {"jpg": "image/jpeg", "jpeg": "image/jpeg", "png": "image/png", "webp": "image/webp",
+          "mp4": "video/mp4", "mov": "video/quicktime", "mp3": "audio/mpeg", "ogg": "audio/ogg",
+          "m4a": "audio/mp4", "wav": "audio/wav"}.get(e, "application/octet-stream")
+    get_r2_client().put_object(Bucket=R2_BUCKET, Key=key, Body=data, ContentType=ct)
+    return f"{R2_PUBLIC_URL}/{key}?v={int(time.time())}"
+
+@flask_app.route("/admin/grant-save", methods=["POST"])
+@require_admin
+def admin_grant_save():
+    check_owner()
+    text = (request.form.get("text") or "").strip()
+    if text:
+        set_setting("grant_msg", text)
+    if request.form.get("remove_media") == "1":
+        set_setting("grant_media_url", ""); set_setting("grant_media_type", "")
+    f = request.files.get("file")
+    mtype = (request.form.get("mtype") or "").strip()
+    if f and mtype in ("photo", "video", "audio"):
+        ext = os.path.splitext(f.filename or "")[1] or ""
+        try:
+            url = upload_grant_media_to_r2(f.read(), ext)
+            set_setting("grant_media_url", url); set_setting("grant_media_type", mtype)
+        except Exception as e:
+            return {"ok": False, "error": str(e)}, 500
+    return {"ok": True, "media_url": get_setting("grant_media_url") or "", "media_type": get_setting("grant_media_type") or ""}
 
 @flask_app.route("/admin/save-ui", methods=["POST"])
 def admin_save_ui():
@@ -3005,12 +3069,13 @@ def send_broadcast_sync(text, btns=None):
     async def _s():
         for u in users:
             uid = u["user_id"]
+            msg = text.replace("{ism}", u.get("first_name") or "").replace("{id}", str(uid))
             try:
-                await bot_app.bot.send_message(chat_id=uid, text=text, reply_markup=markup)
+                await bot_app.bot.send_message(chat_id=uid, text=msg, reply_markup=markup)
             except RetryAfter as e:
                 await asyncio.sleep(getattr(e, "retry_after", 5) + 1)
                 try:
-                    await bot_app.bot.send_message(chat_id=uid, text=text, reply_markup=markup)
+                    await bot_app.bot.send_message(chat_id=uid, text=msg, reply_markup=markup)
                 except Exception as e2:
                     logger.warning(f"Xabar {uid}: {e2}")
             except Forbidden:

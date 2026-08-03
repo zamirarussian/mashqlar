@@ -1161,6 +1161,62 @@ def api_days():
             done = []
     return jsonify({"days": get_available_days(level), "done": done})
 
+def get_lb(metric, limit=30):
+    conn = get_conn(); cur = conn.cursor(cursor_factory=RealDictCursor)
+    if metric == "days":
+        cur.execute("""SELECT u.user_id, u.first_name, COUNT(*) AS val
+            FROM users u JOIN user_completions uc ON uc.user_id=u.user_id
+            WHERE COALESCE(u.blocked,FALSE)=FALSE
+            GROUP BY u.user_id, u.first_name ORDER BY val DESC, u.user_id LIMIT %s""", (limit,))
+    elif metric == "words":
+        cur.execute("""SELECT u.user_id, u.first_name,
+            COALESCE(SUM(COALESCE(jsonb_array_length(c.vocab),0)),0) AS val
+            FROM users u JOIN user_completions uc ON uc.user_id=u.user_id
+            JOIN content c ON c.level=uc.level AND c.day=uc.day
+            WHERE COALESCE(u.blocked,FALSE)=FALSE
+            GROUP BY u.user_id, u.first_name ORDER BY val DESC, u.user_id LIMIT %s""", (limit,))
+    else:
+        cur.execute("""SELECT u.user_id, u.first_name, COALESCE(u.streak,0) AS val
+            FROM users u WHERE COALESCE(u.blocked,FALSE)=FALSE AND COALESCE(u.streak,0)>0
+            ORDER BY val DESC, u.user_id LIMIT %s""", (limit,))
+    rows = cur.fetchall(); cur.close(); conn.close(); return rows
+
+@flask_app.route("/api/tts")
+def api_tts():
+    from flask import Response
+    text = (request.args.get("text") or "").strip()
+    if not text:
+        return {"error": "text"}, 400
+    text = text[:200]
+    key = os.environ.get("YANDEX_API_KEY", "")
+    folder = os.environ.get("YANDEX_FOLDER_ID", "")
+    if not key or not folder:
+        return {"error": "tts not configured"}, 503
+    import urllib.request, urllib.parse, hashlib
+    ckey = "tts/" + hashlib.md5(("alena|" + text).encode("utf-8")).hexdigest() + ".ogg"
+    if r2_configured():
+        try:
+            obj = get_r2_client().get_object(Bucket=R2_BUCKET, Key=ckey)
+            return Response(obj["Body"].read(), mimetype="audio/ogg")
+        except Exception:
+            pass
+    body = urllib.parse.urlencode({"text": text, "lang": "ru-RU", "voice": "alena",
+                                   "folderId": folder, "format": "oggopus"}).encode()
+    req = urllib.request.Request("https://tts.api.cloud.yandex.net/speech/v1/tts:synthesize",
+                                 data=body, headers={"Authorization": "Api-Key " + key})
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            audio = resp.read()
+    except Exception as e:
+        print("tts error:", e)
+        return {"error": "tts failed"}, 502
+    if r2_configured():
+        try:
+            get_r2_client().put_object(Bucket=R2_BUCKET, Key=ckey, Body=audio, ContentType="audio/ogg")
+        except Exception:
+            pass
+    return Response(audio, mimetype="audio/ogg")
+
 @flask_app.route("/api/leaderboard")
 def api_leaderboard():
     user = verify_init_data(request.headers.get("X-Telegram-Init-Data", ""))
@@ -1356,6 +1412,20 @@ def admin():
         ) % (uid, nm, ",".join(granted), mode, until, st, lab, isnew, jsort, streak,
              name.lower(), un.lower(), uid, name, un, meta, labchip, secchips, bg, fg, lbl, uid)
     rows_users = "".join(_user_row(u) for u in users[:300]) or "<div class='muted' style='padding:10px'>Foydalanuvchi yo'q</div>"
+    def _lb_html(metric, unit):
+        rws = get_lb(metric, 30)
+        if not rws:
+            return "<div class='muted' style='padding:12px'>Hozircha ma'lumot yo'q</div>"
+        out = ""
+        for i, r in enumerate(rws):
+            rank = ["🥇", "🥈", "🥉"][i] if i < 3 else str(i + 1)
+            out += ("<div class='lbrow'><span class='lbr'>%s</span>"
+                    "<span class='lbn'>%s <span class='muted' style='font-size:11px'>ID %s</span></span>"
+                    "<span class='lbv'>%s %s</span></div>") % (rank, esc(r["first_name"] or "—"), r["user_id"], r["val"], unit)
+        return out
+    lb_streak = _lb_html("streak", "kun")
+    lb_days = _lb_html("days", "kun")
+    lb_words = _lb_html("words", "so'z")
     _ntot = len(users)
     _nnew = sum(1 for u in users if _isnew(u))
     _npaid = sum(1 for u in users if compute_access(u).get("status") in ("paid", "permanent"))
@@ -1448,6 +1518,10 @@ td{padding:8px 0;border-bottom:1px solid var(--soft);}
 .udcell{background:#f4f7fc;border:1px solid var(--border);border-radius:10px;padding:9px 11px;}
 .udk{font-size:10.5px;color:#8894ad;font-weight:700;text-transform:uppercase;letter-spacing:.03em;}
 .udv{font-size:14px;font-weight:600;margin-top:2px;}
+.lbrow{display:flex;align-items:center;gap:12px;padding:11px 14px;background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:7px;}
+.lbr{font-size:16px;font-weight:800;min-width:28px;text-align:center;color:#8894ad;}
+.lbn{flex:1;font-weight:600;}
+.lbv{font-weight:800;color:#2f63ee;}
 .daybadge{width:40px;height:40px;border-radius:10px;background:rgba(29,158,117,.2);color:var(--accs);display:flex;align-items:center;justify-content:center;font-weight:600;flex-shrink:0;}
 .chip{font-size:11px;padding:2px 8px;border-radius:7px;margin-right:4px;display:inline-block;margin-top:2px;}
 .chip.on{background:rgba(29,158,117,.2);color:var(--accs);}
@@ -1513,6 +1587,7 @@ td{padding:8px 0;border-bottom:1px solid var(--soft);}
   <button class="nav-item" data-panel="videos" onclick="nav(this)">🎬 Video kurslar</button>
   <button class="nav-item" data-owner="1" data-panel="users" onclick="nav(this)">👥 Foydalanuvchilar</button>
   <button class="nav-item" data-owner="1" data-panel="broadcast" onclick="nav(this)">✉️ Xabar yuborish</button>
+  <button class="nav-item" data-owner="1" data-panel="leaderboard" onclick="nav(this)">🏆 Reyting</button>
   <button class="nav-item" data-owner="1" data-panel="segments" onclick="nav(this);loadSegments();">📨 Eslatmalar</button>
   <button class="nav-item" data-owner="1" data-panel="ui" onclick="nav(this)">🎨 Interfeys matnlari</button>
   <button class="nav-item" data-owner="1" data-panel="admins" onclick="nav(this)">🛡️ Adminlar</button>
@@ -1647,6 +1722,17 @@ td{padding:8px 0;border-bottom:1px solid var(--soft);}
     </div>
   </div>
 
+  <div class="panel" id="p-leaderboard">
+    <h1>🏆 Reyting — eng faol o'quvchilar</h1>
+    <div class="seg" style="margin-bottom:14px;">
+      <button class="seg-btn active" onclick="lbTab('streak',this)">🔥 Streak</button>
+      <button class="seg-btn" onclick="lbTab('days',this)">📅 Kunlar</button>
+      <button class="seg-btn" onclick="lbTab('words',this)">📚 So'zlar</button>
+    </div>
+    <div id="lb-streak">""" + lb_streak + """</div>
+    <div id="lb-days" style="display:none">""" + lb_days + """</div>
+    <div id="lb-words" style="display:none">""" + lb_words + """</div>
+  </div>
   <div class="panel" id="p-broadcast">
     <h1>Xabar yuborish (hammaga)</h1>
     <div class="section" style="margin-bottom:16px;">
@@ -1914,6 +2000,7 @@ function grantMediaDel(){
   var fd=new FormData();fd.append('remove_media','1');fd.append('text',document.getElementById('gr-text').value);
   fetch('/admin/grant-save',{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(){document.getElementById('gr-current').textContent='Media yo‘q';});
 }
+function lbTab(mm,b){['streak','days','words'].forEach(function(x){var el=document.getElementById('lb-'+x);if(el)el.style.display=(x===mm)?'':'none';});if(b&&b.parentNode)b.parentNode.querySelectorAll('.seg-btn').forEach(function(x){x.classList.toggle('active',x===b);});}
 var vSec='talaffuz';
 function vTab(btn){document.querySelectorAll('[data-vsec]').forEach(function(b){b.classList.toggle('on',b===btn);});vSec=btn.dataset.vsec;vLoad(vSec);}
 function vEsc(s){return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}

@@ -1371,7 +1371,7 @@ function renderLugatList(idx){
   var html='<div style="padding:0 0 16px;">';
   words.forEach(function(v){
     html+="<div class='lugat-item'>";
-    html+="<div class='li-header'><div style='display:flex;align-items:center;gap:9px;'><div class='li-ru'>"+escH(v.stress)+"</div><button class='spk' data-spk=\""+escAttr(v.ru)+"\" onclick='speakEl(this,event)'>🔊</button></div><span class='li-flag'>🇷🇺</span></div>";
+    html+="<div class='li-header'><div style='display:flex;align-items:center;gap:9px;'><div class='li-ru'>"+escH(v.stress)+"</div><button class='spk' data-spk=\""+escAttr(v.stress||v.ru)+"\" onclick='speakEl(this,event)'>🔊</button></div><span class='li-flag'>🇷🇺</span></div>";
     html+="<div class='li-divider'></div>";
     html+="<div class='li-uz-row'><span style='font-size:18px;'>🇺🇿</span><div class='li-uz'>"+escH(v.uz)+"</div></div>";
     var exHtml='';
@@ -1918,7 +1918,7 @@ function showFlCard(){
   document.getElementById('fl-prog').style.width=Math.round(flIdx/total*100)+'%';
   document.getElementById('fl-ru').textContent=f.ru;
   document.getElementById('fl-uz').textContent=f.uz;
-  var fspk=document.getElementById('fl-spk');if(fspk)fspk.setAttribute('data-spk',f.ru||'');
+  var fspk=document.getElementById('fl-spk');if(fspk)fspk.setAttribute('data-spk',f.stress||f.ru||'');
   var exHtml='';
   if(f.ex) f.ex.forEach(function(e){
     exHtml+="<div style='background:#eef3fd;border-radius:10px;padding:12px;position:relative;'>" +

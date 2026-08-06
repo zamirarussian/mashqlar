@@ -2217,7 +2217,7 @@ LESSON_EDITOR = """<!DOCTYPE html><html lang="uz"><head><meta charset="UTF-8">
 body.light{--bg:#f5f5f0;--card:#fff;--border:#e5e5df;--soft:#eee;--text:#1a1a1a;--muted:#888;--ibg:#fff;--ib:#d5d5cf;--accs:#0a5a40;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);padding:18px;max-width:780px;margin:0 auto;}
-a.back,.backbtn{color:var(--muted);text-decoration:none;font-size:14px;background:none;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:inherit;padding:0;margin-bottom:10px;}
+a.back,.backbtn{color:#2f63ee;text-decoration:none;font-size:15px;font-weight:600;background:rgba(47,99,238,.12);border:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:inherit;padding:9px 15px;border-radius:11px;margin-bottom:12px;}
 h1{font-size:22px;font-weight:700;margin:6px 0 2px;}
 h2{font-size:18px;font-weight:600;margin:6px 0 14px;}
 .tag{color:var(--muted);font-size:13px;margin-bottom:16px;}
@@ -2272,7 +2272,7 @@ textarea{min-height:96px;resize:vertical;line-height:1.55;}
     <label style="display:flex;align-items:center;gap:9px;font-size:14px;padding:7px 0;cursor:pointer;"><input type="checkbox" class="etask" data-t="reading" checked> 📄 O'qish mashqi</label>
   </div>
   <button class="save" onclick="saveLesson()">💾 Saqlash</button>
-  <div style="text-align:center;margin-top:14px;"><button class="backbtn" style="color:#d06b6b;" onclick="delLesson()">🗑 Darsni o'chirish</button></div>
+  <div style="text-align:center;margin-top:14px;"><button class="backbtn" style="color:#c0392b;background:rgba(192,57,43,.1);" onclick="delLesson()">🗑 Darsni o'chirish</button></div>
 </div>
 
 <div class="screen" id="sc-vocab">

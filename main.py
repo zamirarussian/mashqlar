@@ -15,7 +15,7 @@ from flask import (
 )
 from werkzeug.security import generate_password_hash, check_password_hash
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -308,6 +308,33 @@ def get_stored_pdf_text(level, day):
     except Exception:
         return None
 
+def get_section_pdf_text(level, day, section):
+    """Muayyan bo'lim (masalan 'grammar') materiallaridagi barcha PDF matnini oladi."""
+    if not r2_configured():
+        return None
+    import io
+    from pypdf import PdfReader
+    try:
+        conn = get_conn(); cur = conn.cursor()
+        cur.execute("SELECT slot FROM materials WHERE level=%s AND day=%s AND section=%s ORDER BY slot",
+                    (level, int(day), section))
+        slots = [r[0] for r in cur.fetchall()]
+        cur.close(); conn.close()
+    except Exception:
+        slots = []
+    texts = []
+    for slot in slots:
+        key = f"materials/{level}/{day}/{section}_{int(slot)}.pdf"
+        try:
+            obj = get_r2_client().get_object(Bucket=R2_BUCKET, Key=key)
+            reader = PdfReader(io.BytesIO(obj["Body"].read()))
+            t = "\n".join((p.extract_text() or "") for p in reader.pages)
+            if t.strip():
+                texts.append(t)
+        except Exception:
+            pass
+    return "\n\n".join(texts) if texts else None
+
 AI_TOPUP_SYSTEM = (
     "Sen rus tili darsligini boyituvchisan. Berilgan PDF matnidan IKKI narsani ALOHIDA ajratib JSON qaytar.\n"
     "1) dialog — PDF dagi «Диалог» jadvali (Реплика/Перевод ustunlari) yoki suhbat qatorlari. "
@@ -441,6 +468,14 @@ def init_db():
             user_id BIGINT NOT NULL, level TEXT NOT NULL, day INTEGER NOT NULL,
             done_at TIMESTAMP DEFAULT NOW(),
             PRIMARY KEY (user_id, level, day)
+        );
+        CREATE TABLE IF NOT EXISTS messages (
+            id SERIAL PRIMARY KEY,
+            user_id BIGINT NOT NULL,
+            direction TEXT NOT NULL,
+            text TEXT,
+            created_at TIMESTAMP DEFAULT NOW(),
+            is_read BOOLEAN DEFAULT FALSE
         );
         CREATE TABLE IF NOT EXISTS video_lessons (
             id SERIAL PRIMARY KEY,
@@ -635,6 +670,22 @@ def get_bot_username():
         except Exception:
             _BOT_USERNAME = ""
     return _BOT_USERNAME
+
+def store_message(uid, direction, text):
+    try:
+        conn = get_conn(); cur = conn.cursor()
+        cur.execute("INSERT INTO messages (user_id, direction, text, is_read) VALUES (%s,%s,%s,%s)",
+                    (uid, direction, text, direction == "out"))
+        conn.commit(); cur.close(); conn.close()
+    except Exception as e:
+        print("store_message:", e)
+
+async def on_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        if update.message and update.message.text and update.effective_user:
+            store_message(update.effective_user.id, "in", update.message.text)
+    except Exception as e:
+        print("on_message:", e)
 
 def send_welcome(uid, first_name):
     try:
@@ -1526,6 +1577,16 @@ td{padding:8px 0;border-bottom:1px solid var(--soft);}
 .lbr{font-size:16px;font-weight:800;min-width:28px;text-align:center;color:#8894ad;}
 .lbn{flex:1;font-weight:600;}
 .lbv{font-weight:800;color:#2f63ee;}
+.chrow{display:flex;align-items:center;gap:11px;padding:12px 14px;background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:8px;cursor:pointer;}
+.chav{width:40px;height:40px;border-radius:50%;background:#2f63ee;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex:none;}
+.chmid{flex:1;min-width:0;}
+.chname{font-weight:600;}
+.chlast{font-size:12px;color:#8894ad;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.chunread{background:#e42a3b;color:#fff;font-size:11px;font-weight:800;border-radius:99px;padding:2px 8px;flex:none;}
+.chbub{max-width:80%;padding:8px 12px;border-radius:14px;margin-bottom:7px;font-size:14px;line-height:1.4;word-wrap:break-word;}
+.chbub.in{background:#eef2f9;color:#1a2233;border-bottom-left-radius:4px;margin-right:auto;}
+.chbub.out{background:#2f63ee;color:#fff;border-bottom-right-radius:4px;margin-left:auto;}
+.chat-time{font-size:9px;opacity:.6;display:block;margin-top:2px;}
 .daybadge{width:40px;height:40px;border-radius:10px;background:rgba(29,158,117,.2);color:var(--accs);display:flex;align-items:center;justify-content:center;font-weight:600;flex-shrink:0;}
 .chip{font-size:11px;padding:2px 8px;border-radius:7px;margin-right:4px;display:inline-block;margin-top:2px;}
 .chip.on{background:rgba(29,158,117,.2);color:var(--accs);}
@@ -1592,6 +1653,7 @@ td{padding:8px 0;border-bottom:1px solid var(--soft);}
   <button class="nav-item" data-owner="1" data-panel="users" onclick="nav(this)">👥 Foydalanuvchilar</button>
   <button class="nav-item" data-owner="1" data-panel="broadcast" onclick="nav(this)">✉️ Xabar yuborish</button>
   <button class="nav-item" data-owner="1" data-panel="leaderboard" onclick="nav(this)">🏆 Reyting</button>
+  <button class="nav-item" data-owner="1" data-panel="chat" onclick="nav(this);loadChatList();">💬 Chat</button>
   <button class="nav-item" data-owner="1" data-panel="segments" onclick="nav(this);loadSegments();">📨 Eslatmalar</button>
   <button class="nav-item" data-owner="1" data-panel="ui" onclick="nav(this)">🎨 Interfeys matnlari</button>
   <button class="nav-item" data-owner="1" data-panel="admins" onclick="nav(this)">🛡️ Adminlar</button>
@@ -1670,6 +1732,7 @@ td{padding:8px 0;border-bottom:1px solid var(--soft);}
           <div class="udcell"><div class="udk">Streak</div><div class="udv" id="ud-streak">—</div></div>
           <div class="udcell" style="grid-column:1/3;"><div class="udk">Ruxsat (darslar)</div><div class="udv" id="ud-secs">—</div></div>
         </div>
+        <button onclick="goToChat()" style="width:100%;padding:11px;border:none;border-radius:11px;background:#0e8a73;color:#fff;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:14px;">💬 Chatga o'tish</button>
         <div class="udk" style="margin-bottom:6px;">SHAXSIY XABAR</div>
         <textarea id="ud-msg" style="width:100%;min-height:90px;border:1px solid var(--border);border-radius:10px;padding:10px;font-size:14px;font-family:inherit;resize:vertical;" placeholder="Xabar matni..."></textarea>
         <button id="ud-send" onclick="sendPersonal()" style="width:100%;margin-top:10px;padding:12px;border:none;border-radius:11px;background:#2f63ee;color:#fff;font-size:15px;font-weight:700;cursor:pointer;">✉️ Xabar yuborish</button>
@@ -1736,6 +1799,22 @@ td{padding:8px 0;border-bottom:1px solid var(--soft);}
     <div id="lb-streak">""" + lb_streak + """</div>
     <div id="lb-days" style="display:none">""" + lb_days + """</div>
     <div id="lb-words" style="display:none">""" + lb_words + """</div>
+  </div>
+  <div class="panel" id="p-chat">
+    <h1>💬 O'quvchilar bilan chat</h1>
+    <div id="chat-list-view">
+      <div class="hint" style="margin-bottom:10px;">Xabar yozgan o'quvchilar. Bosib javob bering. (Har 15 soniyada yangilanadi)</div>
+      <div id="chat-list"><div class="muted" style="padding:10px">Yuklanmoqda...</div></div>
+    </div>
+    <div id="chat-thread-view" style="display:none;">
+      <button class="backbtn" onclick="backToChatList()">← Suhbatlar</button>
+      <div style="font-weight:800;font-size:16px;margin:6px 0 10px;" id="chat-title">—</div>
+      <div id="chat-thread" style="max-height:50vh;overflow:auto;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px;"></div>
+      <div style="display:flex;gap:8px;">
+        <input id="chat-reply" placeholder="Javob yozing..." style="flex:1;border:1px solid var(--border);border-radius:10px;padding:11px;font-size:14px;font-family:inherit;" onkeydown="if(event.key==='Enter')sendChatReply()">
+        <button class="act" style="width:auto;padding:11px 18px;margin:0;" onclick="sendChatReply()">Yuborish</button>
+      </div>
+    </div>
   </div>
   <div class="panel" id="p-broadcast">
     <h1>Xabar yuborish (hammaga)</h1>
@@ -2005,6 +2084,48 @@ function grantMediaDel(){
   fetch('/admin/grant-save',{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(){document.getElementById('gr-current').textContent='Media yo‘q';});
 }
 function lbTab(mm,b){['streak','days','words'].forEach(function(x){var el=document.getElementById('lb-'+x);if(el)el.style.display=(x===mm)?'':'none';});if(b&&b.parentNode)b.parentNode.querySelectorAll('.seg-btn').forEach(function(x){x.classList.toggle('active',x===b);});}
+var CHAT_UID=null,CHAT_TIMER=null;
+function chEsc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function loadChatList(){
+  fetch('/admin/chat-list').then(function(r){return r.json();}).then(function(j){
+    var el=document.getElementById('chat-list');if(!el)return;
+    if(!j.ok||!j.chats||!j.chats.length){el.innerHTML="<div class='muted' style='padding:10px'>Hozircha xabar yo'q</div>";return;}
+    el.innerHTML=j.chats.map(function(c){
+      var ini=(c.name||'?').charAt(0).toUpperCase();
+      var un=c.unread>0?("<span class='chunread'>"+c.unread+"</span>"):"";
+      var nm=c.name||('ID '+c.user_id);
+      return "<div class='chrow' onclick=\"openChat('"+c.user_id+"',"+JSON.stringify(nm)+")\"><div class='chav'>"+chEsc(ini)+"</div><div class='chmid'><div class='chname'>"+chEsc(nm)+"</div><div class='chlast'>"+chEsc(c.last_text)+"</div></div>"+un+"</div>";
+    }).join('');
+  });
+  if(CHAT_TIMER)clearInterval(CHAT_TIMER);
+  CHAT_TIMER=setInterval(function(){var p=document.getElementById('p-chat');if(p&&p.classList.contains('active')){if(document.getElementById('chat-thread-view').style.display==='none')loadChatList();else loadThread();}},15000);
+}
+function openChat(uid,name){
+  CHAT_UID=uid;
+  document.getElementById('chat-list-view').style.display='none';
+  document.getElementById('chat-thread-view').style.display='';
+  document.getElementById('chat-title').textContent=name||('ID '+uid);
+  loadThread();
+}
+function loadThread(){
+  if(!CHAT_UID)return;
+  fetch('/admin/chat-thread?uid='+encodeURIComponent(CHAT_UID)).then(function(r){return r.json();}).then(function(j){
+    var el=document.getElementById('chat-thread');if(!el)return;
+    el.innerHTML=(j.messages||[]).map(function(mm){return "<div class='chbub "+(mm.dir==='in'?'in':'out')+"'>"+chEsc(mm.text)+"<span class='chat-time'>"+chEsc(mm.at)+"</span></div>";}).join('')||"<div class='muted'>Xabar yo'q</div>";
+    el.scrollTop=el.scrollHeight;
+  });
+}
+function backToChatList(){document.getElementById('chat-thread-view').style.display='none';document.getElementById('chat-list-view').style.display='';loadChatList();}
+function sendChatReply(){
+  var inp=document.getElementById('chat-reply');var t=inp.value.trim();if(!t||!CHAT_UID)return;inp.value='';
+  fetch('/admin/send-personal',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:CHAT_UID,text:t})}).then(function(r){return r.json();}).then(function(j){if(j&&j.ok){loadThread();}else{alert('Xato');inp.value=t;}});
+}
+function goToChat(){
+  var uid=UD_UID;var name=document.getElementById('ud-name').textContent;
+  document.getElementById('userModal').style.display='none';
+  var nb=document.querySelector('.nav-item[data-panel="chat"]');if(nb)nav(nb);
+  setTimeout(function(){loadChatList();openChat(uid,name);},60);
+}
 var vSec='talaffuz';
 function vTab(btn){document.querySelectorAll('[data-vsec]').forEach(function(b){b.classList.toggle('on',b===btn);});vSec=btn.dataset.vsec;vLoad(vSec);}
 function vEsc(s){return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
@@ -2447,10 +2568,10 @@ function aiTopupFormulas(){_aiTopupCall(document.getElementById('topupBtnF'),'f'
 function aiTopupDialog(){_aiTopupCall(document.getElementById('topupBtnD'),'d');}
 async function aiTopupGrammar(){
   var btn=document.getElementById('topupBtnG');if(!btn)return;
-  if(!confirm("Saqlangan PDF'dan AI grammatika qoidalari/jadvalini tayyorlaydi. Mavjud grammatika almashadi. Davom etamizmi?"))return;
+  if(!confirm("Grammatika bo'limiga yuklangan PDF'dan AI qoida/jadvalni oladi. Mavjud grammatika almashadi. Davom etamizmi?"))return;
   var ob=btn.textContent;btn.disabled=true;btn.textContent='⏳ AI ishlayapti (30-60 soniya)...';
   try{
-    var r=await fetch('/admin/ai-topup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({level:LEVEL,day:DAY})});
+    var r=await fetch('/admin/ai-topup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({level:LEVEL,day:DAY,section:'grammar'})});
     var j=await r.json();
     if(!j.ok){alert(j.error||'Xato');btn.disabled=false;btn.textContent=ob;return;}
     if(j.grammar&&j.grammar.length){document.getElementById('L_grammar').innerHTML='';j.grammar.forEach(function(it){addCard('grammar',it);});}
@@ -2775,6 +2896,10 @@ def admin_send_personal():
         urllib.request.urlopen("https://api.telegram.org/bot" + BOT_TOKEN + "/sendMessage", data=data, timeout=8)
     except Exception as e:
         return {"ok": False, "error": str(e)}, 500
+    try:
+        store_message(int(uid), "out", text)
+    except Exception:
+        pass
     return {"ok": True}
 
 def upload_grant_media_to_r2(data, ext):
@@ -2806,6 +2931,40 @@ def admin_grant_save():
         except Exception as e:
             return {"ok": False, "error": str(e)}, 500
     return {"ok": True, "media_url": get_setting("grant_media_url") or "", "media_type": get_setting("grant_media_type") or ""}
+
+@flask_app.route("/admin/chat-list")
+def admin_chat_list():
+    if not session.get("admin"):
+        return {"ok": False}, 403
+    conn = get_conn(); cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute("""
+        SELECT m.user_id, u.first_name, u.username,
+               MAX(m.created_at) AS last_at,
+               (SELECT text FROM messages m2 WHERE m2.user_id=m.user_id ORDER BY m2.created_at DESC LIMIT 1) AS last_text,
+               COUNT(*) FILTER (WHERE m.direction='in' AND NOT m.is_read) AS unread
+        FROM messages m LEFT JOIN users u ON u.user_id=m.user_id
+        GROUP BY m.user_id, u.first_name, u.username
+        ORDER BY last_at DESC LIMIT 100""")
+    rows = cur.fetchall(); cur.close(); conn.close()
+    out = [{"user_id": r["user_id"], "name": r["first_name"] or "", "username": r["username"] or "",
+            "last_text": r["last_text"] or "", "unread": int(r["unread"] or 0),
+            "last_at": str(r["last_at"])[:16]} for r in rows]
+    return {"ok": True, "chats": out}
+
+@flask_app.route("/admin/chat-thread")
+def admin_chat_thread():
+    if not session.get("admin"):
+        return {"ok": False}, 403
+    uid = request.args.get("uid")
+    if not uid:
+        return {"ok": False}, 400
+    conn = get_conn(); cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute("SELECT direction, text, created_at FROM messages WHERE user_id=%s ORDER BY created_at ASC LIMIT 300", (uid,))
+    rows = cur.fetchall()
+    cur.execute("UPDATE messages SET is_read=TRUE WHERE user_id=%s AND direction='in'", (uid,))
+    conn.commit(); cur.close(); conn.close()
+    out = [{"dir": r["direction"], "text": r["text"] or "", "at": str(r["created_at"])[:16]} for r in rows]
+    return {"ok": True, "messages": out}
 
 @flask_app.route("/admin/save-ui", methods=["POST"])
 def admin_save_ui():
@@ -2839,11 +2998,16 @@ def admin_ai_topup():
         return {"ok": False, "error": "AI sozlanmagan (ANTHROPIC_API_KEY yo'q)"}, 400
     d = request.json or {}
     level = d.get("level"); day = d.get("day")
+    section = d.get("section")
     if not (level and day):
         return {"ok": False, "error": "ma'lumot to'liq emas"}, 400
-    txt = get_stored_pdf_text(level, int(day))
+    txt = None
+    if section:
+        txt = get_section_pdf_text(level, int(day), section)
     if not txt:
-        return {"ok": False, "error": "Bu kun uchun saqlangan PDF topilmadi. Avval «AI bilan to'ldirish» orqali PDF yuklang."}, 400
+        txt = get_stored_pdf_text(level, int(day))
+    if not txt:
+        return {"ok": False, "error": "PDF topilmadi. Grammatika bo'limiga PDF yuklangan bo'lsin (yoki asosiy PDF)."}, 400
     try:
         res = ai_topup(txt, level, int(day))
     except Exception as e:
@@ -3405,6 +3569,7 @@ def run_bot():
     bot_app = ApplicationBuilder().token(BOT_TOKEN).build()
     bot_app.add_handler(CommandHandler("start", start))
     bot_app.add_handler(CommandHandler("help", help_command))
+    bot_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, on_message))
     logger.info("Bot ishga tushdi...")
     bot_app.run_polling()
 

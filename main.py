@@ -3344,10 +3344,12 @@ def send_broadcast_sync(text, btns=None):
             msg = text.replace("{ism}", u.get("first_name") or "").replace("{id}", str(uid))
             try:
                 await bot_app.bot.send_message(chat_id=uid, text=msg, reply_markup=markup)
+                store_message(uid, "out", msg)
             except RetryAfter as e:
                 await asyncio.sleep(getattr(e, "retry_after", 5) + 1)
                 try:
                     await bot_app.bot.send_message(chat_id=uid, text=msg, reply_markup=markup)
+                    store_message(uid, "out", msg)
                 except Exception as e2:
                     logger.warning(f"Xabar {uid}: {e2}")
             except Forbidden:

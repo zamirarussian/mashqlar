@@ -320,9 +320,11 @@ AI_TOPUP_SYSTEM = (
     "PDF da 10 ta formula bo'lmasa, mavzuga mos iboralar o'ylab topib roppa-rosa 10 taga yetkaz.\n"
     "reading_texts — PDF dagi «Чтение» / «Текст» qismini ol; har biri: level (qisqa sarlavha yoki daraja, mas. 'A1'), ru (ruscha matn PDF dagidek), uz (o'zbekcha tarjima). "
     "reading_tasks — o'sha o'qish matniga oid 4-6 ta Правда/Не правда gapi (rus tilida); har biri: q (gap), answer ('1'=Правда, '0'=Не правда). "
+    "grammar — PDF dagi grammatika qoidalari / formulalar / jadvallar. Har biri: title (qoida yoki mavzu nomi), sub (qisqa izoh, o'zbekcha), base (asos shakl, agar bo'lsa), res (natija yoki hosila shakl, agar bo'lsa), example (ruscha misol gap). Jadval bo'lsa HAR bir qatorini alohida konstruksiya qil. Grammatika bo'lmasa bo'sh ro'yxat qaytar.\n"
     "Faqat to'g'ri JSON qaytar (``` yoki izohsiz). Sxema:\n"
     '{"dialog":[{"sp":"A","ru":"","uz":""}],"formulas":[{"ru":"","uz":"","ex1ru":"","ex1uz":""}],'
-    '"reading_texts":[{"level":"","ru":"","uz":""}],"reading_tasks":[{"q":"","answer":"1"}]}'
+    '"reading_texts":[{"level":"","ru":"","uz":""}],"reading_tasks":[{"q":"","answer":"1"}],'
+    '"grammar":[{"title":"","sub":"","base":"","res":"","example":""}]}'
 )
 def ai_topup(pdf_text, level, day):
     import anthropic
@@ -2340,6 +2342,8 @@ textarea{min-height:96px;resize:vertical;line-height:1.55;}
     <input id="gv_url" placeholder="YouTube link (masalan https://youtu.be/...)" style="margin-top:8px;">
     <div class="flbl" style="margin-top:6px;">Yoqilsa — ilovada grammatika ekrani tepasida video chiqadi.</div>
   </div>
+  <button id="topupBtnG" onclick="aiTopupGrammar()" style="width:100%;padding:13px;border-radius:12px;border:none;background:#6b4ef0;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:8px;">🤖 AI: PDF'dan grammatika (qoida/jadval) ol</button>
+  <div class="hint" style="margin-bottom:12px;">Saqlangan PDF'dagi grammatika qoidalari, formulalar va jadvallarni AI oladi. Ko'rib chiqib «Saqlash» bosing.</div>
   <div id="L_grammar"></div><button class="add" onclick="addCard('grammar')">+ Konstruksiya qo'shish</button>
   <button class="save" onclick="saveLesson(1)">💾 Saqlash</button>
 </div>
@@ -2441,6 +2445,20 @@ async function _aiTopupCall(btn,which){
 }
 function aiTopupFormulas(){_aiTopupCall(document.getElementById('topupBtnF'),'f');}
 function aiTopupDialog(){_aiTopupCall(document.getElementById('topupBtnD'),'d');}
+async function aiTopupGrammar(){
+  var btn=document.getElementById('topupBtnG');if(!btn)return;
+  if(!confirm("Saqlangan PDF'dan AI grammatika qoidalari/jadvalini tayyorlaydi. Mavjud grammatika almashadi. Davom etamizmi?"))return;
+  var ob=btn.textContent;btn.disabled=true;btn.textContent='⏳ AI ishlayapti (30-60 soniya)...';
+  try{
+    var r=await fetch('/admin/ai-topup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({level:LEVEL,day:DAY})});
+    var j=await r.json();
+    if(!j.ok){alert(j.error||'Xato');btn.disabled=false;btn.textContent=ob;return;}
+    if(j.grammar&&j.grammar.length){document.getElementById('L_grammar').innerHTML='';j.grammar.forEach(function(it){addCard('grammar',it);});}
+    updateCounts();
+    alert("AI to'ldirdi: "+((j.grammar||[]).length)+" konstruksiya. Ko'rib chiqing va Saqlash ni bosing.");
+  }catch(e){alert('Xato: '+e);}
+  btn.disabled=false;btn.textContent=ob;
+}
 async function aiTopupReading(){
   var btn=document.getElementById('topupBtnR');if(!btn)return;
   if(!confirm("Saqlangan PDF'dan AI o'qish matni va topshiriqlarni tayyorlaydi. Mavjud o'qish almashadi. Davom etamizmi?"))return;
@@ -2831,7 +2849,7 @@ def admin_ai_topup():
     except Exception as e:
         return {"ok": False, "error": str(e)}, 500
     return {"ok": True, "formulas": res.get("formulas", []), "dialog": res.get("dialog", []),
-            "reading_texts": res.get("reading_texts", []), "reading_tasks": res.get("reading_tasks", [])}
+            "reading_texts": res.get("reading_texts", []), "reading_tasks": res.get("reading_tasks", []), "grammar": res.get("grammar", [])}
 
 @flask_app.route("/admin/ai-fill", methods=["POST"])
 def admin_ai_fill():

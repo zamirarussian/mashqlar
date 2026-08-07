@@ -308,6 +308,33 @@ def get_stored_pdf_text(level, day):
     except Exception:
         return None
 
+def get_section_pdf_texts(level, day, section):
+    """Har PDF (slot) matnini alohida qaytaradi: [(slot, text), ...]"""
+    if not r2_configured():
+        return []
+    import io
+    from pypdf import PdfReader
+    try:
+        conn = get_conn(); cur = conn.cursor()
+        cur.execute("SELECT slot FROM materials WHERE level=%s AND day=%s AND section=%s ORDER BY slot",
+                    (level, int(day), section))
+        slots = [r[0] for r in cur.fetchall()]
+        cur.close(); conn.close()
+    except Exception:
+        slots = []
+    out = []
+    for slot in slots:
+        key = f"materials/{level}/{day}/{section}_{int(slot)}.pdf"
+        try:
+            obj = get_r2_client().get_object(Bucket=R2_BUCKET, Key=key)
+            reader = PdfReader(io.BytesIO(obj["Body"].read()))
+            t = "\n".join((p.extract_text() or "") for p in reader.pages)
+            if t.strip():
+                out.append((slot, t))
+        except Exception:
+            pass
+    return out
+
 def get_section_pdf_text(level, day, section):
     """Muayyan bo'lim (masalan 'grammar') materiallaridagi barcha PDF matnini oladi."""
     if not r2_configured():
@@ -349,9 +376,11 @@ AI_TOPUP_SYSTEM = (
     "reading_tasks — o'sha o'qish matniga oid 4-6 ta Правда/Не правда gapi (rus tilida); har biri: q (gap), answer ('1'=Правда, '0'=Не правда). "
     "grammar — PDF dagi grammatika qoidalari / formulalar / jadvallar. Har biri: title (qoida yoki mavzu nomi), sub (qisqa izoh, o'zbekcha), base (asos shakl, agar bo'lsa), res (natija yoki hosila shakl, agar bo'lsa), example (ruscha misol gap). Jadval bo'lsa HAR bir qatorini alohida konstruksiya qil. Grammatika bo'lmasa bo'sh ro'yxat qaytar.\n"
     "Faqat to'g'ri JSON qaytar (``` yoki izohsiz). Sxema:\n"
+    "grammar_topic — bu PDF dagi asosiy grammatika MAVZUSI nomi (qisqa, ruscha yoki o'zbekcha, masalan 'Род' yoki 'Ko'plik shakli').\n"
+    "Faqat to'g'ri JSON qaytar (``` yoki izohsiz). Sxema:\n"
     '{"dialog":[{"sp":"A","ru":"","uz":""}],"formulas":[{"ru":"","uz":"","ex1ru":"","ex1uz":""}],'
     '"reading_texts":[{"level":"","ru":"","uz":""}],"reading_tasks":[{"q":"","answer":"1"}],'
-    '"grammar":[{"title":"","sub":"","base":"","res":"","example":""}]}'
+    '"grammar_topic":"","grammar":[{"title":"","sub":"","base":"","res":"","example":""}]}'
 )
 def ai_topup(pdf_text, level, day):
     import anthropic
@@ -1583,10 +1612,18 @@ td{padding:8px 0;border-bottom:1px solid var(--soft);}
 .chname{font-weight:600;}
 .chlast{font-size:12px;color:#8894ad;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .chunread{background:#e42a3b;color:#fff;font-size:11px;font-weight:800;border-radius:99px;padding:2px 8px;flex:none;}
-.chbub{max-width:80%;padding:8px 12px;border-radius:14px;margin-bottom:7px;font-size:14px;line-height:1.4;word-wrap:break-word;}
-.chbub.in{background:#eef2f9;color:#1a2233;border-bottom-left-radius:4px;margin-right:auto;}
-.chbub.out{background:#2f63ee;color:#fff;border-bottom-right-radius:4px;margin-left:auto;}
-.chat-time{font-size:9px;opacity:.6;display:block;margin-top:2px;}
+.chbub{max-width:78%;padding:8px 12px;border-radius:16px;margin-bottom:6px;font-size:14px;line-height:1.4;word-wrap:break-word;box-shadow:0 1px 1px rgba(0,0,0,.06);}
+.chbub.in{background:#fff;color:#1a2233;border-bottom-left-radius:5px;align-self:flex-start;}
+.chbub.out{background:#2f63ee;color:#fff;border-bottom-right-radius:5px;align-self:flex-end;}
+.chat-time{font-size:10px;opacity:.6;display:block;margin-top:2px;text-align:right;}
+.chat-hd{display:flex;align-items:center;gap:10px;padding:8px 2px 12px;border-bottom:1px solid var(--border);margin-bottom:0;}
+.chat-back{background:rgba(47,99,238,.12);color:#2f63ee;border:none;width:38px;height:38px;border-radius:50%;font-size:19px;cursor:pointer;flex:none;}
+.chat-hd-av{width:40px;height:40px;border-radius:50%;background:#2f63ee;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex:none;}
+.chat-hd-name{font-weight:700;font-size:16px;}
+.chat-msgs{height:56vh;overflow-y:auto;padding:14px 10px;background:#e7ebf3;display:flex;flex-direction:column;}
+.chat-inputbar{display:flex;align-items:center;gap:8px;padding:10px 2px 2px;}
+.chat-inp{flex:1;border:1px solid var(--border);border-radius:22px;padding:12px 16px;font-size:14px;font-family:inherit;background:var(--card);color:var(--text);}
+.chat-send{width:46px;height:46px;border-radius:50%;background:#2f63ee;color:#fff;border:none;font-size:17px;cursor:pointer;flex:none;display:flex;align-items:center;justify-content:center;}
 .daybadge{width:40px;height:40px;border-radius:10px;background:rgba(29,158,117,.2);color:var(--accs);display:flex;align-items:center;justify-content:center;font-weight:600;flex-shrink:0;}
 .chip{font-size:11px;padding:2px 8px;border-radius:7px;margin-right:4px;display:inline-block;margin-top:2px;}
 .chip.on{background:rgba(29,158,117,.2);color:var(--accs);}
@@ -1807,12 +1844,15 @@ td{padding:8px 0;border-bottom:1px solid var(--soft);}
       <div id="chat-list"><div class="muted" style="padding:10px">Yuklanmoqda...</div></div>
     </div>
     <div id="chat-thread-view" style="display:none;">
-      <button class="backbtn" onclick="backToChatList()">← Suhbatlar</button>
-      <div style="font-weight:800;font-size:16px;margin:6px 0 10px;" id="chat-title">—</div>
-      <div id="chat-thread" style="max-height:50vh;overflow:auto;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px;"></div>
-      <div style="display:flex;gap:8px;">
-        <input id="chat-reply" placeholder="Javob yozing..." style="flex:1;border:1px solid var(--border);border-radius:10px;padding:11px;font-size:14px;font-family:inherit;" onkeydown="if(event.key==='Enter')sendChatReply()">
-        <button class="act" style="width:auto;padding:11px 18px;margin:0;" onclick="sendChatReply()">Yuborish</button>
+      <div class="chat-hd">
+        <button class="chat-back" onclick="backToChatList()">←</button>
+        <div class="chat-hd-av" id="chat-hd-av">—</div>
+        <div class="chat-hd-name" id="chat-title">—</div>
+      </div>
+      <div id="chat-thread" class="chat-msgs"></div>
+      <div class="chat-inputbar">
+        <input id="chat-reply" class="chat-inp" placeholder="Xabar yozing..." onkeydown="if(event.key==='Enter')sendChatReply()">
+        <button class="chat-send" onclick="sendChatReply()">➤</button>
       </div>
     </div>
   </div>
@@ -2103,9 +2143,11 @@ function loadChatList(){
 }
 function openChat(uid){
   CHAT_UID=uid;
+  var nm=CHAT_NAMES[uid]||('ID '+uid);
   document.getElementById('chat-list-view').style.display='none';
   document.getElementById('chat-thread-view').style.display='';
-  document.getElementById('chat-title').textContent=CHAT_NAMES[uid]||('ID '+uid);
+  document.getElementById('chat-title').textContent=nm;
+  var av=document.getElementById('chat-hd-av');if(av)av.textContent=(nm||'?').charAt(0).toUpperCase();
   loadThread();
 }
 function loadThread(){
@@ -2502,7 +2544,7 @@ var SCHEMA={
   vocab:[{k:'stress',l:"So'z — urg'u bilan",big:1,full:1},{k:'ru',l:"So'z (urg'usiz)"},{k:'uz',l:'Tarjima'},{k:'ex1ru',l:'1-misol (rus)'},{k:'ex1uz',l:'1-misol (uz)'},{k:'ex2ru',l:'2-misol (rus)'},{k:'ex2uz',l:'2-misol (uz)'},{k:'sin',l:'Sinonim',cls:'tg-sin'},{k:'ant',l:'Antonim',cls:'tg-ant'},{k:'nsv',l:'НСВ',cls:'tg-nsv'},{k:'sv',l:'СВ',cls:'tg-sv'},{k:'kx_q',l:"Kontekst gap (B1) — so'z o'rniga ___",a:1,full:1},{k:'kx_a',l:"Kontekst — to'g'ri so'z"},{k:'kx',l:"Kontekst — 3 yanglish variant (har qatorda bitta)",lines:1,full:1}],
   formulas:[{k:'ru',l:'Formula (rus)'},{k:'uz',l:'Tarjima (uz)'},{k:'ex1ru',l:'1-misol (rus)'},{k:'ex1uz',l:'1-misol (uz)'},{k:'ex2ru',l:'2-misol (rus)'},{k:'ex2uz',l:'2-misol (uz)'}],
   reading_texts:[{k:'level',l:'Sarlavha',full:1},{k:'ru',l:'Ruscha matn',a:1},{k:'uz',l:"O'zbekcha tarjima",a:1}],
-  grammar:[{k:'title',l:'Mavzu',full:1},{k:'sub',l:'Izoh',full:1},{k:'base',l:'Asos shakl'},{k:'res',l:'Natija shakl'},{k:'example',l:'Misol',a:1}],
+  grammar:[{k:'group',l:'Mavzu guruhi (AI to\\'ldiradi)',full:1},{k:'title',l:'Mavzu',full:1},{k:'sub',l:'Izoh',full:1},{k:'base',l:'Asos shakl'},{k:'res',l:'Natija shakl'},{k:'example',l:'Misol',a:1}],
   speaking_questions:[{k:'title',l:'Savol (rus)',full:1},{k:'desc',l:'Izoh (uz)'},{k:'format',l:'Format'},{k:'answer',l:'Namuna javob (rus)',a:1,full:1}],
   audio_questions:[{k:'q',l:'Savol',full:1},{k:'options',l:'Variantlar (har qatorda bitta)',lines:1,full:1},{k:'correct',l:"To'g'ri variant raqami"}],
   writing_tasks:[{k:'ru',l:'Ruscha matn (topshiriq)',a:1,full:1},{k:'uz',l:"O'zbekcha matn (tarjima)",a:1,full:1},{k:'sample',l:'Misol / Namuna javob (rus)',a:1,full:1}],
@@ -3002,13 +3044,29 @@ def admin_ai_topup():
     section = d.get("section")
     if not (level and day):
         return {"ok": False, "error": "ma'lumot to'liq emas"}, 400
-    txt = None
-    if section:
-        txt = get_section_pdf_text(level, int(day), section)
+    if section == "grammar":
+        texts = get_section_pdf_texts(level, int(day), "grammar")
+        if not texts:
+            t2 = get_stored_pdf_text(level, int(day))
+            if t2:
+                texts = [(0, t2)]
+        if not texts:
+            return {"ok": False, "error": "Grammatika PDF topilmadi. Grammatika bo'limiga PDF yuklang."}, 400
+        all_gr = []
+        for idx, (slot, ptxt) in enumerate(texts):
+            try:
+                r = ai_topup(ptxt, level, int(day))
+            except Exception:
+                continue
+            grp = (r.get("grammar_topic") or "").strip() or ("Mavzu " + str(idx + 1))
+            for g in (r.get("grammar") or []):
+                g["group"] = grp
+                all_gr.append(g)
+        return {"ok": True, "grammar": all_gr, "formulas": [], "dialog": [],
+                "reading_texts": [], "reading_tasks": []}
+    txt = get_stored_pdf_text(level, int(day))
     if not txt:
-        txt = get_stored_pdf_text(level, int(day))
-    if not txt:
-        return {"ok": False, "error": "PDF topilmadi. Grammatika bo'limiga PDF yuklangan bo'lsin (yoki asosiy PDF)."}, 400
+        return {"ok": False, "error": "PDF topilmadi."}, 400
     try:
         res = ai_topup(txt, level, int(day))
     except Exception as e:

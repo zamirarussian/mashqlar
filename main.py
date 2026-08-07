@@ -2084,27 +2084,28 @@ function grantMediaDel(){
   fetch('/admin/grant-save',{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(){document.getElementById('gr-current').textContent='Media yo‘q';});
 }
 function lbTab(mm,b){['streak','days','words'].forEach(function(x){var el=document.getElementById('lb-'+x);if(el)el.style.display=(x===mm)?'':'none';});if(b&&b.parentNode)b.parentNode.querySelectorAll('.seg-btn').forEach(function(x){x.classList.toggle('active',x===b);});}
-var CHAT_UID=null,CHAT_TIMER=null;
-function chEsc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+var CHAT_UID=null,CHAT_TIMER=null,CHAT_NAMES={};
+function chEsc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function loadChatList(){
   fetch('/admin/chat-list').then(function(r){return r.json();}).then(function(j){
     var el=document.getElementById('chat-list');if(!el)return;
     if(!j.ok||!j.chats||!j.chats.length){el.innerHTML="<div class='muted' style='padding:10px'>Hozircha xabar yo'q</div>";return;}
+    CHAT_NAMES={};
     el.innerHTML=j.chats.map(function(c){
-      var ini=(c.name||'?').charAt(0).toUpperCase();
+      var nm=c.name||('ID '+c.user_id);CHAT_NAMES[c.user_id]=nm;
+      var ini=(nm||'?').charAt(0).toUpperCase();
       var un=c.unread>0?("<span class='chunread'>"+c.unread+"</span>"):"";
-      var nm=c.name||('ID '+c.user_id);
-      return "<div class='chrow' onclick=\"openChat('"+c.user_id+"',"+JSON.stringify(nm)+")\"><div class='chav'>"+chEsc(ini)+"</div><div class='chmid'><div class='chname'>"+chEsc(nm)+"</div><div class='chlast'>"+chEsc(c.last_text)+"</div></div>"+un+"</div>";
+      return "<div class='chrow' onclick='openChat("+c.user_id+")'><div class='chav'>"+chEsc(ini)+"</div><div class='chmid'><div class='chname'>"+chEsc(nm)+"</div><div class='chlast'>"+chEsc(c.last_text)+"</div></div>"+un+"</div>";
     }).join('');
   });
   if(CHAT_TIMER)clearInterval(CHAT_TIMER);
   CHAT_TIMER=setInterval(function(){var p=document.getElementById('p-chat');if(p&&p.classList.contains('active')){if(document.getElementById('chat-thread-view').style.display==='none')loadChatList();else loadThread();}},15000);
 }
-function openChat(uid,name){
+function openChat(uid){
   CHAT_UID=uid;
   document.getElementById('chat-list-view').style.display='none';
   document.getElementById('chat-thread-view').style.display='';
-  document.getElementById('chat-title').textContent=name||('ID '+uid);
+  document.getElementById('chat-title').textContent=CHAT_NAMES[uid]||('ID '+uid);
   loadThread();
 }
 function loadThread(){
@@ -2121,10 +2122,10 @@ function sendChatReply(){
   fetch('/admin/send-personal',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:CHAT_UID,text:t})}).then(function(r){return r.json();}).then(function(j){if(j&&j.ok){loadThread();}else{alert('Xato');inp.value=t;}});
 }
 function goToChat(){
-  var uid=UD_UID;var name=document.getElementById('ud-name').textContent;
+  var uid=UD_UID;CHAT_NAMES[uid]=document.getElementById('ud-name').textContent;
   document.getElementById('userModal').style.display='none';
-  var nb=document.querySelector('.nav-item[data-panel="chat"]');if(nb)nav(nb);
-  setTimeout(function(){loadChatList();openChat(uid,name);},60);
+  var nb=document.querySelector('.nav-item[data-panel=chat]');if(nb)nav(nb);
+  setTimeout(function(){loadChatList();openChat(uid);},60);
 }
 var vSec='talaffuz';
 function vTab(btn){document.querySelectorAll('[data-vsec]').forEach(function(b){b.classList.toggle('on',b===btn);});vSec=btn.dataset.vsec;vLoad(vSec);}

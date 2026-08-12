@@ -441,12 +441,11 @@ body{font-family:'Inter',sans-serif;color:#1a1a1a;}
 <div class="screen" id="s-reyting">
   <div class="ry-head">
     <button class="back" onclick="show('s-home')">← Bosh sahifa</button>
-    <div class="ry-title">Reyting 🏆</div>
-    <div class="ry-sub">Eng izchil o'quvchilar</div>
+    <div class="ry-title">Haftalik reyting 🏆</div>
+    <div class="ry-sub" id="ry-sub">Shu hafta · eng ko'p mashq</div>
     <div class="ry-tabs">
-      <button class="ry-tab on" id="ryt-streak" onclick="loadLeaderboard('streak')">🔥 Streak</button>
-      <button class="ry-tab" id="ryt-days" onclick="loadLeaderboard('days')">📅 Kunlar</button>
-      <button class="ry-tab" id="ryt-words" onclick="loadLeaderboard('words')">📚 So'zlar</button>
+      <button class="ry-tab on" id="ryt-weekly" onclick="loadLeaderboard('weekly')">💪 Mashqlar</button>
+      <button class="ry-tab" id="ryt-streak" onclick="loadLeaderboard('streak')">🔥 Streak</button>
     </div>
   </div>
   <div class="ry-body" id="ry-body"></div>
@@ -1289,9 +1288,10 @@ function speakEl(el,ev){
   }catch(e){speakRu(text);}
 }
 try{if('speechSynthesis' in window){window.speechSynthesis.getVoices();window.speechSynthesis.onvoiceschanged=function(){window.speechSynthesis.getVoices();};}}catch(e){}
-function openReyting(){show('s-reyting');loadLeaderboard('streak');}
+function openReyting(){show('s-reyting');loadLeaderboard('weekly');}
 function loadLeaderboard(metric){
-  ['streak','days','words'].forEach(function(m){var b=document.getElementById('ryt-'+m);if(b)b.classList.toggle('on',m===metric);});
+  ['weekly','streak'].forEach(function(m){var b=document.getElementById('ryt-'+m);if(b)b.classList.toggle('on',m===metric);});
+  var sub=document.getElementById('ry-sub');if(sub)sub.textContent=(metric==='weekly')?'Shu hafta · eng ko\u2018p mashq':'Umumiy · ketma-ket kunlar';
   var body=document.getElementById('ry-body');
   body.innerHTML='<div style="padding:34px;text-align:center;color:#9aa3b5;">Yuklanmoqda...</div>';
   fetch('/api/leaderboard?metric='+metric,{headers:{'X-Telegram-Init-Data':INIT_DATA}})
@@ -1303,19 +1303,29 @@ function ryInit(n){n=(n||'').trim();return n?n.charAt(0).toUpperCase():'?';}
 function renderLeaderboard(d){
   var body=document.getElementById('ry-body');
   var top=d.top||[];var me=d.me;
-  var unit=(d.metric==='words')?"so'z":"kun";
-  var ic=(d.metric==='words')?'📚':((d.metric==='days')?'📅':'🔥');
+  var isWeekly=(d.metric==='weekly');
+  var unit=isWeekly?"mashq":"kun";
+  var ic=isWeekly?'💪':'🔥';
   if(!top.length){body.innerHTML='<div style="padding:40px 22px;text-align:center;color:#9aa3b5;font-size:14px;line-height:1.6;">Hozircha reyting bo\u2018sh.<br>Dars bajaring va ro\u2018yxatga chiqing!</div>';return;}
-  var p1=top[0],p2=top[1],p3=top[2];
-  var h="<div class='ry-pod'>";
-  if(p2)h+="<div class='ry-pc second'><div class='ry-pw'><div class='ry-pa silver'>"+ryInit(p2.name)+"</div><div class='ry-md'>🥈</div></div><div class='ry-pnm'>"+escH(p2.me?'Siz':p2.name)+"</div><div class='ry-psc' style='color:#7a8398'>"+ic+" "+p2.val+"</div><div class='ry-ped'>2</div></div>";
-  if(p1)h+="<div class='ry-pc first'><div class='ry-pw'><div class='ry-pa gold'>"+ryInit(p1.name)+"</div><div class='ry-md'>🥇</div></div><div class='ry-pnm'>"+escH(p1.me?'Siz':p1.name)+"</div><div class='ry-psc' style='color:#e8a317'>"+ic+" "+p1.val+"</div><div class='ry-ped'>1</div></div>";
-  if(p3)h+="<div class='ry-pc third'><div class='ry-pw'><div class='ry-pa bronze'>"+ryInit(p3.name)+"</div><div class='ry-md'>🥉</div></div><div class='ry-pnm'>"+escH(p3.me?'Siz':p3.name)+"</div><div class='ry-psc' style='color:#cf8f5e'>"+ic+" "+p3.val+"</div><div class='ry-ped'>3</div></div>";
-  h+="</div><div class='ry-list'>";
-  top.slice(3).forEach(function(e,idx){
-    h+="<div class='ry-rr"+(e.me?' me':'')+"'><div class='ry-rk'>"+e.rank+"</div><div class='ry-rav c"+((idx%5)+1)+"'>"+ryInit(e.name)+"</div><div class='ry-rnm'>"+escH(e.me?'Siz':e.name)+"</div><div class='ry-rsc'>"+e.val+" <span>"+unit+"</span></div></div>";
-  });
-  h+="</div>";
+  var h='';
+  if(isWeekly){
+    var p1=top[0],p2=top[1],p3=top[2];
+    h="<div class='ry-pod'>";
+    if(p2)h+="<div class='ry-pc second'><div class='ry-pw'><div class='ry-pa silver'>"+ryInit(p2.name)+"</div><div class='ry-md'>🥈</div></div><div class='ry-pnm'>"+escH(p2.me?'Siz':p2.name)+"</div><div class='ry-psc' style='color:#7a8398'>"+ic+" "+p2.val+"</div><div class='ry-ped'>2</div></div>";
+    if(p1)h+="<div class='ry-pc first'><div class='ry-pw'><div class='ry-pa gold'>"+ryInit(p1.name)+"</div><div class='ry-md'>🥇</div></div><div class='ry-pnm'>"+escH(p1.me?'Siz':p1.name)+"</div><div class='ry-psc' style='color:#e8a317'>"+ic+" "+p1.val+"</div><div class='ry-ped'>1</div></div>";
+    if(p3)h+="<div class='ry-pc third'><div class='ry-pw'><div class='ry-pa bronze'>"+ryInit(p3.name)+"</div><div class='ry-md'>🥉</div></div><div class='ry-pnm'>"+escH(p3.me?'Siz':p3.name)+"</div><div class='ry-psc' style='color:#cf8f5e'>"+ic+" "+p3.val+"</div><div class='ry-ped'>3</div></div>";
+    h+="</div><div class='ry-list'>";
+    top.slice(3).forEach(function(e,idx){
+      h+="<div class='ry-rr"+(e.me?' me':'')+"'><div class='ry-rk'>"+e.rank+"</div><div class='ry-rav c"+((idx%5)+1)+"'>"+ryInit(e.name)+"</div><div class='ry-rnm'>"+escH(e.me?'Siz':e.name)+"</div><div class='ry-rsc'>"+e.val+" <span>"+unit+"</span></div></div>";
+    });
+    h+="</div>";
+  }else{
+    h="<div class='ry-list' style='padding-top:14px;'>";
+    top.forEach(function(e,idx){
+      h+="<div class='ry-rr"+(e.me?' me':'')+"'><div class='ry-rk'>"+e.rank+"</div><div class='ry-rav c"+((idx%5)+1)+"'>"+ryInit(e.name)+"</div><div class='ry-rnm'>"+escH(e.me?'Siz':e.name)+"</div><div class='ry-rsc'>🔥 "+e.val+" <span>"+unit+"</span></div></div>";
+    });
+    h+="</div>";
+  }
   var meInTop=top.some(function(e){return e.me;});
   if(me&&!meInTop){
     h+="<div class='ry-me-fixed'><div class='ry-rk'>"+me.rank+"</div><div class='ry-rav'>"+ryInit(me.name)+"</div><div class='ry-rnm'>Siz</div><div class='ry-rsc'>"+me.val+" <span>"+unit+"</span></div></div>";

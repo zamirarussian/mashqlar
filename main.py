@@ -1308,10 +1308,16 @@ def api_leaderboard():
         return jsonify({"error": "auth"}), 401
     uid = int(user["id"])
     metric = (request.args.get("metric") or "streak").strip()
-    if metric not in ("streak", "days", "words"):
+    if metric not in ("streak", "days", "words", "weekly"):
         metric = "streak"
     conn = get_conn(); cur = conn.cursor()
-    if metric == "days":
+    if metric == "weekly":
+        cur.execute("""SELECT u.user_id, u.first_name, COUNT(*) AS val
+            FROM users u JOIN user_completions uc ON uc.user_id=u.user_id
+            WHERE COALESCE(u.blocked,FALSE)=FALSE AND uc.done_at >= date_trunc('week', NOW())
+            GROUP BY u.user_id, u.first_name
+            ORDER BY val DESC, u.user_id""")
+    elif metric == "days":
         cur.execute("""SELECT u.user_id, u.first_name, COUNT(*) AS val
             FROM users u JOIN user_completions uc ON uc.user_id=u.user_id
             WHERE COALESCE(u.blocked,FALSE)=FALSE

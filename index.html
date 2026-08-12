@@ -38,6 +38,14 @@ body{font-family:'Inter',sans-serif;color:#1a1a1a;}
 .home-top{padding:44px 20px 16px;flex-shrink:0;background:#eef3fd;position:relative;text-align:center;}
 .profil-btn{position:absolute;top:44px;right:20px;width:40px;height:40px;border-radius:50%;background:#1f54e0;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;border:none;color:#fff;z-index:2;}
 .rank-btn{position:absolute;top:44px;right:66px;width:40px;height:40px;border-radius:50%;background:#fff;color:#e8a317;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:17px;border:none;box-shadow:0 3px 10px rgba(20,45,100,.12);z-index:2;}
+.home-quick{display:flex;gap:11px;padding:0 0 14px;}
+.hq{flex:1;display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #e6ecf8;border-radius:16px;padding:13px 14px;cursor:pointer;box-shadow:0 4px 12px rgba(20,45,100,.07);font-family:inherit;}
+.hq:active{transform:scale(.98);}
+.hq-ic{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex:none;}
+.hq-ic svg{width:22px;height:22px;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
+.hq-r{background:#fff3e0;}.hq-r svg{stroke:#e8890c;}
+.hq-p{background:#eaf0ff;}.hq-p svg{stroke:#2f63ee;}
+.hq-t{font-size:15px;font-weight:700;color:#1a2233;}
 .ry-head{background:linear-gradient(180deg,#1f54e0,#1842b8);padding:44px 20px 0;color:#fff;flex-shrink:0;}
 .ry-head .back{color:#fff;background:rgba(255,255,255,.2);}
 .ry-title{font-size:22px;font-weight:800;margin-top:6px;}
@@ -361,14 +369,16 @@ body{font-family:'Inter',sans-serif;color:#1a1a1a;}
 <!-- BOSH SAHIFA -->
 <div class="screen" id="s-home">
   <div class="home-top">
-    <button class="rank-btn" onclick="openReyting()">🏆</button>
-    <button class="profil-btn" onclick="openProfil()">👤</button>
     <div class="hero-ic"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg><span class="hero-pie"></span></div>
     <div class="hero-title">Rus tili<br>har kuni</div>
     <div class="hero-sub">Har kuni 30 daqiqa — bosqichma-bosqich rus tili</div>
     <div class="hero-flag"><i class="w"></i><i class="b"></i><i class="r"></i></div>
   </div>
   <div class="home-scroll">
+    <div class="home-quick">
+      <button class="hq" onclick="openReyting()"><span class="hq-ic hq-r"><svg viewBox="0 0 24 24"><path d="M6 9a6 6 0 0 0 12 0V3H6z"/><path d="M6 3H4v2a3 3 0 0 0 2 3M18 3h2v2a3 3 0 0 1-2 3M9 21h6M12 15v6"/></svg></span><span class="hq-t">Reyting</span></button>
+      <button class="hq" onclick="openProfil()"><span class="hq-ic hq-p"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.5-6 8-6s8 2 8 6"/></svg></span><span class="hq-t">Profil</span></button>
+    </div>
     <div id="accBanner" class="acc-banner"></div>
     <div class="davomiylik-bar">
       <span style="font-size:24px;">🔥</span>

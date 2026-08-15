@@ -1275,7 +1275,12 @@ def api_days():
 
 def get_lb(metric, limit=30):
     conn = get_conn(); cur = conn.cursor(cursor_factory=RealDictCursor)
-    if metric == "days":
+    if metric == "weekly":
+        cur.execute("""SELECT u.user_id, u.first_name, COUNT(*) AS val
+            FROM users u JOIN exercise_completions ec ON ec.user_id=u.user_id
+            WHERE COALESCE(u.blocked,FALSE)=FALSE AND ec.done_at >= date_trunc('week', NOW())
+            GROUP BY u.user_id, u.first_name ORDER BY val DESC, u.user_id LIMIT %s""", (limit,))
+    elif metric == "days":
         cur.execute("""SELECT u.user_id, u.first_name, COUNT(*) AS val
             FROM users u JOIN user_completions uc ON uc.user_id=u.user_id
             WHERE COALESCE(u.blocked,FALSE)=FALSE
@@ -1543,9 +1548,8 @@ def admin():
                     "<span class='lbn'>%s <span class='muted' style='font-size:11px'>ID %s</span></span>"
                     "<span class='lbv'>%s %s</span></div>") % (rank, esc(r["first_name"] or "—"), r["user_id"], r["val"], unit)
         return out
+    lb_weekly = _lb_html("weekly", "mashq")
     lb_streak = _lb_html("streak", "kun")
-    lb_days = _lb_html("days", "kun")
-    lb_words = _lb_html("words", "so'z")
     _ntot = len(users)
     _nnew = sum(1 for u in users if _isnew(u))
     _npaid = sum(1 for u in users if compute_access(u).get("status") in ("paid", "permanent"))
@@ -1865,13 +1869,11 @@ td{padding:8px 0;border-bottom:1px solid var(--soft);}
   <div class="panel" id="p-leaderboard">
     <h1>🏆 Reyting — eng faol o'quvchilar</h1>
     <div class="seg" style="margin-bottom:14px;">
-      <button class="seg-btn active" onclick="lbTab('streak',this)">🔥 Streak</button>
-      <button class="seg-btn" onclick="lbTab('days',this)">📅 Kunlar</button>
-      <button class="seg-btn" onclick="lbTab('words',this)">📚 So'zlar</button>
+      <button class="seg-btn active" onclick="lbTab('weekly',this)">💪 Mashqlar (shu hafta)</button>
+      <button class="seg-btn" onclick="lbTab('streak',this)">🔥 Streak</button>
     </div>
-    <div id="lb-streak">""" + lb_streak + """</div>
-    <div id="lb-days" style="display:none">""" + lb_days + """</div>
-    <div id="lb-words" style="display:none">""" + lb_words + """</div>
+    <div id="lb-weekly">""" + lb_weekly + """</div>
+    <div id="lb-streak" style="display:none">""" + lb_streak + """</div>
   </div>
   <div class="panel" id="p-chat">
     <h1>💬 O'quvchilar bilan chat</h1>
@@ -2159,7 +2161,7 @@ function grantMediaDel(){
   var fd=new FormData();fd.append('remove_media','1');fd.append('text',document.getElementById('gr-text').value);
   fetch('/admin/grant-save',{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(){document.getElementById('gr-current').textContent='Media yo‘q';});
 }
-function lbTab(mm,b){['streak','days','words'].forEach(function(x){var el=document.getElementById('lb-'+x);if(el)el.style.display=(x===mm)?'':'none';});if(b&&b.parentNode)b.parentNode.querySelectorAll('.seg-btn').forEach(function(x){x.classList.toggle('active',x===b);});}
+function lbTab(mm,b){['weekly','streak'].forEach(function(x){var el=document.getElementById('lb-'+x);if(el)el.style.display=(x===mm)?'':'none';});if(b&&b.parentNode)b.parentNode.querySelectorAll('.seg-btn').forEach(function(x){x.classList.toggle('active',x===b);});}
 var CHAT_UID=null,CHAT_TIMER=null,CHAT_NAMES={};
 function chEsc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function loadChatList(){

@@ -913,6 +913,7 @@ body{font-family:'Inter',sans-serif;color:#1a1a1a;}
 var curLevel='A1-A2';
 var doneExercises={formula:false,audio:false,gapiruv:false,grammar:false,writing:false,reading:false};
 var postedDays={};
+var postedEx={};
 var curExercise='';
 var simTimer=null;var playing=false;
 var curVideoSection='talaffuz';var curVideoId='';
@@ -1207,7 +1208,12 @@ function updateProgress(){
     ['mc-gapiruv',doneExercises.gapiruv],['mc-grammar',doneExercises.grammar],
     ['mc-reading',doneExercises.reading]];
   var total=0,done=0;
-  items.forEach(function(x){var el=document.getElementById(x[0]);if(el&&el.style.display!=='none'){total++;if(x[1])done++;}});
+  items.forEach(function(x){var el=document.getElementById(x[0]);if(el&&el.style.display!=='none'){total++;if(x[1]){done++;
+    var exKey=curLevel+'_'+window.curDay+'_'+x[0];
+    if(window.curDay&&!postedEx[exKey]){postedEx[exKey]=1;
+      fetch('/api/exercise-done',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:INIT_DATA,level:curLevel,day:window.curDay,exercise:x[0]})}).catch(function(){});
+    }
+  }}});
   var pct=total?Math.round(done/total*100):0;
   document.getElementById('prog-fill').style.width=pct+'%';
   document.getElementById('prog-pct').textContent=pct+'%';

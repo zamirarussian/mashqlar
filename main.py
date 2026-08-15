@@ -506,6 +506,11 @@ def init_db():
             created_at TIMESTAMP DEFAULT NOW(),
             is_read BOOLEAN DEFAULT FALSE
         );
+        CREATE TABLE IF NOT EXISTS exercise_completions (
+            user_id BIGINT NOT NULL, level TEXT NOT NULL, day INTEGER NOT NULL,
+            exercise TEXT NOT NULL, done_at TIMESTAMP DEFAULT NOW(),
+            PRIMARY KEY (user_id, level, day, exercise)
+        );
         CREATE TABLE IF NOT EXISTS video_lessons (
             id SERIAL PRIMARY KEY,
             section TEXT NOT NULL,
@@ -1225,6 +1230,31 @@ def api_progress():
     mark_day_complete(uid, lvl, day)
     return jsonify({"ok": True})
 
+@flask_app.route("/api/exercise-done", methods=["POST"])
+def api_exercise_done():
+    d = request.json or {}
+    user = verify_init_data(d.get("initData") or "")
+    if user is None or not user.get("id"):
+        return jsonify({"ok": True, "skip": True})
+    uid = int(user["id"])
+    lvl = (d.get("level") or "").strip().upper()
+    lvl = "B1" if lvl.startswith("B") else "A1"
+    ex = (d.get("exercise") or "").strip()[:40]
+    try:
+        day = int(d.get("day"))
+    except Exception:
+        return jsonify({"ok": False}), 400
+    if not ex:
+        return jsonify({"ok": False}), 400
+    try:
+        conn = get_conn(); cur = conn.cursor()
+        cur.execute("INSERT INTO exercise_completions (user_id, level, day, exercise) VALUES (%s,%s,%s,%s) ON CONFLICT DO NOTHING",
+                    (uid, lvl, day, ex))
+        conn.commit(); cur.close(); conn.close()
+    except Exception as e:
+        print("exercise-done:", e)
+    return jsonify({"ok": True})
+
 @flask_app.route("/api/days")
 def api_days():
     level = request.args.get("level", "A1")
@@ -1313,8 +1343,8 @@ def api_leaderboard():
     conn = get_conn(); cur = conn.cursor()
     if metric == "weekly":
         cur.execute("""SELECT u.user_id, u.first_name, COUNT(*) AS val
-            FROM users u JOIN user_completions uc ON uc.user_id=u.user_id
-            WHERE COALESCE(u.blocked,FALSE)=FALSE AND uc.done_at >= date_trunc('week', NOW())
+            FROM users u JOIN exercise_completions ec ON ec.user_id=u.user_id
+            WHERE COALESCE(u.blocked,FALSE)=FALSE AND ec.done_at >= date_trunc('week', NOW())
             GROUP BY u.user_id, u.first_name
             ORDER BY val DESC, u.user_id""")
     elif metric == "days":

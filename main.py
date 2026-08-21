@@ -1385,27 +1385,29 @@ def _save_day_vocab(level, day, vocab):
     conn.commit(); cur.close(); conn.close()
 
 @flask_app.route("/admin/distribute-vocab", methods=["POST"])
-@require_admin
 def admin_distribute_vocab():
-    d = request.json or {}
-    level = d.get("level")
+    check_api_auth()
     try:
+        d = request.json or {}
+        level = d.get("level")
         day = int(d.get("day"))
-    except Exception:
-        return {"ok": False, "error": "day"}, 400
-    if not level:
-        return {"ok": False, "error": "level"}, 400
-    row = get_content(level, day)
-    vocab = (dict(row).get("vocab") if row else None) or []
-    if len(vocab) < 11:
-        return {"ok": False, "error": "Kamida 11 so'z kerak (30 tavsiya). Hozir: " + str(len(vocab))}, 400
-    g1 = vocab[:10]; g2 = vocab[10:20]; g3 = vocab[20:]
-    _save_day_vocab(level, day, g1)
-    if g2:
-        _save_day_vocab(level, day + 1, g2)
-    if g3:
-        _save_day_vocab(level, day + 2, g3)
-    return {"ok": True, "counts": [len(g1), len(g2), len(g3)]}
+        if not level:
+            return {"ok": False, "error": "level yo'q"}, 400
+        row = get_content(level, day)
+        vocab = (dict(row).get("vocab") if row else None) or []
+        if len(vocab) < 11:
+            return {"ok": False, "error": "Kamida 11 so'z kerak. Hozir: " + str(len(vocab))}, 400
+        g1 = vocab[:10]; g2 = vocab[10:20]; g3 = vocab[20:]
+        _save_day_vocab(level, day, g1)
+        if g2:
+            _save_day_vocab(level, day + 1, g2)
+        if g3:
+            _save_day_vocab(level, day + 2, g3)
+        return {"ok": True, "counts": [len(g1), len(g2), len(g3)]}
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return {"ok": False, "error": "Server xatosi: " + str(e)}, 500
 
 @flask_app.route("/api/leaderboard")
 def api_leaderboard():

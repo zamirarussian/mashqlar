@@ -1379,7 +1379,8 @@ def api_weekly_winner():
 def _save_day_vocab(level, day, vocab):
     import json as _j
     conn = get_conn(); cur = conn.cursor()
-    cur.execute("INSERT INTO content (level, day) VALUES (%s,%s) ON CONFLICT (level, day) DO NOTHING", (level, int(day)))
+    cur.execute("""INSERT INTO content (level, day, shadowing_ru, shadowing_uz, razgovor_start, vocab)
+        VALUES (%s,%s,'','','','[]') ON CONFLICT (level, day) DO NOTHING""", (level, int(day)))
     cur.execute("UPDATE content SET vocab=%s::jsonb WHERE level=%s AND day=%s",
                 (_j.dumps(vocab, ensure_ascii=False), level, int(day)))
     conn.commit(); cur.close(); conn.close()
@@ -3770,3 +3771,4 @@ if __name__ == "__main__":
     threading.Thread(target=run_flask, daemon=True).start()
     logger.info("Flask ishga tushdi")
     run_bot()
+    

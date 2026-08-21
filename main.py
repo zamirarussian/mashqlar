@@ -1175,7 +1175,7 @@ def api_content():
     # Takror kunda (Sesh/Chor, Juma/Shan) o'z lug'ati bo'sh bo'lsa, manba kundan (Dush/Pay) tortib beramiz.
     if not session.get("admin"):
         src = _vocab_source_day(day)
-        if src != day:
+        if src != day and not d.get("vocab"):
             srow = get_content(level, src)
             if srow and srow.get("vocab"):
                 d["vocab"] = srow["vocab"]
@@ -1273,6 +1273,34 @@ def api_days():
             done = []
     return jsonify({"days": get_available_days(level), "done": done})
 
+def compute_weekly_winner():
+    """O'tgan hafta top-3 (mashq bo'yicha)."""
+    conn = get_conn(); cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute("""SELECT u.user_id, u.first_name, COUNT(*) AS val
+        FROM users u JOIN exercise_completions ec ON ec.user_id=u.user_id
+        WHERE COALESCE(u.blocked,FALSE)=FALSE
+          AND ec.done_at >= date_trunc('week', NOW()) - interval '7 days'
+          AND ec.done_at < date_trunc('week', NOW())
+        GROUP BY u.user_id, u.first_name ORDER BY val DESC, u.user_id LIMIT 3""")
+    rows = cur.fetchall(); cur.close(); conn.close()
+    return [{"name": (r["first_name"] or "\u2014"), "val": int(r["val"])} for r in rows]
+
+def announce_weekly_winner():
+    """Dushanba: g'olibni saqlaydi + botga xabar yuboradi."""
+    try:
+        top = compute_weekly_winner()
+        if not top:
+            return
+        import json as _j, datetime as _dt
+        week_id = str(_dt.date.today())
+        set_setting("weekly_winner", _j.dumps({"week_id": week_id, "top": top}))
+        w = top[0]
+        msg = ("\U0001F3C6 Haftaning g'olibi!\n\n\U0001F451 " + (w["name"] or "") +
+               " \u2014 " + str(w["val"]) + " mashq bajardi!\n\nTabriklaymiz! Yangi hafta boshlandi \u2014 bu hafta g'olib SIZ bo'ling! \U0001F4AA")
+        send_broadcast_sync(msg)
+    except Exception as e:
+        print("announce_weekly_winner:", e)
+
 def get_lb(metric, limit=30):
     conn = get_conn(); cur = conn.cursor(cursor_factory=RealDictCursor)
     if metric == "weekly":
@@ -1335,6 +1363,49 @@ def api_tts():
         except Exception:
             pass
     return Response(audio, mimetype="audio/ogg")
+
+@flask_app.route("/api/weekly-winner")
+def api_weekly_winner():
+    import json as _j
+    raw = get_setting("weekly_winner")
+    if not raw:
+        return jsonify({"ok": True, "winner": None})
+    try:
+        data = _j.loads(raw)
+    except Exception:
+        data = None
+    return jsonify({"ok": True, "winner": data})
+
+def _save_day_vocab(level, day, vocab):
+    import json as _j
+    conn = get_conn(); cur = conn.cursor()
+    cur.execute("INSERT INTO content (level, day) VALUES (%s,%s) ON CONFLICT (level, day) DO NOTHING", (level, int(day)))
+    cur.execute("UPDATE content SET vocab=%s::jsonb WHERE level=%s AND day=%s",
+                (_j.dumps(vocab, ensure_ascii=False), level, int(day)))
+    conn.commit(); cur.close(); conn.close()
+
+@flask_app.route("/admin/distribute-vocab", methods=["POST"])
+@require_admin
+def admin_distribute_vocab():
+    d = request.json or {}
+    level = d.get("level")
+    try:
+        day = int(d.get("day"))
+    except Exception:
+        return {"ok": False, "error": "day"}, 400
+    if not level:
+        return {"ok": False, "error": "level"}, 400
+    row = get_content(level, day)
+    vocab = (dict(row).get("vocab") if row else None) or []
+    if len(vocab) < 11:
+        return {"ok": False, "error": "Kamida 11 so'z kerak (30 tavsiya). Hozir: " + str(len(vocab))}, 400
+    g1 = vocab[:10]; g2 = vocab[10:20]; g3 = vocab[20:]
+    _save_day_vocab(level, day, g1)
+    if g2:
+        _save_day_vocab(level, day + 1, g2)
+    if g3:
+        _save_day_vocab(level, day + 2, g3)
+    return {"ok": True, "counts": [len(g1), len(g2), len(g3)]}
 
 @flask_app.route("/api/leaderboard")
 def api_leaderboard():
@@ -2481,6 +2552,8 @@ textarea{min-height:96px;resize:vertical;line-height:1.55;}
 
 <div class="screen" id="sc-vocab">
   <button class="backbtn" onclick="showMenu()">← Menyu</button><h2>🔤 Lug'at</h2>
+  <button id="distBtn" onclick="distributeVocab()" style="width:100%;padding:12px;border-radius:12px;border:none;background:#e8890c;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-bottom:8px;">🔀 Lug'atni 3 kunga taqsimla (10-10-10)</button>
+  <div class="hint" style="margin-bottom:12px;">Faqat yangi kunda (Dush/Pay, 30 so'z) ishlating: 10 so'z shu kunda qoladi, 10 tasi keyingi, 10 tasi undan keyingi kunga o'tadi.</div>
   <div id="L_vocab"></div><button class="add" onclick="addCard('vocab')">+ So'z qo'shish</button>
   <button class="save" onclick="saveLesson(1)">💾 Saqlash</button>
 </div>
@@ -2660,6 +2733,15 @@ async function aiTopupGrammar(){
     alert("AI to'ldirdi: "+((j.grammar||[]).length)+" konstruksiya. Ko'rib chiqing va Saqlash ni bosing.");
   }catch(e){alert('Xato: '+e);}
   btn.disabled=false;btn.textContent=ob;
+}
+function distributeVocab(){
+  if(!confirm("So'zlar 3 kunga bo'linadi: 10 tasi shu kunda qoladi, 10 tasi keyingi kunga, 10 tasi undan keyingi kunga o'tadi. Keyingi kunlardagi eski lug'at almashadi. Davom etamizmi?"))return;
+  var b=document.getElementById('distBtn');b.disabled=true;var ot=b.textContent;b.textContent='Taqsimlanmoqda...';
+  fetch('/admin/distribute-vocab',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({level:LEVEL,day:DAY})}).then(function(r){return r.json();}).then(function(j){
+    b.disabled=false;b.textContent=ot;
+    if(j&&j.ok){alert("Taqsimlandi! "+DAY+"-kun: "+j.counts[0]+" so'z, "+(DAY+1)+"-kun: "+j.counts[1]+" so'z, "+(DAY+2)+"-kun: "+j.counts[2]+" so'z. Sahifani yangilab har kunni tekshiring.");location.reload();}
+    else alert((j&&j.error)||'Xato');
+  }).catch(function(){b.disabled=false;b.textContent=ot;alert('Xato');});
 }
 async function aiTopupReading(){
   var btn=document.getElementById('topupBtnR');if(!btn)return;
@@ -3682,6 +3764,7 @@ if __name__ == "__main__":
     except Exception:
         _sah = 10
     scheduler.add_job(send_auto_segments, "cron", hour=_sah, minute=30, id="seg_auto", replace_existing=True)
+    scheduler.add_job(announce_weekly_winner, "cron", day_of_week="mon", hour=10, minute=0, id="weekly_winner", replace_existing=True)
     threading.Thread(target=run_flask, daemon=True).start()
     logger.info("Flask ishga tushdi")
     run_bot()

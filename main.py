@@ -2585,6 +2585,7 @@ textarea{min-height:96px;resize:vertical;line-height:1.55;}
   <div class="scard" onclick="openSec('formulas')"><div class="ic" style="background:#EEEDFE;color:#3C3489;">💬</div><div><div class="snm">Nutq formulalari</div><div class="ssub" id="cnt-formulas">0 ta</div></div><span class="chev">›</span></div>
   <div class="scard" onclick="openSec('audio')"><div class="ic" style="background:#E1F5EE;color:#085041;">🎧</div><div><div class="snm">Audio mashq</div><div class="ssub">Audio + test savollari</div></div><span class="chev">›</span></div>
   <div class="scard" onclick="openSec('speaking')"><div class="ic" style="background:#E6F1FB;color:#0C447C;">🎤</div><div><div class="snm">Gapirish</div><div class="ssub" id="cnt-speaking">0 ta savol</div></div><span class="chev">›</span></div>
+  <div class="scard" onclick="openSec('shadowing')"><div class="ic" style="background:#EEEDFE;color:#3C3489;">🎧</div><div><div class="snm">Shadowing (taqlid)</div><div class="ssub">Matn + audio + video</div></div><span class="chev">›</span></div>
   <div class="scard" onclick="openSec('grammar')"><div class="ic" style="background:#FAEEDA;color:#633806;">📘</div><div><div class="snm">Grammatika</div><div class="ssub" id="cnt-grammar">0 ta konstruksiya</div></div><span class="chev">›</span></div>
   <div class="scard" onclick="openSec('reading')"><div class="ic" style="background:#FDE8EA;color:#8a1f2b;">📄</div><div><div class="snm">O'qish mashqi</div><div class="ssub" id="cnt-reading_texts">matn + Правда/Не правда</div></div><span class="chev">›</span></div>
   <div class="scard" onclick="openSec('exam')"><div class="ic" style="background:#E8EEFC;color:#15347e;">🎓</div><div><div class="snm">Imtihon savollari</div><div class="ssub" id="cnt-exam_questions">Imtihon kuni uchun</div></div><span class="chev">›</span></div>
@@ -2631,13 +2632,6 @@ textarea{min-height:96px;resize:vertical;line-height:1.55;}
 <div class="screen" id="sc-audio">
   <button class="backbtn" onclick="showMenu()">← Menyu</button><h2>🎧 Audio mashq</h2>
   <div class="fixed">
-    <div class="subt">SHADOWING (tinglab takrorlash matni)</div>
-    <label class="flbl">Ruscha</label><textarea id="f_shadowing_ru"></textarea>
-    <label class="flbl">O'zbekcha</label><textarea id="f_shadowing_uz"></textarea>
-    <button id="aiShadowBtn" onclick="aiShadowing()" style="width:100%;padding:11px;border:none;border-radius:10px;background:#6b4ef0;color:#fff;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px;">🤖 AI: PDF'dan shadowing matni ol</button>
-    <div class="hint" style="margin-top:6px;">Avval pastdagi materiallarga PDF yuklang (ichida «N-kun» bo'lsin). AI shu kun matnini oladi (A1: 4-5 gap, B1: 6-8 gap).</div>
-  </div>
-  <div class="fixed">
     <div class="subt">AUDIO FAYLLAR</div>__R2WARN__
     <div id="audioBox"></div>
   </div>
@@ -2650,16 +2644,27 @@ textarea{min-height:96px;resize:vertical;line-height:1.55;}
   <div class="fixed"><label class="flbl">Razgovor (AI suhbat boshlash gapi)</label><input id="f_razgovor_start"></div>
   <div class="subt">SAVOLLAR</div>
   <div id="L_speaking_questions"></div><button class="add" onclick="addCard('speaking_questions')">+ Savol qo'shish</button>
-  <div class="fixed" style="margin-top:14px;">
-    <div class="subt">🎯 TAQLID MASHQI</div>
-    <label class="flbl">Taqlid turi (shu kun uchun)</label>
+  <button class="save" onclick="saveLesson(1)">💾 Saqlash</button>
+</div>
+<div class="screen" id="sc-shadowing">
+  <button class="backbtn" onclick="showMenu()">← Menyu</button><h2>🎧 Shadowing (taqlid)</h2>
+  <div class="fixed">
+    <div class="subt">MATN (ruscha + o'zbekcha)</div>
+    <label class="flbl">Ruscha</label><textarea id="f_shadowing_ru"></textarea>
+    <label class="flbl">O'zbekcha</label><textarea id="f_shadowing_uz"></textarea>
+    <button id="aiShadowBtn" onclick="aiShadowing()" style="width:100%;padding:11px;border:none;border-radius:10px;background:#6b4ef0;color:#fff;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px;">🤖 AI: PDF'dan shadowing matni ol</button>
+    <div class="hint" style="margin-top:6px;">Pastdagi «QO'SHIMCHA MATERIAL (PDF)» ga PDF yuklang (ichida «A1 23-kun» kabi). AI shu daraja+kun matnini oladi (A1: 4-5 gap, B1: 6-8 gap).</div>
+  </div>
+  <div class="fixed">
+    <div class="subt">🎬 VIDEO / 🎧 AUDIO</div>
+    <label class="flbl">Taqlid turi</label>
     <select id="f_taqlid_type" style="width:100%;padding:11px;border-radius:9px;border:1px solid #ccc;font-family:inherit;font-size:14px;">
       <option value="audio">🎧 Audio</option>
       <option value="video">🎬 Video (YouTube)</option>
     </select>
-    <label class="flbl" style="margin-top:10px;">Video (YouTube URL) — «Video» tanlansa</label>
+    <label class="flbl" style="margin-top:10px;">Video (YouTube URL)</label>
     <input id="f_taqlid_video" type="text" placeholder="https://youtu.be/..." style="width:100%;padding:11px;border-radius:9px;border:1px solid #ccc;font-family:inherit;font-size:14px;">
-    <label class="flbl" style="margin-top:10px;">Audio fayl — «Audio» tanlansa</label>
+    <label class="flbl" style="margin-top:10px;">Audio fayl</label>
     <div id="taqlidAudioBox"></div>
   </div>
   <button class="save" onclick="saveLesson(1)">💾 Saqlash</button>
@@ -2899,7 +2904,7 @@ async function delLesson(){
   location.href='/admin#lessons';
 }
 var MATERIALS={};
-var MAT_SECS={vocab:'sc-vocab',formula:'sc-formulas',audio:'sc-audio',speaking:'sc-speaking',grammar:'sc-grammar',writing:'sc-writing'};
+var MAT_SECS={vocab:'sc-vocab',formula:'sc-formulas',audio:'sc-audio',speaking:'sc-speaking',shadowing:'sc-shadowing',grammar:'sc-grammar',writing:'sc-writing'};
 function setupMaterials(){
   for(var sec in MAT_SECS){
     var screen=document.getElementById(MAT_SECS[sec]);if(!screen)continue;

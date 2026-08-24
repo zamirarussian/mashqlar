@@ -398,6 +398,35 @@ def ai_topup(pdf_text, level, day):
 
 # --- DATABASE (connection pool) ---
 _db_pool = None
+
+AI_SHADOWING_SYSTEM = (
+    "Sen tajribali rus tili o'qituvchisisan. Foydalanuvchi PDF matni, DARAJA va KUN raqamini beradi.\n"
+    "PDF ichida turli kunlar bor (masalan '1-kun', '24-kun', 'День 24', 'Урок 24'). "
+    "Berilgan KUN uchun shadowing (taqlid) matnini shu PDF ichidan top va tayyorla.\n"
+    "DARAJA QOIDASI (juda muhim, e'tibor ber):\n"
+    "- A1: 4-5 ta qisqa, oddiy gap. Lekin BOLALARCHA emas — tabiiy, kundalik hayotdan.\n"
+    "- B1: 6-8 ta gap. Tabiiy, real hayotiy, biroz murakkabroq (bog'lovchilar, o'tgan zamon, sabab-natija).\n"
+    "Matn ravon va ovoz chiqarib takrorlashga (shadowing) qulay bo'lsin. Juda sodda bo'lib qolmasin.\n"
+    "shadowing_ru — ruscha matn (agar PDF'da urg'u belgilari bo'lsa, saqla).\n"
+    "shadowing_uz — o'zbekcha tabiiy tarjima.\n"
+    "Agar PDF'da o'sha kun uchun aniq matn bo'lmasa, o'sha kun/hafta mavzusiga mos darajali matn yarat.\n"
+    "Faqat toza JSON qaytar (izohsiz, ``` siz): {\"shadowing_ru\":\"\",\"shadowing_uz\":\"\"}"
+)
+
+def ai_shadowing(pdf_text, level, day):
+    import anthropic, json as _j
+    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+    msg = client.messages.create(
+        model=AI_MODEL, max_tokens=2000, system=AI_SHADOWING_SYSTEM,
+        messages=[{"role": "user", "content": f"DARAJA: {level}\nKUN: {day}\n\nPDF matni:\n{pdf_text[:14000]}"}]
+    )
+    txt = "".join(getattr(b, "text", "") for b in msg.content).strip()
+    if txt.startswith("```"):
+        txt = txt.strip("`")
+        if txt.lower().startswith("json"):
+            txt = txt[4:]
+        txt = txt.strip()
+    return _j.loads(txt)
 def _get_pool():
     global _db_pool
     if _db_pool is None:
@@ -1409,6 +1438,25 @@ def admin_distribute_vocab():
         import traceback
         traceback.print_exc()
         return {"ok": False, "error": "Server xatosi: " + str(e)}, 500
+
+@flask_app.route("/admin/ai-shadowing", methods=["POST"])
+def admin_ai_shadowing():
+    check_api_auth()
+    if not ai_configured():
+        return {"ok": False, "error": "AI sozlanmagan (ANTHROPIC_API_KEY yo'q)"}, 400
+    try:
+        d = request.json or {}
+        level = d.get("level"); day = int(d.get("day"))
+        if not level:
+            return {"ok": False, "error": "level yo'q"}, 400
+        txt = get_section_pdf_text(level, day, "shadowing") or get_section_pdf_text(level, day, "audio")
+        if not txt:
+            return {"ok": False, "error": "Audio bo'limi materiallariga PDF yuklang."}, 400
+        res = ai_shadowing(txt, level, day)
+        return {"ok": True, "shadowing_ru": res.get("shadowing_ru", ""), "shadowing_uz": res.get("shadowing_uz", "")}
+    except Exception as e:
+        import traceback; traceback.print_exc()
+        return {"ok": False, "error": "Xato: " + str(e)}, 500
 
 @flask_app.route("/api/leaderboard")
 def api_leaderboard():
@@ -2585,6 +2633,8 @@ textarea{min-height:96px;resize:vertical;line-height:1.55;}
     <div class="subt">SHADOWING (tinglab takrorlash matni)</div>
     <label class="flbl">Ruscha</label><textarea id="f_shadowing_ru"></textarea>
     <label class="flbl">O'zbekcha</label><textarea id="f_shadowing_uz"></textarea>
+    <button id="aiShadowBtn" onclick="aiShadowing()" style="width:100%;padding:11px;border:none;border-radius:10px;background:#6b4ef0;color:#fff;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px;">🤖 AI: PDF'dan shadowing matni ol</button>
+    <div class="hint" style="margin-top:6px;">Avval pastdagi materiallarga PDF yuklang (ichida «N-kun» bo'lsin). AI shu kun matnini oladi (A1: 4-5 gap, B1: 6-8 gap).</div>
   </div>
   <div class="fixed">
     <div class="subt">AUDIO FAYLLAR</div>__R2WARN__
@@ -2743,6 +2793,15 @@ function distributeVocab(){
   fetch('/admin/distribute-vocab',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({level:LEVEL,day:DAY})}).then(function(r){return r.json();}).then(function(j){
     b.disabled=false;b.textContent=ot;
     if(j&&j.ok){alert("Taqsimlandi! "+DAY+"-kun: "+j.counts[0]+" so'z, "+(DAY+1)+"-kun: "+j.counts[1]+" so'z, "+(DAY+2)+"-kun: "+j.counts[2]+" so'z. Sahifani yangilab har kunni tekshiring.");location.reload();}
+    else alert((j&&j.error)||'Xato');
+  }).catch(function(){b.disabled=false;b.textContent=ot;alert('Xato');});
+}
+function aiShadowing(){
+  if(!confirm("Materiallardagi PDF'dan AI shu kun uchun shadowing matni tayyorlaydi. Mavjud matn almashadi. Davom etamizmi?"))return;
+  var b=document.getElementById('aiShadowBtn');b.disabled=true;var ot=b.textContent;b.textContent='⏳ AI ishlayapti (30-60s)...';
+  fetch('/admin/ai-shadowing',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({level:LEVEL,day:DAY})}).then(function(r){return r.json();}).then(function(j){
+    b.disabled=false;b.textContent=ot;
+    if(j&&j.ok){document.getElementById('f_shadowing_ru').value=j.shadowing_ru||'';document.getElementById('f_shadowing_uz').value=j.shadowing_uz||'';alert("AI tayyorladi! Ko'rib chiqing va Saqlash ni bosing.");}
     else alert((j&&j.error)||'Xato');
   }).catch(function(){b.disabled=false;b.textContent=ot;alert('Xato');});
 }
@@ -3771,4 +3830,3 @@ if __name__ == "__main__":
     threading.Thread(target=run_flask, daemon=True).start()
     logger.info("Flask ishga tushdi")
     run_bot()
-    

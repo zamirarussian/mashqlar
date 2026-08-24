@@ -401,8 +401,9 @@ _db_pool = None
 
 AI_SHADOWING_SYSTEM = (
     "Sen tajribali rus tili o'qituvchisisan. Foydalanuvchi PDF matni, DARAJA va KUN raqamini beradi.\n"
-    "PDF ichida turli kunlar bor (masalan '1-kun', '24-kun', 'День 24', 'Урок 24'). "
-    "Berilgan KUN uchun shadowing (taqlid) matnini shu PDF ichidan top va tayyorla.\n"
+    "PDF ichida turli DARAJA va KUNLAR aralash bo'lishi mumkin (masalan 'A1 1-kun', 'A1 23-kun', 'B1 5-kun', 'A1 · День 23'). "
+    "Berilgan DARAJA va KUN ikkalasiga MOS bo'lgan bo'limni PDF ichidan aniq top (masalan DARAJA=A1, KUN=23 bo'lsa — 'A1 23-kun' qismini). "
+    "Boshqa daraja yoki boshqa kun matnini OLMA. Shu bo'lim uchun shadowing matnini tayyorla.\n"
     "DARAJA QOIDASI (juda muhim, e'tibor ber):\n"
     "- A1: 4-5 ta qisqa, oddiy gap. Lekin BOLALARCHA emas — tabiiy, kundalik hayotdan.\n"
     "- B1: 6-8 ta gap. Tabiiy, real hayotiy, biroz murakkabroq (bog'lovchilar, o'tgan zamon, sabab-natija).\n"

@@ -53,6 +53,26 @@ body{font-family:'Inter',sans-serif;color:#1a1a1a;}
 .ry-tabs{display:flex;gap:6px;margin-top:14px;}
 .ry-tab{flex:1;text-align:center;font-size:12.5px;font-weight:700;padding:10px 0;border-radius:12px 12px 0 0;background:rgba(255,255,255,.12);color:#dbe5ff;border:none;cursor:pointer;font-family:inherit;}
 .ry-tab.on{background:#fff;color:#1f54e0;}
+.wpop-dim{position:fixed;inset:0;background:rgba(10,20,45,.6);display:flex;align-items:center;justify-content:center;padding:18px;z-index:200;}
+.wpop{background:#fff;border-radius:26px;width:100%;max-width:360px;overflow:hidden;box-shadow:0 24px 50px rgba(0,0,0,.35);animation:wpopin .4s cubic-bezier(.2,1.3,.4,1);}
+@keyframes wpopin{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+.wpop-top{background:linear-gradient(150deg,#f7c948,#e8890c);padding:24px 20px 38px;text-align:center;color:#fff;position:relative;overflow:hidden;}
+.wpop-conf{position:absolute;top:8px;left:0;right:0;font-size:14px;letter-spacing:6px;opacity:.9;}
+.wpop-trophy{font-size:50px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.2));}
+.wpop-top h2{font-size:20px;font-weight:800;margin-top:6px;}
+.wpop-top p{font-size:12px;opacity:.92;margin-top:2px;}
+.wpop-winner{margin:-26px 20px 0;background:#fff;border-radius:20px;box-shadow:0 8px 20px rgba(20,45,100,.12);padding:18px;text-align:center;position:relative;border:2px solid #f7c948;}
+.wpop-crown{position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-size:22px;}
+.wpop-wav{width:68px;height:68px;border-radius:50%;background:linear-gradient(135deg,#f7c948,#e8890c);margin:6px auto 8px;display:flex;align-items:center;justify-content:center;font-size:27px;font-weight:800;color:#fff;}
+.wpop-wnm{font-size:19px;font-weight:800;color:#1a2233;}
+.wpop-wsc{display:inline-flex;align-items:center;gap:5px;margin-top:6px;background:#fff6e5;color:#c47908;font-weight:800;font-size:14px;padding:5px 13px;border-radius:99px;}
+.wpop-mini{display:flex;justify-content:center;gap:20px;padding:16px 20px 6px;}
+.wpop-mc{text-align:center;font-size:11px;color:#5b6478;}
+.wpop-ma{width:36px;height:36px;border-radius:50%;margin:0 auto 4px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:14px;position:relative;}
+.wpop-ma span{position:absolute;bottom:-3px;right:-3px;width:16px;height:16px;border-radius:50%;font-size:9px;display:flex;align-items:center;justify-content:center;border:1.5px solid #fff;color:#fff;}
+.wpop-foot{padding:8px 20px 22px;text-align:center;}
+.wpop-msg{font-size:12.5px;color:#8a93a8;margin-bottom:14px;line-height:1.5;}
+.wpop-btn{width:100%;padding:14px;border:none;border-radius:14px;background:#2f63ee;color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;}
 .ry-body{flex:1;overflow-y:auto;background:#fff;}
 .ry-pod{display:flex;align-items:flex-end;justify-content:center;gap:12px;padding:20px 18px 0;}
 .ry-pc{display:flex;flex-direction:column;align-items:center;flex:1;}
@@ -448,6 +468,27 @@ body{font-family:'Inter',sans-serif;color:#1a1a1a;}
 </div>
 
 <!-- REYTING -->
+<div id="winnerPop" class="wpop-dim" style="display:none;" onclick="closeWinnerPop()">
+  <div class="wpop" onclick="event.stopPropagation()">
+    <div class="wpop-top">
+      <div class="wpop-conf">🎉 ✦ 🎊 ✦ 🎉</div>
+      <div class="wpop-trophy">🏆</div>
+      <h2>Shu hafta g'olibi!</h2>
+      <p>O'tgan hafta natijalari</p>
+    </div>
+    <div class="wpop-winner">
+      <div class="wpop-crown">👑</div>
+      <div class="wpop-wav" id="wpop-av">—</div>
+      <div class="wpop-wnm" id="wpop-nm">—</div>
+      <div class="wpop-wsc" id="wpop-sc">💪 0 mashq</div>
+    </div>
+    <div class="wpop-mini" id="wpop-mini"></div>
+    <div class="wpop-foot">
+      <div class="wpop-msg">Yangi hafta boshlandi! 🚀<br>Bu hafta g'olib <b>siz</b> bo'lishingiz mumkin!</div>
+      <button class="wpop-btn" onclick="closeWinnerPop()">Boshladik! 💪</button>
+    </div>
+  </div>
+</div>
 <div class="screen" id="s-reyting">
   <div class="ry-head">
     <button class="back" onclick="show('s-home')">← Bosh sahifa</button>
@@ -808,7 +849,7 @@ body{font-family:'Inter',sans-serif;color:#1a1a1a;}
       <div class="status-arrow">›</div>
     </div>
     <div class="mashq-card" onclick="openAIChat()">
-      <div class="mashq-icon-big" style="background:#e0f0ff;">🤖</div>
+      <div class="mashq-icon-big" style="background:linear-gradient(135deg,#8b6bff,#6b4ef0);"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:26px;height:26px;"><path d="M14 8a3 3 0 0 0-3 3v3a3 3 0 0 0 6 0v-3a3 3 0 0 0-3-3z"/><path d="M9 12v2a5 5 0 0 0 10 0v-2M14 19v3M11 22h6"/><path d="M5 5l.6 1.4L7 7l-1.4.6L5 9l-.6-1.4L3 7l1.4-.6z" fill="#fff" stroke="none"/></svg></div>
       <div style="flex:1;"><div class="mashq-name">AI bilan gaplashish</div><div class="mashq-desc">Suhbatdosh bot — ruscha suhbat</div></div>
       <div class="status-arrow">›</div>
     </div>
@@ -1087,6 +1128,29 @@ function openVideos(section){
 }
 
 function escH(s){return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function closeWinnerPop(){var p=document.getElementById('winnerPop');if(p)p.style.display='none';}
+function showWinnerPop(w){
+  var top=w.top||[];if(!top.length)return;var w1=top[0];
+  document.getElementById('wpop-av').textContent=(w1.name||'?').charAt(0).toUpperCase();
+  document.getElementById('wpop-nm').textContent=w1.name||'\u2014';
+  document.getElementById('wpop-sc').textContent='💪 '+w1.val+' mashq';
+  var mini='';
+  if(top[1])mini+="<div class='wpop-mc'><div class='wpop-ma' style='background:#9fb0c8;'>"+(top[1].name||'?').charAt(0).toUpperCase()+"<span style='background:#9fb0c8;'>2</span></div>"+escH(top[1].name||'')+"<br><b>"+top[1].val+"</b></div>";
+  if(top[2])mini+="<div class='wpop-mc'><div class='wpop-ma' style='background:#cf9b6b;'>"+(top[2].name||'?').charAt(0).toUpperCase()+"<span style='background:#cf9b6b;'>3</span></div>"+escH(top[2].name||'')+"<br><b>"+top[2].val+"</b></div>";
+  document.getElementById('wpop-mini').innerHTML=mini;
+  document.getElementById('winnerPop').style.display='flex';
+}
+function saveSeenWinner(wk){try{var cs=window.Telegram&&window.Telegram.WebApp&&window.Telegram.WebApp.CloudStorage;if(cs)cs.setItem('seen_winner',wk);}catch(e){}}
+function checkWeeklyWinner(){
+  fetch('/api/weekly-winner',{headers:{'X-Telegram-Init-Data':INIT_DATA}}).then(function(r){return r.json();}).then(function(j){
+    if(!j.ok||!j.winner||!j.winner.top||!j.winner.top.length)return;
+    var wk=j.winner.week_id||'';
+    try{var cs=window.Telegram&&window.Telegram.WebApp&&window.Telegram.WebApp.CloudStorage;
+      if(cs){cs.getItem('seen_winner',function(err,val){if(!err&&val===wk)return;showWinnerPop(j.winner);saveSeenWinner(wk);});return;}
+    }catch(e){}
+    showWinnerPop(j.winner);saveSeenWinner(wk);
+  }).catch(function(){});
+}
 function ytEmbed(url){if(!url)return '';var m=url.match(/(?:youtu\.be\/|[?&]v=|embed\/|shorts\/)([A-Za-z0-9_-]{6,})/);return m?('https://www.youtube.com/embed/'+m[1]):'';}
 function renderVideoList(section){
   var videos=VIDEO_DATA[section]||[];
@@ -1801,6 +1865,7 @@ function renderExamResult(){
   h+="<div style='font-size:21px;font-weight:800;margin-bottom:4px;'>"+(passed?'Imtihondan o‘tdingiz! 🎉':'Yana urinib ko‘ring')+"</div>";
   h+="<div style='font-size:13px;color:#8a93a8;margin-bottom:20px;'>"+tot+" tadan "+EX_correct+" ta to‘g‘ri</div></div>";
   if(passed){
+    fetch('/api/progress',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:INIT_DATA,level:curLevel,day:window.curDay})}).catch(function(){});
     h+="<div style='background:#fff;border:1px solid #e8ecf6;border-radius:16px;padding:16px;margin-bottom:12px;'><div style='font-size:12px;font-weight:800;color:#8a93a8;margin-bottom:6px;'>OG‘ZAKI QISM</div><div style='font-size:13px;color:#475067;line-height:1.6;'>Hafta mavzusida AI bilan ruscha suhbatlashing. Tugma bosilsa suhbatdosh bot ochiladi.</div></div>";
     h+="<button class='ex-done-btn' onclick=\"(window.Telegram&&window.Telegram.WebApp)?window.Telegram.WebApp.openTelegramLink('"+url+"'):window.open('"+url+"','_blank')\" style='background:linear-gradient(135deg,#2f63ee,#163aa6);color:#fff;'>🤖 AI bilan og‘zaki suhbat</button>";
     if(ACCESS&&ACCESS.teacher_exam){
@@ -2319,6 +2384,7 @@ function loadUI(){
   }).catch(function(){});
 }
 if(tg){try{tg.ready();tg.expand();}catch(e){}}
+setTimeout(checkWeeklyWinner,1600);
 loadUI();
 loadAccess();
 

@@ -1362,7 +1362,7 @@ def api_tts():
     text = (request.args.get("text") or "").strip()
     if not text:
         return {"error": "text"}, 400
-    text = text[:3000]
+    text = text[:8000]
     import re as _re
     text = _re.sub("([\u0430\u0435\u0451\u0438\u043e\u0443\u044b\u044d\u044e\u044f\u0410\u0415\u0401\u0418\u041e\u0423\u042b\u042d\u042e\u042f])\u0301", r"+\1", text)
     key = os.environ.get("YANDEX_API_KEY", "")

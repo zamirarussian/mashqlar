@@ -1362,7 +1362,7 @@ def api_tts():
     text = (request.args.get("text") or "").strip()
     if not text:
         return {"error": "text"}, 400
-    text = text[:200]
+    text = text[:3000]
     import re as _re
     text = _re.sub("([\u0430\u0435\u0451\u0438\u043e\u0443\u044b\u044d\u044e\u044f\u0410\u0415\u0401\u0418\u041e\u0423\u042b\u042d\u042e\u042f])\u0301", r"+\1", text)
     key = os.environ.get("YANDEX_API_KEY", "")
@@ -1377,13 +1377,27 @@ def api_tts():
             return Response(obj["Body"].read(), mimetype="audio/ogg")
         except Exception:
             pass
-    body = urllib.parse.urlencode({"text": text, "lang": "ru-RU", "voice": "alena",
-                                   "folderId": folder, "format": "oggopus"}).encode()
-    req = urllib.request.Request("https://tts.api.cloud.yandex.net/speech/v1/tts:synthesize",
-                                 data=body, headers={"Authorization": "Api-Key " + key})
+    import re as _re2
+    _parts = _re2.split(r"(?<=[.!?\n])\s+", text)
+    _chunks = []; _cur = ""
+    for _p in _parts:
+        if len(_cur) + len(_p) + 1 > 500 and _cur:
+            _chunks.append(_cur); _cur = _p
+        else:
+            _cur = ((_cur + " " + _p).strip() if _cur else _p)
+    if _cur:
+        _chunks.append(_cur)
+    if not _chunks:
+        _chunks = [text]
+    audio = b""
     try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            audio = resp.read()
+        for _ch in _chunks:
+            body = urllib.parse.urlencode({"text": _ch, "lang": "ru-RU", "voice": "alena",
+                                           "folderId": folder, "format": "oggopus"}).encode()
+            req = urllib.request.Request("https://tts.api.cloud.yandex.net/speech/v1/tts:synthesize",
+                                         data=body, headers={"Authorization": "Api-Key " + key})
+            with urllib.request.urlopen(req, timeout=20) as resp:
+                audio += resp.read()
     except Exception as e:
         print("tts error:", e)
         return {"error": "tts failed"}, 502

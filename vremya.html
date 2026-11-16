@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Время — Mavzuli dars</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
+  html, body { margin: 0; padding: 0; overflow-x: hidden; }
+  body {
+    font-family: 'Inter', -apple-system, Segoe UI, Roboto, sans-serif;
+    background: #eef3fd; color: #15347e; font-size: 15px; line-height: 1.5;
+  }
+  .app { max-width: 480px; margin: 0 auto; min-height: 100vh; background: #eef3fd; position: relative; padding-bottom: 20px; }
+
+  .screen { display: none; animation: fadeIn .25s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  @keyframes pop { 0% { transform: scale(0.7); opacity: 0; } 70% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(1); } }
+  @keyframes shake { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+
+  /* ========= HOME ========= */
+  .hero {
+    background: linear-gradient(135deg, #2f63ee 0%, #15347e 100%);
+    color: #fff; padding: 22px 18px 90px; border-radius: 0 0 24px 24px;
+    position: relative; overflow: hidden;
+  }
+  .hero::after { content: '⏳'; position: absolute; right: -10px; top: 10px; font-size: 140px; opacity: .08; }
+  .hero-back { font-size: 14px; opacity: .9; margin-bottom: 14px; cursor: pointer; }
+  .hero-title { font-size: 28px; font-weight: 800; margin: 0 0 6px; letter-spacing: -0.5px; }
+  .hero-sub { font-size: 14px; opacity: .92; margin: 0; max-width: 300px; }
+
+  .progress-wrap {
+    background: #fff; border-radius: 18px; margin: -70px 14px 14px;
+    padding: 16px; box-shadow: 0 8px 20px rgba(20,45,100,.08); position: relative; z-index: 2;
+  }
+  .progress-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .progress-label { font-size: 13px; color: #8894ad; font-weight: 600; }
+  .progress-pct { font-size: 20px; font-weight: 800; color: #2f63ee; }
+  .progress-bar { height: 8px; background: #e8eefc; border-radius: 10px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #2f63ee, #8b6bff); width: 0%; transition: width .5s ease; border-radius: 10px; }
+  .xp-row { display: flex; gap: 10px; margin-top: 12px; }
+  .xp-chip { flex: 1; background: #eef3fd; border-radius: 12px; padding: 10px; text-align: center; }
+  .xp-chip b { display: block; font-size: 18px; color: #15347e; font-weight: 800; }
+  .xp-chip span { font-size: 11px; color: #8894ad; font-weight: 600; }
+
+  .section-list { padding: 4px 14px; }
+  .section-btn {
+    display: flex; align-items: center; gap: 14px;
+    background: #fff; border: 1px solid #e6ecf8; border-radius: 18px;
+    padding: 16px; margin-bottom: 10px; cursor: pointer;
+    box-shadow: 0 4px 12px rgba(20,45,100,.04); transition: transform .15s ease;
+  }
+  .section-btn:active { transform: scale(0.98); }
+  .section-icon {
+    width: 48px; height: 48px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; flex-shrink: 0;
+  }
+  .si-blue { background: linear-gradient(135deg, #2f63ee, #15347e); color: #fff; }
+  .si-purple { background: linear-gradient(135deg, #8b6bff, #6b4ef0); color: #fff; }
+  .si-gold { background: linear-gradient(135deg, #f7c948, #e8890c); color: #fff; }
+  .si-green { background: linear-gradient(135deg, #25c274, #0e8a73); color: #fff; }
+  .section-text { flex: 1; min-width: 0; }
+  .section-title { font-size: 15px; font-weight: 800; color: #15347e; margin: 0 0 2px; }
+  .section-sub { font-size: 12px; color: #8894ad; margin: 0; }
+  .section-check {
+    width: 24px; height: 24px; border-radius: 50%; background: #e8eefc;
+    color: #8894ad; display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 800; flex-shrink: 0;
+  }
+  .section-check.done { background: #25c274; color: #fff; }
+
+  /* ========= TOP NAV ========= */
+  .topnav {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 14px 10px; background: #eef3fd;
+    position: sticky; top: 0; z-index: 10;
+  }
+  .topnav-back {
+    width: 40px; height: 40px; border-radius: 12px; background: #fff;
+    border: 1px solid #e6ecf8; display: flex; align-items: center;
+    justify-content: center; font-size: 18px; color: #2f63ee; cursor: pointer; flex-shrink: 0;
+  }
+  .topnav-title { font-size: 16px; font-weight: 800; color: #15347e; flex: 1; }
+  .topnav-counter {
+    background: #fff; border: 1px solid #e6ecf8; border-radius: 12px;
+    padding: 8px 12px; font-size: 13px; font-weight: 700; color: #2f63ee;
+  }
+  .topbar-progress { padding: 0 14px 10px; }
+  .topbar-progress .progress-bar { height: 6px; }
+
+  /* ========= FLIP CARD ========= */
+  .card-stage { padding: 10px 14px 20px; perspective: 1200px; }
+  .flip-card { position: relative; width: 100%; aspect-ratio: 4 / 5; transform-style: preserve-3d; transition: transform .5s; cursor: pointer; }
+  .flip-card.flipped { transform: rotateY(180deg); }
+  .face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 24px; padding: 24px 22px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 10px 30px rgba(20,45,100,.10); }
+  .face.front { background: #fff; border: 1px solid #e6ecf8; color: #15347e; }
+  .face.back { background: linear-gradient(135deg, #2f63ee, #15347e); color: #fff; transform: rotateY(180deg); }
+  .face-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .face-num { display: inline-block; background: #e8eefc; color: #2f63ee; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 999px; }
+  .face.back .face-num { background: rgba(255,255,255,.18); color: #fff; }
+  .audio-btn { width: 40px; height: 40px; border-radius: 50%; background: #e8eefc; color: #2f63ee; border: none; display: flex; align-items: center; justify-content: center; font-size: 18px; cursor: pointer; }
+  .face.back .audio-btn { background: rgba(255,255,255,.18); color: #fff; }
+  .face-main { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; text-align: center; padding: 10px 0; }
+  .face-word { font-size: 30px; font-weight: 800; margin: 0; letter-spacing: -0.5px; line-height: 1.15; }
+  .face-uz { font-size: 22px; font-weight: 700; margin: 0 0 14px; color: #fff; }
+  .face-ex-label { font-size: 11px; font-weight: 700; opacity: .7; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .face-ex { font-size: 15px; font-weight: 500; font-style: italic; line-height: 1.5; opacity: .95; }
+  .face-hint { text-align: center; font-size: 12px; color: #8894ad; font-weight: 600; margin-top: 10px; }
+  .face.back .face-hint { color: rgba(255,255,255,.75); }
+  .swipe-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 14px; }
+  .swipe-btn { border: none; padding: 16px; border-radius: 16px; font-weight: 800; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: inherit; box-shadow: 0 4px 12px rgba(20,45,100,.06); }
+  .swipe-again { background: #fff; color: #e42a3b; border: 1px solid #fde3e5; }
+  .swipe-know { background: linear-gradient(135deg, #25c274, #0e8a73); color: #fff; }
+
+  /* ========= LEVEL MAP (EXERCISES) ========= */
+  .level-map {
+    padding: 10px 14px 20px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .level-node {
+    display: flex; align-items: center; gap: 12px; padding: 14px 16px;
+    border-radius: 16px; background: #fff; border: 1px solid #e6ecf8;
+    cursor: pointer; transition: all .2s ease;
+    box-shadow: 0 4px 12px rgba(20,45,100,.04);
+  }
+  .level-node:active { transform: scale(0.98); }
+  .level-node.locked { opacity: .5; cursor: not-allowed; background: #f4f7fd; }
+  .level-node.locked:active { transform: none; }
+  .level-node.current {
+    border-color: #2f63ee; border-width: 2px;
+    box-shadow: 0 8px 20px rgba(47,99,238,.2);
+    animation: pop .4s ease;
+  }
+  .level-node.done { background: linear-gradient(135deg, #d9f5e7, #fff); border-color: #25c274; }
+  .level-circle {
+    width: 44px; height: 44px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 15px; flex-shrink: 0;
+    background: #eef3fd; color: #8894ad;
+  }
+  .level-node.current .level-circle { background: linear-gradient(135deg, #2f63ee, #15347e); color: #fff; }
+  .level-node.done .level-circle { background: #25c274; color: #fff; }
+  .level-info { flex: 1; min-width: 0; }
+  .level-title { font-size: 14px; font-weight: 800; color: #15347e; margin: 0; }
+  .level-sub { font-size: 12px; color: #8894ad; margin: 2px 0 0; }
+  .level-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .level-stars { font-size: 13px; color: #f7c948; }
+  .level-arrow { font-size: 16px; color: #2f63ee; }
+  .level-lock { font-size: 16px; color: #8894ad; }
+
+  .level-diff {
+    display: inline-block; font-size: 10px; font-weight: 800;
+    padding: 2px 8px; border-radius: 999px; margin-left: 6px;
+    text-transform: uppercase; letter-spacing: .5px;
+  }
+  .diff-easy { background: #d9f5e7; color: #0e8a73; }
+  .diff-med { background: #fef4d6; color: #a06a06; }
+  .diff-hard { background: #fde3e5; color: #c0392b; }
+  .diff-boss { background: linear-gradient(135deg, #8b6bff, #6b4ef0); color: #fff; }
+
+  .level-head {
+    text-align: center; padding: 20px 20px 14px;
+  }
+  .level-head h2 { font-size: 22px; font-weight: 800; color: #15347e; margin: 0 0 4px; }
+  .level-head p { font-size: 13px; color: #8894ad; margin: 0; }
+
+  /* ========= EXERCISE DETAIL ========= */
+  .ex-screen-wrap { padding: 4px 14px 20px; }
+  .ex-hero {
+    background: linear-gradient(135deg, #2f63ee 0%, #15347e 100%);
+    color: #fff; padding: 20px; border-radius: 20px; margin-bottom: 14px;
+  }
+  .ex-hero.purple { background: linear-gradient(135deg, #8b6bff, #6b4ef0); }
+  .ex-hero.gold { background: linear-gradient(135deg, #f7c948, #e8890c); color: #15347e; }
+  .ex-hero.green { background: linear-gradient(135deg, #25c274, #0e8a73); }
+  .ex-hero.red { background: linear-gradient(135deg, #e42a3b, #c0392b); }
+  .ex-hero-level { font-size: 12px; font-weight: 800; opacity: .85; text-transform: uppercase; letter-spacing: 1px; }
+  .ex-hero-title { font-size: 22px; font-weight: 800; margin: 4px 0 8px; }
+  .ex-hero-desc { font-size: 14px; opacity: .95; margin: 0; line-height: 1.5; }
+  .ex-hero-reward {
+    display: inline-block; margin-top: 10px;
+    background: rgba(255,255,255,.2); padding: 6px 12px; border-radius: 999px;
+    font-size: 12px; font-weight: 800;
+  }
+  .ex-hero.gold .ex-hero-reward { background: rgba(21,52,126,.15); }
+
+  .ex-body {
+    background: #fff; border: 1px solid #e6ecf8; border-radius: 20px;
+    padding: 20px 18px; box-shadow: 0 6px 16px rgba(20,45,100,.06);
+  }
+
+  .quiz-q { font-size: 15px; font-weight: 700; margin: 10px 0 10px; color: #15347e; line-height: 1.4; }
+  .quiz-opt {
+    display: block; width: 100%; text-align: left;
+    background: #eef3fd; border: 1.5px solid transparent;
+    padding: 12px 14px; border-radius: 14px;
+    margin-bottom: 8px; font-size: 14px; cursor: pointer;
+    font-family: inherit; color: #15347e; font-weight: 600;
+    transition: all .15s ease;
+  }
+  .quiz-opt:active { transform: scale(0.99); }
+  .quiz-opt.correct { background: #d9f5e7; border-color: #25c274; color: #0e8a73; font-weight: 700; }
+  .quiz-opt.wrong { background: #fde3e5; border-color: #e42a3b; color: #c0392b; animation: shake .3s; }
+
+  .match-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .match-item {
+    background: #eef3fd; border: 1.5px solid transparent;
+    padding: 10px 12px; border-radius: 12px; font-size: 13px;
+    color: #15347e; font-weight: 600; cursor: pointer;
+    min-height: 56px; display: flex; align-items: center;
+  }
+  .match-item.selected { border-color: #2f63ee; background: #fff; }
+  .match-item.matched { background: #d9f5e7; color: #0e8a73; cursor: default; }
+  .match-item.wrong { animation: shake .3s; background: #fde3e5; }
+
+  .fill-sentence { font-size: 15px; margin: 10px 0; color: #15347e; line-height: 1.8; }
+  .fill-input {
+    display: inline-block; min-width: 140px; padding: 6px 10px;
+    border: none; border-bottom: 2px solid #2f63ee; background: transparent;
+    font-family: inherit; font-size: 15px; color: #15347e; font-weight: 700; outline: none;
+  }
+  .fill-input:focus { background: #e8eefc; }
+  .fill-input.correct { color: #0e8a73; border-color: #25c274; }
+  .fill-input.wrong { color: #c0392b; border-color: #e42a3b; }
+
+  .btn {
+    border: none; padding: 14px 18px; border-radius: 14px;
+    font-family: inherit; font-weight: 800; font-size: 14px;
+    cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-primary { background: #2f63ee; color: #fff; }
+  .btn-check { background: linear-gradient(135deg, #25c274, #0e8a73); color: #fff; }
+  .btn-outline { background: #fff; color: #2f63ee; border: 1.5px solid #2f63ee; }
+  .btn-wide { width: 100%; justify-content: center; }
+  .btn-hint { background: #f7c948; color: #15347e; }
+
+  .answer-box {
+    display: none; background: #e8f7f1; border-left: 3px solid #25c274;
+    padding: 12px 14px; border-radius: 12px; margin-top: 10px;
+    font-size: 14px; color: #0e8a73; font-weight: 600; line-height: 1.7;
+  }
+  .answer-box.show { display: block; }
+
+  .write-area {
+    width: 100%; min-height: 100px; padding: 12px 14px;
+    border: 1.5px solid #e6ecf8; border-radius: 14px;
+    font-family: inherit; font-size: 14px; resize: vertical;
+    color: #15347e; background: #fff; outline: none;
+  }
+  .write-area:focus { border-color: #2f63ee; }
+
+  .ex-actions { display: flex; gap: 10px; margin-top: 14px; }
+  .ex-actions .btn { flex: 1; }
+
+  /* === Level complete toast === */
+  .toast-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(21,52,126,.6); z-index: 100;
+    align-items: center; justify-content: center; padding: 20px;
+  }
+  .toast-overlay.show { display: flex; animation: fadeIn .2s; }
+  .toast-card {
+    background: #fff; border-radius: 24px; padding: 28px 24px;
+    max-width: 320px; width: 100%; text-align: center;
+    animation: pop .4s ease;
+  }
+  .toast-emoji { font-size: 64px; margin-bottom: 10px; }
+  .toast-title { font-size: 22px; font-weight: 800; color: #15347e; margin: 0 0 6px; }
+  .toast-sub { font-size: 14px; color: #8894ad; margin: 0 0 16px; }
+  .toast-reward {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: linear-gradient(135deg, #f7c948, #e8890c);
+    color: #15347e; padding: 10px 18px; border-radius: 999px;
+    font-size: 15px; font-weight: 800; margin-bottom: 18px;
+  }
+
+  /* ========= FINISH ========= */
+  .finish-wrap { padding: 40px 20px; text-align: center; }
+  .finish-emoji { font-size: 80px; margin-bottom: 14px; animation: pop .5s ease; }
+  .finish-title { font-size: 26px; font-weight: 800; color: #15347e; margin: 0 0 8px; }
+  .finish-sub { font-size: 14px; color: #8894ad; margin: 0 0 24px; }
+  .finish-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 24px; }
+  .finish-stat { background: #fff; border: 1px solid #e6ecf8; border-radius: 16px; padding: 16px 8px; box-shadow: 0 4px 12px rgba(20,45,100,.05); }
+  .finish-stat b { display: block; font-size: 22px; color: #2f63ee; font-weight: 800; }
+  .finish-stat span { font-size: 11px; color: #8894ad; font-weight: 600; }
+
+  .mode-toggle { display: flex; background: #fff; border: 1px solid #e6ecf8; border-radius: 12px; padding: 4px; margin: 0 14px 10px; gap: 4px; }
+  .mode-btn { flex: 1; padding: 8px; border-radius: 10px; border: none; background: transparent; font-family: inherit; font-weight: 700; font-size: 13px; color: #8894ad; cursor: pointer; }
+  .mode-btn.active { background: #2f63ee; color: #fff; }
+  .search-input { width: 100%; padding: 12px 14px; border-radius: 14px; border: 1.5px solid #e6ecf8; background: #fff; font-family: inherit; font-size: 14px; color: #15347e; outline: none; }
+  .search-input:focus { border-color: #2f63ee; }
+  .list-item { background: #fff; border: 1px solid #e6ecf8; border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+  .list-item-ru { font-size: 15px; font-weight: 700; color: #15347e; }
+  .list-item-uz { font-size: 13px; color: #6b4ef0; font-weight: 600; margin-top: 2px; }
+  .list-item-num { background: #e8eefc; color: #2f63ee; font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 999px; flex-shrink: 0; margin-left: 8px; }
+
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ HOME ============ -->
+  <div class="screen active" id="scr-home">
+    <div class="hero">
+      <div class="hero-back" onclick="back()">← Мавзули дарслар</div>
+      <h1 class="hero-title">⏳ Время</h1>
+      <p class="hero-sub">Вақт ҳақидаги энг муҳим иборалар, фразеологизмлар ва амалий машқлар</p>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-row">
+        <span class="progress-label">Дарс прогресси</span>
+        <span class="progress-pct" id="total-pct">0%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="total-fill"></div></div>
+      <div class="xp-row">
+        <div class="xp-chip"><b id="xp-learned">0</b><span>ўрганилган сўз</span></div>
+        <div class="xp-chip"><b id="xp-score">0</b><span>балл</span></div>
+        <div class="xp-chip"><b id="xp-streak">0</b><span>кетма-кет</span></div>
+      </div>
+    </div>
+    <div class="section-list">
+      <div class="section-btn" onclick="go('scr-phrases')">
+        <div class="section-icon si-blue">📚</div>
+        <div class="section-text"><h3 class="section-title">30 та Фраз</h3><p class="section-sub">Flip-кaрточкaлaр · ~10 дақиқa</p></div>
+        <div class="section-check" id="chk-phrases">1</div>
+      </div>
+      <div class="section-btn" onclick="go('scr-idioms')">
+        <div class="section-icon si-purple">💡</div>
+        <div class="section-text"><h3 class="section-title">25 та Фразеологизмы</h3><p class="section-sub">Тургун иборалар · ~10 дақиқa</p></div>
+        <div class="section-check" id="chk-idioms">2</div>
+      </div>
+      <div class="section-btn" onclick="go('scr-levels')">
+        <div class="section-icon si-gold">🎮</div>
+        <div class="section-text"><h3 class="section-title">11 та даражали машқ</h3><p class="section-sub">Ҳар даража ўтилса, кейингиси очилади</p></div>
+        <div class="section-check" id="chk-exercises">3</div>
+      </div>
+      <div class="section-btn" onclick="go('scr-finish')">
+        <div class="section-icon si-green">🏆</div>
+        <div class="section-text"><h3 class="section-title">Якуний нaтижa</h3><p class="section-sub">Бaрчa мaшқлaрни тугaтгaндaн сўнг</p></div>
+        <div class="section-check">⇥</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ PHRASES ============ -->
+  <div class="screen" id="scr-phrases">
+    <div class="topnav"><div class="topnav-back" onclick="go('scr-home')">←</div><div class="topnav-title">📚 Фразы</div><div class="topnav-counter" id="p-counter">1 / 30</div></div>
+    <div class="topbar-progress"><div class="progress-bar"><div class="progress-fill" id="p-fill"></div></div></div>
+    <div class="mode-toggle">
+      <button class="mode-btn active" onclick="setMode('phrases','card',this)">Кaрточкaлaр</button>
+      <button class="mode-btn" onclick="setMode('phrases','list',this)">Рўйхaт</button>
+    </div>
+    <div id="phrases-card-mode">
+      <div class="card-stage">
+        <div class="flip-card" id="p-card" onclick="flipCard('p-card')">
+          <div class="face front">
+            <div class="face-top"><span class="face-num" id="p-num">01 / 30</span><button class="audio-btn" onclick="playAudio(event)">🔊</button></div>
+            <div class="face-main"><h2 class="face-word" id="p-ru">Вовремя</h2></div>
+            <div class="face-hint">Тaржимaни кўриш учун босинг ⟲</div>
+          </div>
+          <div class="face back">
+            <div class="face-top"><span class="face-num">Тaржимa</span><button class="audio-btn" onclick="playAudio(event)">🔊</button></div>
+            <div class="face-main">
+              <h2 class="face-word face-uz" id="p-uz">ўз вақтида</h2>
+              <div class="face-ex-label">Misol</div>
+              <div class="face-ex" id="p-ex">Я пришла на урок вовремя.</div>
+            </div>
+            <div class="face-hint">Қaйтa ўрaш учун босинг ⟲</div>
+          </div>
+        </div>
+      </div>
+      <div class="swipe-row">
+        <button class="swipe-btn swipe-again" onclick="markPhrase(false)">🔁 Қaйтa</button>
+        <button class="swipe-btn swipe-know" onclick="markPhrase(true)">✓ Билaмaн</button>
+      </div>
+    </div>
+    <div id="phrases-list-mode" style="display:none; padding: 0 14px 20px;">
+      <div style="padding: 0 0 10px;"><input type="text" class="search-input" id="p-search" placeholder="🔍 Қидириш..." oninput="renderPhrasesList()"></div>
+      <div id="phrases-list"></div>
+    </div>
+  </div>
+
+  <!-- ============ IDIOMS ============ -->
+  <div class="screen" id="scr-idioms">
+    <div class="topnav"><div class="topnav-back" onclick="go('scr-home')">←</div><div class="topnav-title">💡 Фразеологизмы</div><div class="topnav-counter" id="i-counter">1 / 25</div></div>
+    <div class="topbar-progress"><div class="progress-bar"><div class="progress-fill" id="i-fill"></div></div></div>
+    <div class="mode-toggle">
+      <button class="mode-btn active" onclick="setMode('idioms','card',this)">Кaрточкaлaр</button>
+      <button class="mode-btn" onclick="setMode('idioms','list',this)">Рўйхaт</button>
+    </div>
+    <div id="idioms-card-mode">
+      <div class="card-stage">
+        <div class="flip-card" id="i-card" onclick="flipCard('i-card')">
+          <div class="face front">
+            <div class="face-top"><span class="face-num" id="i-num">01 / 25</span><button class="audio-btn" onclick="playAudio(event)">🔊</button></div>
+            <div class="face-main"><h2 class="face-word" id="i-ru">Время не ждёт</h2></div>
+            <div class="face-hint">Мaъносини кўриш учун босинг ⟲</div>
+          </div>
+          <div class="face back" style="background: linear-gradient(135deg, #8b6bff, #6b4ef0);">
+            <div class="face-top"><span class="face-num">Мaъноси</span><button class="audio-btn" onclick="playAudio(event)">🔊</button></div>
+            <div class="face-main">
+              <h2 class="face-word face-uz" id="i-uz">вақт кутмайди</h2>
+              <div class="face-ex-label">Misol</div>
+              <div class="face-ex" id="i-ex">Нужно принимать решение, время не ждёт.</div>
+            </div>
+            <div class="face-hint">Қaйтa ўрaш учун босинг ⟲</div>
+          </div>
+        </div>
+      </div>
+      <div class="swipe-row">
+        <button class="swipe-btn swipe-again" onclick="markIdiom(false)">🔁 Қaйтa</button>
+        <button class="swipe-btn swipe-know" onclick="markIdiom(true)">✓ Билaмaн</button>
+      </div>
+    </div>
+    <div id="idioms-list-mode" style="display:none; padding: 0 14px 20px;">
+      <div style="padding: 0 0 10px;"><input type="text" class="search-input" id="i-search" placeholder="🔍 Қидириш..." oninput="renderIdiomsList()"></div>
+      <div id="idioms-list"></div>
+    </div>
+  </div>
+
+  <!-- ============ LEVEL MAP ============ -->
+  <div class="screen" id="scr-levels">
+    <div class="topnav">
+      <div class="topnav-back" onclick="go('scr-home')">←</div>
+      <div class="topnav-title">🎮 Машқлар картаси</div>
+      <div class="topnav-counter"><span id="lvl-count">0</span> / 11</div>
+    </div>
+    <div class="topbar-progress"><div class="progress-bar"><div class="progress-fill" id="lvl-fill"></div></div></div>
+    <div class="level-head">
+      <h2>Даражали машқлар</h2>
+      <p>Ҳар даражани тугатсанг, кейингиси очилади. Қийинлашиб боради.</p>
+    </div>
+    <div class="level-map" id="level-map"></div>
+  </div>
+
+  <!-- ============ EXERCISE DETAIL ============ -->
+  <div class="screen" id="scr-exercise">
+    <div class="topnav">
+      <div class="topnav-back" onclick="go('scr-levels')">←</div>
+      <div class="topnav-title" id="ex-top-title">Даража</div>
+      <div class="topnav-counter"><span id="ex-current-score">0</span> балл</div>
+    </div>
+    <div class="ex-screen-wrap" id="ex-body-wrap"></div>
+  </div>
+
+  <!-- ============ FINISH ============ -->
+  <div class="screen" id="scr-finish">
+    <div class="topnav"><div class="topnav-back" onclick="go('scr-home')">←</div><div class="topnav-title">🏆 Якуний натижа</div></div>
+    <div class="finish-wrap">
+      <div class="finish-emoji">🎉</div>
+      <h1 class="finish-title">Браво!</h1>
+      <p class="finish-sub">Сен «Время» мaвзусини муваффaқиятли якунлaдинг</p>
+      <div class="finish-stats">
+        <div class="finish-stat"><b id="f-words">0</b><span>сўз</span></div>
+        <div class="finish-stat"><b id="f-score">0</b><span>балл</span></div>
+        <div class="finish-stat"><b id="f-pct">0%</b><span>тўғрилик</span></div>
+      </div>
+      <button class="btn btn-primary btn-wide" onclick="go('scr-home')">Бош сaҳифaгa</button>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast-overlay" id="toast">
+    <div class="toast-card">
+      <div class="toast-emoji" id="toast-emoji">🎉</div>
+      <h3 class="toast-title" id="toast-title">Даража ўтилди!</h3>
+      <p class="toast-sub" id="toast-sub">Кейинги даража очилди</p>
+      <div class="toast-reward" id="toast-reward">⭐ +10 балл</div>
+      <div style="display:flex; gap:10px;">
+        <button class="btn btn-outline" style="flex:1;" onclick="closeToast()">Орқага</button>
+        <button class="btn btn-primary" style="flex:1;" onclick="nextLevel()">Кейингиси →</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* =============== DATA =============== */
+const PHRASES = [
+  ["Вовремя","ўз вақтида","Я пришла на урок вовремя."],
+  ["Всё время","доим, ҳар доим","Она всё время думает о работе."],
+  ["Во время","давомида, пайтида","Во время урока нельзя пользоваться телефоном."],
+  ["Время от времени","вақти-вақти билан","Время от времени я перечитываю любимые книги."],
+  ["Время пришло","вақти келди","Думаю, время пришло начать новую жизнь."],
+  ["Время летит","вақт учиб ўтади","Как быстро летит время!"],
+  ["Время — деньги","вақт — пул","Не опаздывай, время — деньги!"],
+  ["Свободное время","бўш вақт","В свободное время я люблю читать."],
+  ["Найти время","вақт топмоқ","Нужно найти время для семьи."],
+  ["Убивать время","вақтни бекорга ўтказмоқ","Я не люблю просто убивать время."],
+  ["Терять время","вақтни йўқотмоқ","Не теряй время, начинай действовать!"],
+  ["Экономить время","вақтни тежамоқ","Я заказываю онлайн, чтобы экономить время."],
+  ["Тратить время","вақт сарфламоқ","Не трать время на пустые разговоры."],
+  ["Не хватает времени","вақт етмаяпти","Мне не хватает времени на отдых."],
+  ["У меня нет времени","вақтим йўқ","Извини, сегодня у меня нет времени."],
+  ["Сколько времени?","соат неча бўлди?","Сколько сейчас времени?"],
+  ["Время покажет","вақт кўрсатади","Получится ли у нас? Время покажет."],
+  ["Время не ждёт","вақт кутмайди","Пора принимать решение, время не ждёт."],
+  ["С того времени","ўша вақтдан бери","С того времени многое изменилось."],
+  ["До сих пор","ҳозиргача","Я до сих пор помню нашу встречу."],
+  ["В последнее время","сўнгги пайтларда","В последнее время я думаю о будущем."],
+  ["В ближайшее время","яқин вақт ичида","В ближайшее время планирую новый курс."],
+  ["На этот раз","бу сафар","На этот раз я точно не опоздаю."],
+  ["Раз и навсегда","бир марта ва бутунлай","Решим этот вопрос раз и навсегда."],
+  ["Напоминать о себе","ўзини эслатиб турмоқ","Он время от времени напоминает о себе."],
+  ["Время поджимает","вақт оз қоляпти","Давай быстрее, время поджимает!"],
+  ["Коротать время","вақтни ўтказмоқ","Мы разговаривали, чтобы скоротать время."],
+  ["Быть не вовремя","ноқулай пайтда бўлмоқ","Я позвонила не вовремя?"],
+  ["Своевременно","ўз вақтида","Важно своевременно выполнять задания."],
+  ["Время идёт","вақт ўтиб бормоқ","Время идёт, а я всё ещё не решил."]
+];
+const IDIOMS = [
+  ["Время не ждёт","вақт кутмайди","Нужно принимать решение, время не ждёт."],
+  ["Не терять ни минуты","бир дақиқа ҳам йўқотмаслик","Не будем терять ни минуты."],
+  ["В мгновение ока","кўз очиб юмгунча","Дети выросли в мгновение ока."],
+  ["Не успеть глазом моргнуть","кўз очиб юмгунча","Не успела глазом моргнуть, как урок закончился."],
+  ["С незапамятных времён","қадим замонлардан бери","Этот обычай существует с незапамятных времён."],
+  ["До поры до времени","маълум бир вақтгача","Оставим этот вопрос до поры до времени."],
+  ["Отложить в долгий ящик","узоқ муддатга қолдирмоқ","Хватит откладывать мечту в долгий ящик!"],
+  ["Тянуть время","вақтни чўзмоқ","Он специально тянет время."],
+  ["Выиграть время","вақт ютиб олмоқ","Я задал вопрос, чтобы выиграть время."],
+  ["Упустить момент","қулай фурсатни қўлдан бой бермоқ","Не упусти момент, поговори с ним."],
+  ["Быть нарасхват","жуда талабгир бўлмоқ","Хорошие мастера нарасхват."],
+  ["Время от времени","вақти-вақти билан","Время от времени мы встречаемся."],
+  ["На скорую руку","шошилиб, тезда","Я приготовила ужин на скорую руку."],
+  ["Час от часу не легче","кундан кунга аҳвол ёмонлашмоқ","Сломался телефон, потом компьютер. Час от часу не легче!"],
+  ["Семь пятниц на неделе","бир қарорда турмаслик","У него семь пятниц на неделе."],
+  ["Тянуть кота за хвост","ишни атайлаб чўзмоқ","Перестань тянуть кота за хвост!"],
+  ["В два счёта","бир зумда","Она решила задачу в два счёта."],
+  ["День за днём","кун сайин","День за днём он становился уверенней."],
+  ["Изо дня в день","ҳар куни","Изо дня в день она повторяет ошибки."],
+  ["На днях","шу кунларда","На днях я встретила учительницу."],
+  ["Время покажет","вақт кўрсатади","Получится ли проект? Время покажет."],
+  ["Коротать время","вақтни ўтказмоқ","Чтобы скоротать время в ожидании поезда."],
+  ["Бить баклуши","бекор юрмоқ","Хватит бить баклуши, пора за дело!"],
+  ["В кои-то веки","ниҳоят, узоқ вақтдан кейин","В кои-то веки мы собрались вместе!"],
+  ["Ни свет ни заря","тонг отмасдан","Завтра нужно встать ни свет ни заря."]
+];
+
+/* =============== LEVELS DEFINITION (easy → hard) =============== */
+const LEVELS = [
+  { id: 1, type: 'match', emoji: '🔗', color: 'blue', diff: 'easy', title: 'Жуфтини топ', sub: 'Иборани маъноси билан улаш', desc: 'Ҳар ибора учун тўғри маънони топ. Чапдан ибора, ўнгдан маъно — икковини улаб бор.', reward: 12 },
+  { id: 2, type: 'quiz', emoji: '🎯', color: 'blue', diff: 'easy', title: 'Тўғри вариантни танла', sub: 'Тест: 5 та савол', desc: 'Ҳар савол учун 3 вариант. Фақат биттаси тўғри.', reward: 15 },
+  { id: 3, type: 'extra', emoji: '🔍', color: 'blue', diff: 'med', title: 'Ортиқчасини топ', sub: 'Қаторда маъно жиҳатдан мос келмайдиган', desc: 'Ҳар қаторда 4 ибора бор. Биттаси бошқалардан фарқ қилади — шуни топ.', reward: 10 },
+  { id: 4, type: 'fill', emoji: '✏️', color: 'purple', diff: 'med', title: 'Бўш жойни тўлдир', sub: 'Тўғри иборани қўй', desc: 'Ҳар гапга мос иборани ёз. Варианты пастда кўрсатилган.', reward: 14 },
+  { id: 5, type: 'fix', emoji: '🔧', color: 'purple', diff: 'med', title: 'Хатоларни тузат', sub: 'Нотўғри ишлатилган иборани ўзгартир', desc: 'Ҳар гапда битта хато бор. Тўғри вариантини ёз.', reward: 12 },
+  { id: 6, type: 'write', emoji: '📝', color: 'gold', diff: 'hard', title: 'Жумлани тугат', sub: 'Ўз сўзинг билан охирга етказ', desc: 'Қуйидаги жумлаларни ўз сўзларинг билан тугат. Намуна жавоб мавжуд.', reward: 10,
+    prompts: ['В последнее время я часто…','Если у меня появляется свободное время, я…','Я никогда не теряю время на…','Время летит быстро, когда…'],
+    sample: 'В последнее время я часто занимаюсь спортом. Если у меня появляется свободное время, я читаю книги. Я никогда не теряю время на пустые разговоры. Время летит быстро, когда занимаешься любимым делом.' },
+  { id: 7, type: 'write', emoji: '💭', color: 'gold', diff: 'hard', title: 'Ўз сўзинг билан тушунтир', sub: 'Ибораларни ёрит', desc: 'Қуйидаги ибораларни ўзингча тушунтир ва мисол келтир.', reward: 10,
+    prompts: ['Время — деньги','Время покажет','Не упусти момент'],
+    sample: 'Время — деньги: Вақт жуда қимматли. Шу сабабли уни фойдали ишларга сарфлаш керак.\n\nВремя покажет: Фақат келажакда ҳаммаси қандай бўлишини биламиз.\n\nНе упусти момент: Қулай фурсатни қўлдан бой берма.' },
+  { id: 8, type: 'write', emoji: '✍️', color: 'gold', diff: 'hard', title: 'Гап туз', sub: 'Берилган ибора билан гап ёз', desc: 'Қуйидаги ҳар бир ибора билан алоҳида гап туз.', reward: 10,
+    prompts: ['на днях','до сих пор','в ближайшее время','на скорую руку','день за днём'],
+    sample: 'На днях я познакомилась с интересным человеком.\nЯ до сих пор помню свою первую учительницу.\nВ ближайшее время мы планируем переехать.\nЯ приготовила завтрак на скорую руку.\nДень за днём он совершенствует свой русский язык.' },
+  { id: 9, type: 'write', emoji: '💬', color: 'gold', diff: 'hard', title: 'Суҳбат амалиёти', sub: 'Саволларга тўлиқ гап билан жавоб бер', desc: 'Ҳар жавобда камида битта ибора ишлат.', reward: 10,
+    prompts: ['Ты обычно приходишь вовремя или опаздываешь?','Ты умеешь правильно распределять своё время?','Какое дело ты давно откладываешь в долгий ящик?'],
+    sample: 'Обычно я стараюсь приходить вовремя, потому что не люблю заставлять людей ждать.\n\nДа, я стараюсь правильно распределять время и не терять ни минуты.\n\nЯ давно откладываю изучение английского языка в долгий ящик.' },
+  { id: 10, type: 'write', emoji: '📖', color: 'red', diff: 'hard', title: 'Мини-ҳикоя', sub: '5 тадан кам эмас иборадан фойдаланиб', desc: 'Қуйидаги ибораларнинг камида 5 тасидан фойдаланиб кичик ҳикоя ёз (камида 5 та гап).', reward: 15,
+    prompts: ['в мгновение ока','время поджимает','не терять ни минуты','в кои-то веки','в два счёта','семь пятниц на неделе','время покажет'],
+    sample: 'Вчера у меня был очень насыщенный день. С утра время поджимало, поэтому я решил не терять ни минуты. Нужно было закончить работу, но коллега постоянно менял планы — у него прямо семь пятниц на неделе. К счастью, в последний момент всё получилось решить в два счёта. Теперь остаётся только ждать результата — время покажет!' },
+  { id: 11, type: 'write', emoji: '👑', color: 'red', diff: 'boss', title: 'БОСС: Менинг кунимда', sub: 'Якуний вазифа — энг қийин даража', desc: 'Ўз кунинг ҳақида 8–10 та гап ёз. Камида 7 та ибора ишлат. Бу — энг катта мукофотли даража!', reward: 30,
+    prompts: ['Обычно я просыпаюсь...'],
+    sample: 'Обычно я просыпаюсь рано утром. В последнее время у меня очень много дел, поэтому мне часто не хватает времени. Я стараюсь приходить на работу вовремя и не терять ни минуты. Во время обеденного перерыва я немного отдыхаю. Время от времени встречаюсь с друзьями. Иногда приходится готовить ужин на скорую руку, потому что время поджимает. Я не люблю откладывать важные дела в долгий ящик. Ведь время летит очень быстро!' }
+];
+
+/* =============== STATE =============== */
+const state = {
+  pIdx: 0, iIdx: 0,
+  learnedPhrases: new Set(), learnedIdioms: new Set(),
+  score: 0, attempts: 0, correct: 0,
+  mode: { phrases: 'card', idioms: 'card' },
+  unlockedLevel: 1,        // highest unlocked
+  completedLevels: new Set(),
+  currentLevel: null,
+  levelStars: {},          // level_id -> stars
+  savedExData: {}          // level_id -> exercise state
+};
+
+/* =============== NAV =============== */
+function go(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+  updateHome();
+  if (id === 'scr-levels') renderLevelMap();
+}
+function back() { location.href = '/'; }
+function playAudio(e) { e.stopPropagation(); }
+
+function flipCard(id) { document.getElementById(id).classList.toggle('flipped'); }
+
+/* =============== PHRASES / IDIOMS (same as v2) =============== */
+function renderPhrase() {
+  const [ru,uz,ex] = PHRASES[state.pIdx];
+  document.getElementById('p-ru').textContent = ru;
+  document.getElementById('p-uz').textContent = uz;
+  document.getElementById('p-ex').textContent = ex;
+  const n = String(state.pIdx+1).padStart(2,'0');
+  document.getElementById('p-num').textContent = n + ' / 30';
+  document.getElementById('p-counter').textContent = (state.pIdx+1) + ' / 30';
+  document.getElementById('p-fill').style.width = ((state.pIdx+1)/PHRASES.length*100) + '%';
+  document.getElementById('p-card').classList.remove('flipped');
+}
+function markPhrase(known) {
+  if (known) { state.learnedPhrases.add(state.pIdx); state.score += 2; }
+  if (state.pIdx < PHRASES.length - 1) { state.pIdx++; renderPhrase(); }
+  else {
+    document.getElementById('chk-phrases').classList.add('done');
+    document.getElementById('chk-phrases').textContent = '✓';
+    go('scr-home');
+  }
+}
+function renderPhrasesList() {
+  const q = document.getElementById('p-search').value.toLowerCase();
+  const el = document.getElementById('phrases-list'); el.innerHTML = '';
+  PHRASES.forEach(([ru,uz], i) => {
+    if (q && !(ru.toLowerCase().includes(q) || uz.toLowerCase().includes(q))) return;
+    el.insertAdjacentHTML('beforeend', `<div class="list-item" onclick="state.pIdx=${i}; setMode('phrases','card'); renderPhrase();"><div><div class="list-item-ru">${ru}</div><div class="list-item-uz">${uz}</div></div><span class="list-item-num">${String(i+1).padStart(2,'0')}</span></div>`);
+  });
+}
+function renderIdiom() {
+  const [ru,uz,ex] = IDIOMS[state.iIdx];
+  document.getElementById('i-ru').textContent = ru;
+  document.getElementById('i-uz').textContent = uz;
+  document.getElementById('i-ex').textContent = ex;
+  const n = String(state.iIdx+1).padStart(2,'0');
+  document.getElementById('i-num').textContent = n + ' / 25';
+  document.getElementById('i-counter').textContent = (state.iIdx+1) + ' / 25';
+  document.getElementById('i-fill').style.width = ((state.iIdx+1)/IDIOMS.length*100) + '%';
+  document.getElementById('i-card').classList.remove('flipped');
+}
+function markIdiom(known) {
+  if (known) { state.learnedIdioms.add(state.iIdx); state.score += 3; }
+  if (state.iIdx < IDIOMS.length - 1) { state.iIdx++; renderIdiom(); }
+  else {
+    document.getElementById('chk-idioms').classList.add('done');
+    document.getElementById('chk-idioms').textContent = '✓';
+    go('scr-home');
+  }
+}
+function renderIdiomsList() {
+  const q = document.getElementById('i-search').value.toLowerCase();
+  const el = document.getElementById('idioms-list'); el.innerHTML = '';
+  IDIOMS.forEach(([ru,uz], i) => {
+    if (q && !(ru.toLowerCase().includes(q) || uz.toLowerCase().includes(q))) return;
+    el.insertAdjacentHTML('beforeend', `<div class="list-item" onclick="state.iIdx=${i}; setMode('idioms','card'); renderIdiom();"><div><div class="list-item-ru">${ru}</div><div class="list-item-uz">${uz}</div></div><span class="list-item-num">${String(i+1).padStart(2,'0')}</span></div>`);
+  });
+}
+function setMode(sec, mode, btn) {
+  state.mode[sec] = mode;
+  const parent = document.getElementById('scr-' + sec);
+  parent.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active'); else parent.querySelector('.mode-btn').classList.add('active');
+  document.getElementById(sec + '-card-mode').style.display = mode === 'card' ? '' : 'none';
+  document.getElementById(sec + '-list-mode').style.display = mode === 'list' ? '' : 'none';
+  if (mode === 'list') { sec === 'phrases' ? renderPhrasesList() : renderIdiomsList(); }
+}
+
+/* =============== LEVEL MAP =============== */
+function renderLevelMap() {
+  const el = document.getElementById('level-map');
+  el.innerHTML = '';
+  LEVELS.forEach(lv => {
+    const locked = lv.id > state.unlockedLevel;
+    const done = state.completedLevels.has(lv.id);
+    const current = lv.id === state.unlockedLevel && !done;
+    const stars = state.levelStars[lv.id] || 0;
+    const starStr = stars ? '★'.repeat(stars) + '☆'.repeat(3-stars) : '';
+    const diffClass = { easy: 'diff-easy', med: 'diff-med', hard: 'diff-hard', boss: 'diff-boss' }[lv.diff];
+    const diffText = { easy: 'Oson', med: 'O\'rta', hard: 'Qiyin', boss: 'BOSS' }[lv.diff];
+    el.insertAdjacentHTML('beforeend', `
+      <div class="level-node ${locked?'locked':''} ${current?'current':''} ${done?'done':''}" onclick="${locked?'':`openLevel(${lv.id})`}">
+        <div class="level-circle">${done ? '✓' : (locked ? '🔒' : lv.emoji)}</div>
+        <div class="level-info">
+          <h3 class="level-title">${lv.id}. ${lv.title}<span class="level-diff ${diffClass}">${diffText}</span></h3>
+          <p class="level-sub">${lv.sub}${stars ? ' · <span class="level-stars">'+starStr+'</span>' : ''}</p>
+        </div>
+        <div class="level-right">${locked ? '<span class="level-lock">🔒</span>' : (done ? '<span style="font-size:14px;color:#25c274;font-weight:800;">+'+lv.reward+'</span>' : '<span class="level-arrow">→</span>')}</div>
+      </div>
+    `);
+  });
+  const doneCount = state.completedLevels.size;
+  document.getElementById('lvl-count').textContent = doneCount;
+  document.getElementById('lvl-fill').style.width = (doneCount/11*100) + '%';
+}
+
+/* =============== OPEN LEVEL =============== */
+function openLevel(lvId) {
+  const lv = LEVELS.find(x => x.id === lvId);
+  if (!lv) return;
+  state.currentLevel = lv;
+  document.getElementById('ex-top-title').textContent = `Даража ${lv.id} / 11`;
+  const wrap = document.getElementById('ex-body-wrap');
+  const colorClass = lv.color === 'blue' ? '' : lv.color;
+  const diffBadge = { easy: '🟢 Oson', med: '🟡 O\'rta', hard: '🔴 Qiyin', boss: '👑 BOSS' }[lv.diff];
+  wrap.innerHTML = `
+    <div class="ex-hero ${colorClass}">
+      <div class="ex-hero-level">Даража ${lv.id} · ${diffBadge}</div>
+      <h1 class="ex-hero-title">${lv.emoji} ${lv.title}</h1>
+      <p class="ex-hero-desc">${lv.desc}</p>
+      <span class="ex-hero-reward">⭐ Мукофот: +${lv.reward} балл</span>
+    </div>
+    <div class="ex-body" id="ex-body"></div>
+  `;
+  renderLevelContent(lv);
+  go('scr-exercise');
+}
+
+function renderLevelContent(lv) {
+  const body = document.getElementById('ex-body');
+  if (lv.type === 'match') renderMatch(body, lv);
+  else if (lv.type === 'quiz') renderQuiz(body, lv);
+  else if (lv.type === 'extra') renderExtra(body, lv);
+  else if (lv.type === 'fill') renderFill(body, lv);
+  else if (lv.type === 'fix') renderFix(body, lv);
+  else if (lv.type === 'write') renderWrite(body, lv);
+}
+
+/* ===== MATCH ===== */
+const MATCH_PAIRS = [
+  ["В мгновение ока","Очень быстро, мгновенно"],
+  ["Тянуть время","Намеренно затягивать"],
+  ["Отложить в долгий ящик","На неопределённый срок"],
+  ["В два счёта","Быстро, за короткое время"],
+  ["Ни свет ни заря","Очень рано утром"],
+  ["Бить баклуши","Бездельничать"]
+];
+let matchState = { leftSel: null, matched: new Set(), correctCount: 0, tries: 0 };
+function renderMatch(body, lv) {
+  matchState = { leftSel: null, matched: new Set(), correctCount: 0, tries: 0 };
+  body.innerHTML = `<div class="match-grid" id="mg"></div><div id="match-result"></div>`;
+  const grid = document.getElementById('mg');
+  const items = [];
+  MATCH_PAIRS.forEach((p,i) => { items.push({t:p[0], side:'L', idx:i}); });
+  const rights = MATCH_PAIRS.map((p,i)=>({t:p[1], side:'R', idx:i})).sort(()=>Math.random()-0.5);
+  const final = [];
+  for (let i = 0; i < MATCH_PAIRS.length; i++) { final.push(items[i]); final.push(rights[i]); }
+  final.forEach(it => {
+    const div = document.createElement('div');
+    div.className = 'match-item';
+    div.textContent = it.t;
+    div.dataset.side = it.side; div.dataset.idx = it.idx;
+    div.onclick = () => clickMatch(div, lv);
+    grid.appendChild(div);
+  });
+}
+function clickMatch(el, lv) {
+  if (el.classList.contains('matched')) return;
+  if (el.dataset.side === 'L') {
+    document.querySelectorAll('.match-item[data-side="L"]').forEach(x => x.classList.remove('selected'));
+    el.classList.add('selected'); matchState.leftSel = el;
+  } else {
+    if (!matchState.leftSel) return;
+    matchState.tries++;
+    if (matchState.leftSel.dataset.idx === el.dataset.idx) {
+      matchState.leftSel.classList.add('matched'); matchState.leftSel.classList.remove('selected');
+      el.classList.add('matched'); matchState.matched.add(el.dataset.idx);
+      matchState.correctCount++; state.score += 2; state.correct++;
+      updateExCurrent();
+      if (matchState.matched.size === MATCH_PAIRS.length) {
+        completeLevel(lv, Math.max(1, 3 - Math.floor((matchState.tries - MATCH_PAIRS.length)/2)));
+      }
+    } else {
+      el.classList.add('wrong'); setTimeout(()=>el.classList.remove('wrong'), 400);
+      state.attempts++;
+    }
+    matchState.leftSel = null;
+  }
+}
+
+/* ===== QUIZ ===== */
+const QUIZ_DATA = [
+  ["«Время не ждёт» означает:", ["Нужно подождать","Нужно действовать, пока есть возможность","Время остановилось"], 1],
+  ["«Отложить в долгий ящик» означает:", ["Убрать вещи в шкаф","Перенести дело на неопределённое время","Быстро закончить работу"], 1],
+  ["«В кои-то веки» означает:", ["Очень часто","Очень давно","Наконец-то, после долгого перерыва"], 2],
+  ["«Выиграть время» означает:", ["Получить дополнительное время","Опоздать","Потратить деньги"], 0],
+  ["«Час от часу не легче» означает:", ["Ситуация становится всё хуже","Ситуация улучшается","Время проходит быстрее"], 0]
+];
+function renderQuiz(body, lv) {
+  let currentQ = 0, score = 0;
+  function show() {
+    if (currentQ >= QUIZ_DATA.length) {
+      completeLevel(lv, score === QUIZ_DATA.length ? 3 : score >= 3 ? 2 : 1);
+      return;
+    }
+    const q = QUIZ_DATA[currentQ];
+    body.innerHTML = `
+      <div style="text-align:center; margin-bottom:14px; font-size:12px; color:#8894ad; font-weight:700;">Савол ${currentQ+1} / ${QUIZ_DATA.length}</div>
+      <div class="quiz-q">${q[0]}</div>
+      ${q[1].map((opt,j)=>`<button class="quiz-opt" data-j="${j}">${String.fromCharCode(1072+j)}) ${opt}</button>`).join('')}
+    `;
+    body.querySelectorAll('.quiz-opt').forEach(b => {
+      b.onclick = () => {
+        const j = +b.dataset.j; state.attempts++;
+        body.querySelectorAll('.quiz-opt').forEach(x => {
+          x.disabled = true;
+          if (+x.dataset.j === q[2]) x.classList.add('correct');
+          else if (x === b) x.classList.add('wrong');
+        });
+        if (j === q[2]) { score++; state.correct++; state.score += 3; }
+        updateExCurrent();
+        setTimeout(() => { currentQ++; show(); }, 1100);
+      };
+    });
+  }
+  show();
+}
+
+/* ===== EXTRA (odd one out) ===== */
+const EXTRA_DATA = [
+  { items: ["В мгновение ока","В два счёта","Очень быстро","Изо дня в день"], answer: 3 },
+  { items: ["Тянуть время","Тянуть кота за хвост","Не терять ни минуты","Затягивать дело"], answer: 2 },
+  { items: ["Вовремя","Своевременно","С опозданием","В нужный момент"], answer: 2 },
+  { items: ["Всё время","Постоянно","Непрерывно","Время от времени"], answer: 3 },
+  { items: ["Бить баклуши","Бездельничать","Работать не покладая рук","Лодырничать"], answer: 2 }
+];
+function renderExtra(body, lv) {
+  let currentR = 0, score = 0;
+  function show() {
+    if (currentR >= EXTRA_DATA.length) {
+      completeLevel(lv, score === EXTRA_DATA.length ? 3 : score >= 3 ? 2 : 1);
+      return;
+    }
+    const row = EXTRA_DATA[currentR];
+    body.innerHTML = `
+      <div style="text-align:center; margin-bottom:14px; font-size:12px; color:#8894ad; font-weight:700;">Қатор ${currentR+1} / ${EXTRA_DATA.length}</div>
+      <div class="quiz-q">Қайси ибора ортиқча?</div>
+      ${row.items.map((it,j)=>`<button class="quiz-opt" data-j="${j}">${it}</button>`).join('')}
+    `;
+    body.querySelectorAll('.quiz-opt').forEach(b => {
+      b.onclick = () => {
+        const j = +b.dataset.j; state.attempts++;
+        body.querySelectorAll('.quiz-opt').forEach(x => {
+          x.disabled = true;
+          if (+x.dataset.j === row.answer) x.classList.add('correct');
+          else if (x === b) x.classList.add('wrong');
+        });
+        if (j === row.answer) { score++; state.correct++; state.score += 2; }
+        updateExCurrent();
+        setTimeout(() => { currentR++; show(); }, 1100);
+      };
+    });
+  }
+  show();
+}
+
+/* ===== FILL ===== */
+const FILL_ITEMS = [
+  ["Я стараюсь приходить на работу ___.", "вовремя"],
+  ["___ урока ученики внимательно слушали преподавателя.", "Во время"],
+  ["Она ___ говорит о своей новой работе.", "всё время"],
+  ["Мы встречаемся с друзьями ___.", "время от времени"],
+  ["Он решил эту задачу ___.", "в два счёта"],
+  ["Хватит ___, пора принимать решение!", "тянуть кота за хвост"],
+  ["Нам нужно закончить проект, ___.", "время поджимает"]
+];
+function renderFill(body, lv) {
+  body.innerHTML = `
+    <p style="font-size:13px; color:#6b4ef0; margin:0 0 14px; font-weight:600;">Варианты: вовремя, всё время, во время, время от времени, в два счёта, тянуть кота за хвост, время поджимает</p>
+    <div id="fill-list"></div>
+    <button class="btn btn-check btn-wide" onclick="checkFill(${lv.id})" style="margin-top:14px;">✓ Текшириш</button>
+    <div class="answer-box" id="fill-result-box"></div>
+  `;
+  const list = document.getElementById('fill-list');
+  FILL_ITEMS.forEach((item, i) => {
+    list.insertAdjacentHTML('beforeend', `<div class="fill-sentence">${i+1}. ${item[0].replace('___', `<input class="fill-input" data-i="${i}" placeholder="...">`)}</div>`);
+  });
+}
+function checkFill(lvId) {
+  let right = 0;
+  document.querySelectorAll('#fill-list .fill-input').forEach(inp => {
+    const i = +inp.dataset.i;
+    const ans = FILL_ITEMS[i][1].toLowerCase().trim();
+    const user = inp.value.toLowerCase().trim();
+    inp.classList.remove('correct','wrong');
+    state.attempts++;
+    if (user === ans) { inp.classList.add('correct'); inp.value = FILL_ITEMS[i][1]; right++; state.correct++; state.score += 2; }
+    else { inp.classList.add('wrong'); inp.value = FILL_ITEMS[i][1]; }
+  });
+  updateExCurrent();
+  const box = document.getElementById('fill-result-box');
+  box.innerHTML = `<b>Нaтижa: ${right} / ${FILL_ITEMS.length}</b>`;
+  box.classList.add('show');
+  const lv = LEVELS.find(x => x.id === lvId);
+  setTimeout(() => completeLevel(lv, right === FILL_ITEMS.length ? 3 : right >= 5 ? 2 : 1), 1400);
+}
+
+/* ===== FIX ===== */
+const FIX_DATA = [
+  ["Я пришла во время на урок.", "Я пришла вовремя на урок."],
+  ["Во время я люблю читать книги.", "В свободное время я люблю читать книги."],
+  ["Он решил задачу в мгновение времени.", "Он решил задачу в мгновение ока."],
+  ["Она пришла на работу ни свет ни заря вечером.", "Она пришла на работу ни свет ни заря утром."]
+];
+function renderFix(body, lv) {
+  body.innerHTML = `<div id="fix-list"></div><button class="btn btn-check btn-wide" onclick="checkFix(${lv.id})" style="margin-top:14px;">✓ Текшириш</button><div class="answer-box" id="fix-result-box"></div>`;
+  const list = document.getElementById('fix-list');
+  FIX_DATA.forEach((f, i) => {
+    list.insertAdjacentHTML('beforeend', `
+      <div class="fill-sentence" style="margin-top:14px;"><b>${i+1}.</b> <i>${f[0]}</i></div>
+      <input class="fill-input" data-fi="${i}" placeholder="Тўғри вариант..." style="min-width: 260px; display:block; width:100%;">
+    `);
+  });
+}
+function checkFix(lvId) {
+  let right = 0;
+  document.querySelectorAll('#fix-list .fill-input').forEach(inp => {
+    const i = +inp.dataset.fi;
+    const ans = FIX_DATA[i][1].toLowerCase().trim().replace(/[.!?]/g,'');
+    const user = inp.value.toLowerCase().trim().replace(/[.!?]/g,'');
+    inp.classList.remove('correct','wrong'); state.attempts++;
+    if (user === ans) { inp.classList.add('correct'); inp.value = FIX_DATA[i][1]; right++; state.correct++; state.score += 3; }
+    else { inp.classList.add('wrong'); inp.value = FIX_DATA[i][1]; }
+  });
+  updateExCurrent();
+  const box = document.getElementById('fix-result-box');
+  box.innerHTML = `<b>Нaтижa: ${right} / ${FIX_DATA.length}</b>`;
+  box.classList.add('show');
+  const lv = LEVELS.find(x => x.id === lvId);
+  setTimeout(() => completeLevel(lv, right === FIX_DATA.length ? 3 : right >= 2 ? 2 : 1), 1400);
+}
+
+/* ===== WRITE ===== */
+function renderWrite(body, lv) {
+  body.innerHTML = `
+    <ul style="margin: 0 0 14px; padding-left: 20px; color: #15347e; font-size: 14px; line-height: 2;">
+      ${lv.prompts.map(p => `<li>${p}${p.endsWith('…')||p.endsWith('...')?'':''}</li>`).join('')}
+    </ul>
+    <textarea class="write-area" id="write-area" placeholder="Ёз..." style="min-height: ${lv.id >= 10 ? '160px' : '120px'};"></textarea>
+    <div class="ex-actions">
+      <button class="btn btn-hint" onclick="toggleHint(this)">💡 Намуна</button>
+      <button class="btn btn-check" style="flex:2;" onclick="submitWrite(${lv.id})">Юбориш ✓</button>
+    </div>
+    <div class="answer-box" style="white-space: pre-wrap;">${lv.sample}</div>
+  `;
+}
+function toggleHint(btn) {
+  const box = btn.parentElement.nextElementSibling;
+  box.classList.toggle('show');
+  btn.innerHTML = box.classList.contains('show') ? '🙈 Яшириш' : '💡 Намуна';
+}
+function submitWrite(lvId) {
+  const area = document.getElementById('write-area');
+  const text = area.value.trim();
+  const lv = LEVELS.find(x => x.id === lvId);
+  if (text.length < 15) { area.style.borderColor = '#e42a3b'; area.focus(); return; }
+  state.score += lv.reward;
+  state.correct += 1; state.attempts += 1;
+  updateExCurrent();
+  // Simple heuristic for stars: by length
+  const stars = text.length > 300 ? 3 : text.length > 150 ? 2 : 1;
+  completeLevel(lv, stars);
+}
+
+/* =============== COMPLETE / TOAST =============== */
+function completeLevel(lv, stars) {
+  state.completedLevels.add(lv.id);
+  state.levelStars[lv.id] = Math.max(state.levelStars[lv.id] || 0, stars);
+  state.score += lv.reward;
+  if (lv.id === state.unlockedLevel && lv.id < LEVELS.length) {
+    state.unlockedLevel = lv.id + 1;
+  }
+  updateExCurrent();
+  showToast(lv, stars);
+}
+function showToast(lv, stars) {
+  const t = document.getElementById('toast');
+  const starStr = '⭐'.repeat(stars) + '☆'.repeat(3-stars);
+  document.getElementById('toast-emoji').textContent = stars === 3 ? '🏆' : stars === 2 ? '🎉' : '👍';
+  document.getElementById('toast-title').textContent = `Даража ${lv.id} ўтилди!`;
+  const nextLv = LEVELS[lv.id];
+  document.getElementById('toast-sub').innerHTML = `${starStr}<br>${nextLv ? `Кейинги даража очилди: <b>${nextLv.title}</b>` : 'БAРЧA ДAРAЖAЛAР ТУГAДИ!'}`;
+  document.getElementById('toast-reward').textContent = `⭐ +${lv.reward} балл`;
+  t.classList.add('show');
+  if (!nextLv) {
+    document.getElementById('chk-exercises').classList.add('done');
+    document.getElementById('chk-exercises').textContent = '✓';
+  }
+}
+function closeToast() {
+  document.getElementById('toast').classList.remove('show');
+  go('scr-levels');
+}
+function nextLevel() {
+  document.getElementById('toast').classList.remove('show');
+  const next = LEVELS[state.currentLevel.id];
+  if (next) openLevel(next.id);
+  else { go('scr-levels'); }
+}
+
+function updateExCurrent() {
+  document.getElementById('ex-current-score').textContent = state.score;
+  updateHome();
+}
+function updateHome() {
+  const total = PHRASES.length + IDIOMS.length;
+  const learned = state.learnedPhrases.size + state.learnedIdioms.size;
+  const exDone = state.completedLevels.size;
+  const pct = Math.min(100, Math.round(((learned + exDone*3) / (total + 33)) * 100));
+  document.getElementById('total-pct').textContent = pct + '%';
+  document.getElementById('total-fill').style.width = pct + '%';
+  document.getElementById('xp-learned').textContent = learned;
+  document.getElementById('xp-score').textContent = state.score;
+  document.getElementById('xp-streak').textContent = Math.min(state.correct, 99);
+}
+
+/* init */
+try{if(window.Telegram&&Telegram.WebApp){Telegram.WebApp.ready();Telegram.WebApp.expand();}}catch(e){}
+renderPhrase(); renderIdiom(); updateHome();
+</script>
+</body>
+</html>
